@@ -1,0 +1,8 @@
+[package]
+name = "halcyon"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bitmask-enum = "2.2.5"
+sdl3-sys = "0.4.7"
