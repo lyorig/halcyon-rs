@@ -2,6 +2,7 @@
 
 mod properties;
 
+pub mod defs;
 mod util;
 
 pub mod color;
@@ -29,9 +30,6 @@ mod tests {
 
     #[test]
     fn error() {
-        use crate::error;
-        use std::ops::Deref;
-
-        assert_eq!(error::get().deref(), c"");
+        assert_eq!(crate::error::get(), c"");
     }
 }

@@ -5,4 +5,4 @@ edition = "2024"
 
 [dependencies]
 bitmask-enum = "2.2.5"
-sdl3-sys = "0.4.7"
+sdl3-sys = "0.5.5"

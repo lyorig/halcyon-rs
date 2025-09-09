@@ -1,8 +1,8 @@
-use std::{ffi::CString, marker::PhantomData};
+use std::marker::PhantomData;
 
 use sdl3_sys::init::*;
 
-use crate::{context::Context, error};
+use crate::{context::Context, defs::SdlResult, error};
 
 /// A handle to an SDL subsystem.
 /// This doesn't actually de-initialize the
@@ -15,7 +15,7 @@ pub struct Subsystem<'ctx, const TYPE: u32> {
 }
 
 impl<'a, const N: u32> Subsystem<'a, N> {
-    pub fn new(_: &'a Context) -> Result<Self, CString> {
+    pub fn new(_: &'a Context) -> SdlResult<Self> {
         let res = unsafe { SDL_Init(N) };
         if res {
             Ok(Self {

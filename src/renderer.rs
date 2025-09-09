@@ -1,35 +1,94 @@
-use std::ffi::CString;
-
-use sdl3_sys::{
-    rect::SDL_FRect,
-    render::{
-        SDL_CreateRenderer, SDL_RenderClear, SDL_RenderPresent, SDL_RenderTexture, SDL_Renderer,
-    },
+use std::{
+    ffi::{CStr, c_void},
+    ptr::NonNull,
 };
 
-use crate::{error, texture::Texture, util, window::Window};
+use sdl3_sys::{rect::SDL_FRect, render::*};
 
-pub struct Renderer {
-    pub(crate) internal: *mut SDL_Renderer,
+use crate::{
+    defs::SdlResult,
+    error,
+    properties::Properties,
+    surface::Surface,
+    texture::Texture,
+    util::{self, to_result},
+    window::Window,
+};
+
+pub struct Builder {
+    inner: Properties,
 }
 
-impl Renderer {
-    pub fn new(wnd: &Window) -> Result<Self, CString> {
-        let internal = unsafe { SDL_CreateRenderer(wnd.internal, std::ptr::null()) };
-
-        if internal.is_null() {
-            Err(error::get())
-        } else {
-            Ok(Self { internal })
+impl Builder {
+    pub fn new() -> Self {
+        Self {
+            inner: Properties::new(),
         }
     }
 
-    pub fn clear(&self) -> Result<(), CString> {
-        util::btur(unsafe { SDL_RenderClear(self.internal) })
+    pub fn name(&mut self, value: &CStr) -> &mut Self {
+        let _ = self
+            .inner
+            .set_string(SDL_PROP_RENDERER_CREATE_NAME_STRING, value);
+
+        self
     }
 
-    pub fn present(&self) -> Result<(), CString> {
-        util::btur(unsafe { SDL_RenderPresent(self.internal) })
+    pub fn window(&mut self, value: &mut Window) -> &mut Self {
+        let _ = self.inner.set_pointer(
+            SDL_PROP_RENDERER_CREATE_WINDOW_POINTER,
+            value.handle.as_ptr() as *mut c_void,
+        );
+
+        self
+    }
+
+    pub fn surface(&mut self, value: &mut Surface) -> &mut Self {
+        let _ = self.inner.set_pointer(
+            SDL_PROP_RENDERER_CREATE_SURFACE_POINTER,
+            value.handle.as_ptr() as *mut c_void,
+        );
+
+        self
+    }
+
+    // TODO: Colorspace
+
+    pub fn vsync(&mut self, value: i64) -> &mut Self {
+        let _ = self
+            .inner
+            .set_number(SDL_PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER, value);
+
+        self
+    }
+
+    pub fn build(&self) -> SdlResult<Renderer> {
+        Renderer::from_ptr(unsafe { SDL_CreateRendererWithProperties(self.inner.id()) })
+    }
+}
+
+pub struct Renderer {
+    pub(crate) handle: NonNull<SDL_Renderer>,
+}
+
+impl Renderer {
+    fn from_ptr(ptr: *mut SDL_Renderer) -> SdlResult<Self> {
+        match NonNull::new(ptr) {
+            None => Err(error::get()),
+            Some(h) => Ok(Self { handle: h }),
+        }
+    }
+
+    pub fn new(wnd: &Window) -> SdlResult<Self> {
+        Self::from_ptr(unsafe { SDL_CreateRenderer(wnd.handle.as_ptr(), std::ptr::null()) })
+    }
+
+    pub fn clear(&self) -> SdlResult {
+        to_result(unsafe { SDL_RenderClear(self.handle.as_ptr()) })
+    }
+
+    pub fn present(&self) -> SdlResult {
+        to_result(unsafe { SDL_RenderPresent(self.handle.as_ptr()) })
     }
 
     pub fn draw(
@@ -37,11 +96,11 @@ impl Renderer {
         tex: &Texture,
         src: Option<&SDL_FRect>,
         dst: Option<&SDL_FRect>,
-    ) -> Result<(), CString> {
-        crate::util::btur(unsafe {
+    ) -> SdlResult {
+        to_result(unsafe {
             SDL_RenderTexture(
-                self.internal,
-                tex.internal,
+                self.handle.as_ptr(),
+                tex.handle.as_ptr(),
                 util::opt2ptr(src),
                 util::opt2ptr(dst),
             )
