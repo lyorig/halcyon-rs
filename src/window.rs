@@ -2,13 +2,13 @@ use crate::coord::Pixel;
 use crate::defs::SdlResult;
 use crate::error;
 use crate::properties::Properties;
-use crate::subsystem::Video;
 use crate::util::to_result;
 use bitmask_enum::bitmask;
 use sdl3_sys::video::*;
 use std::ffi::{CStr, c_void};
-use std::marker::PhantomData;
 use std::mem::MaybeUninit;
+use std::num::NonZero;
+use std::ops::{Deref, DerefMut};
 use std::ptr::NonNull;
 
 #[bitmask(u64)]
@@ -39,15 +39,13 @@ pub enum WindowFlags {
     NotFocusable = SDL_WINDOW_NOT_FOCUSABLE,
 }
 
-pub struct Builder<'a> {
-    marker: PhantomData<&'a Video<'a>>,
+pub struct WindowBuilder {
     inner: Properties,
 }
 
-impl<'a> Builder<'a> {
-    pub fn new(_: &'a Video) -> Self {
+impl WindowBuilder {
+    pub fn new() -> Self {
         Self {
-            marker: PhantomData,
             inner: Properties::new(),
         }
     }
@@ -149,10 +147,10 @@ impl<'a> Builder<'a> {
 
     // TODO: OpenGL
 
-    pub fn parent(&mut self, value: &mut Window) -> &mut Self {
+    pub fn parent(&mut self, value: impl Into<WindowRef>) -> &mut Self {
         let _ = self.inner.set_pointer(
             SDL_PROP_WINDOW_CREATE_PARENT_POINTER,
-            value.handle.as_ptr() as *mut c_void,
+            value.into().handle.as_ptr() as *mut c_void,
         );
         self
     }
@@ -227,44 +225,24 @@ impl<'a> Builder<'a> {
         self.y(y.into())
     }
 
-    pub fn build(&self) -> SdlResult<Window<'a>> {
+    #[doc(alias = "SDL_CreateWindowWithProperties")]
+    pub fn build(&self) -> SdlResult<Window> {
         Window::from_ptr(unsafe { SDL_CreateWindowWithProperties(self.inner.id()) })
     }
 }
 
-pub struct Window<'a> {
-    marker: PhantomData<&'a Video<'a>>,
+#[derive(Clone, Copy)]
+pub struct WindowRef {
     pub(crate) handle: NonNull<SDL_Window>,
 }
 
-impl<'a> Window<'a> {
-    pub const POS_CENTERED: i32 = SDL_WINDOWPOS_CENTERED;
-    pub const POS_UNDEFINED: i32 = SDL_WINDOWPOS_UNDEFINED;
-
-    fn from_ptr(handle: *mut SDL_Window) -> SdlResult<Self> {
-        match NonNull::new(handle) {
-            Some(h) => Ok(Self {
-                marker: PhantomData,
-                handle: h,
-            }),
-            None => Err(error::get()),
-        }
-    }
-
-    pub fn new(
-        _video: &'a Video,
-        title: &CStr,
-        width: i32,
-        height: i32,
-        flags: WindowFlags,
-    ) -> SdlResult<Self> {
-        Self::from_ptr(unsafe { SDL_CreateWindow(title.as_ptr(), width, height, flags.into()) })
-    }
-
+impl WindowRef {
+    #[doc(alias = "SDL_SyncWindow")]
     pub fn sync(&self) -> SdlResult {
         to_result(unsafe { SDL_SyncWindow(self.handle.as_ptr()) })
     }
 
+    #[doc(alias = "SDL_GetWindowSize")]
     pub fn size(&self) -> (i32, i32) {
         let mut ret = (MaybeUninit::uninit(), MaybeUninit::uninit());
 
@@ -275,8 +253,60 @@ impl<'a> Window<'a> {
     }
 }
 
-impl Drop for Window<'_> {
+pub struct Window {
+    pub(crate) inner: WindowRef,
+}
+
+impl Window {
+    pub const POS_CENTERED: i32 = SDL_WINDOWPOS_CENTERED;
+    pub const POS_UNDEFINED: i32 = SDL_WINDOWPOS_UNDEFINED;
+
+    fn from_ptr(handle: *mut SDL_Window) -> SdlResult<Self> {
+        match NonNull::new(handle) {
+            Some(h) => Ok(Self {
+                inner: WindowRef { handle: h },
+            }),
+            None => Err(error::get()),
+        }
+    }
+
+    #[doc(alias = "SDL_CreateWindow")]
+    pub fn new(title: &CStr, width: i32, height: i32, flags: WindowFlags) -> SdlResult<Self> {
+        Self::from_ptr(unsafe { SDL_CreateWindow(title.as_ptr(), width, height, flags.into()) })
+    }
+
+    /// Returns this window's unique ID.
+    /// An ID of 0 is invalid, so `NonZero` is returned instead.
+    #[doc(alias = "SDL_GetWindowID")]
+    pub fn id(&self) -> NonZero<SDL_WindowID> {
+        NonZero::new(unsafe { SDL_GetWindowID(self.inner.handle.as_ptr()) })
+            .expect("SDL_GetWindowID returned invalid (zero) ID")
+    }
+}
+
+impl Deref for Window {
+    type Target = WindowRef;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl DerefMut for Window {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
+
+impl From<&Window> for WindowRef {
+    fn from(value: &Window) -> Self {
+        value.inner
+    }
+}
+
+impl Drop for Window {
+    #[doc(alias = "SDL_DestroyWindow")]
     fn drop(&mut self) {
-        unsafe { SDL_DestroyWindow(self.handle.as_ptr()) }
+        unsafe { SDL_DestroyWindow(self.inner.handle.as_ptr()) }
     }
 }

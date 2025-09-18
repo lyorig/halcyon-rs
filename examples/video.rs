@@ -2,11 +2,11 @@ use halcyon::{
     color::Color,
     context::Context,
     defs::SdlResult,
-    renderer::{self},
+    renderer::RendererBuilder,
     subsystem::Video,
     surface::Surface,
     texture::Texture,
-    window::{self, Window},
+    window::{Window, WindowBuilder},
 };
 
 use sdl3_sys::pixels::SDL_PixelFormat;
@@ -20,29 +20,22 @@ fn filled_surface(c: Color) -> SdlResult<Surface> {
 /// SAFETY: Only call this on the main thread!
 unsafe fn run() -> SdlResult {
     let ctx = unsafe { Context::new() };
-    let vid = Video::new(&ctx).expect("Video creation failed");
+    let _vid = Video::new(&ctx).expect("Video creation failed");
 
-    let mut wnd = window::Builder::new(&vid)
+    let wnd = WindowBuilder::new()
         .position((Window::POS_CENTERED, Window::POS_CENTERED))
         .title(c"Halcyon Example")
         .size((640, 480))
-        .build()
-        .expect("Window creation failed");
+        .build()?;
 
-    let _ = wnd.sync();
+    wnd.sync()?;
 
-    let rnd = renderer::Builder::new()
-        .vsync(1)
-        .window(&mut wnd)
-        .build()
-        .expect("Renderer creation failed");
-
-    let tex = Texture::from_surface(&rnd, &filled_surface(Color::CYAN)?)
-        .expect("Texture creation failed");
+    let rnd = RendererBuilder::new(&wnd).vsync(1).build()?;
+    let tex = Texture::from_surface(&rnd, &filled_surface(Color::CYAN)?)?;
 
     for _ in 0..240 {
         let _ = rnd.clear();
-        rnd.draw(&tex, None, None).expect("Drawing failed");
+        let _ = rnd.draw(&tex, None, None);
         let _ = rnd.present();
     }
 

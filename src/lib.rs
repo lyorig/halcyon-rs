@@ -2,18 +2,18 @@
 
 mod properties;
 
-pub mod defs;
-mod util;
-
 pub mod color;
 pub mod context;
 pub mod coord;
+pub mod defs;
 pub mod error;
-
+pub mod event;
+pub mod keyboard;
 pub mod renderer;
 pub mod subsystem;
 pub mod surface;
 pub mod texture;
+pub mod util;
 pub mod window;
 
 #[cfg(test)]

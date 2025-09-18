@@ -6,11 +6,12 @@ use sdl3_sys::platform::SDL_GetPlatform;
 pub struct Context;
 
 impl Context {
-    // SAFETY: Only call this on the main thread.
+    /// SAFETY: Only call this on the main thread.
     pub unsafe fn new() -> Self {
         Self {}
     }
 
+    #[doc(alias = "SDL_GetPlatform")]
     pub fn platform() -> &'static str {
         use std::ffi::CStr;
 
@@ -27,6 +28,7 @@ impl Context {
 }
 
 impl Drop for Context {
+    #[doc(alias = "SDL_Quit")]
     fn drop(&mut self) {
         unsafe { SDL_Quit() };
     }
