@@ -77,6 +77,11 @@ impl RendererBuilder {
         self
     }
 
+    /// Build the renderer.
+    ///
+    /// This doesn't require a `Video` subsystem parameter, as the `Window`
+    /// you're creating this with needs one, proving the subsystem has been
+    /// initialized.
     #[doc(alias = "SDL_CreateRendererWithProperties")]
     pub fn build(&self) -> SdlResult<Renderer> {
         Renderer::from_ptr(unsafe { SDL_CreateRendererWithProperties(self.inner.id()) })

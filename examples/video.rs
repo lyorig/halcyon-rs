@@ -20,13 +20,13 @@ fn filled_surface(c: Color) -> SdlResult<Surface> {
 /// SAFETY: Only call this on the main thread!
 unsafe fn run() -> SdlResult {
     let ctx = unsafe { Context::new() };
-    let _vid = Video::new(&ctx).expect("Video creation failed");
+    let vid = Video::new(&ctx).expect("Video creation failed");
 
     let wnd = WindowBuilder::new()
         .position((Window::POS_CENTERED, Window::POS_CENTERED))
         .title(c"Halcyon Example")
         .size((640, 480))
-        .build()?;
+        .build(&vid)?;
 
     wnd.sync()?;
 

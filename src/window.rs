@@ -2,6 +2,7 @@ use crate::coord::Pixel;
 use crate::defs::SdlResult;
 use crate::error;
 use crate::properties::Properties;
+use crate::subsystem::Video;
 use crate::util::to_result;
 use bitmask_enum::bitmask;
 use sdl3_sys::video::*;
@@ -71,7 +72,7 @@ impl WindowBuilder {
         self
     }
 
-    // TODO External graphics context
+    // TODO: External graphics context
 
     pub fn focusable(&mut self, value: bool) -> &mut Self {
         let _ = self
@@ -225,8 +226,13 @@ impl WindowBuilder {
         self.y(y.into())
     }
 
+    /// Build the window.
+    ///
+    /// This requires a `Video` subsystem as a parameter to "prove"
+    /// you've initialized it. SDL would've probably errored if you hadn't
+    /// anyway, but it's a zero-cost way to prevent cross-platform bugs.
     #[doc(alias = "SDL_CreateWindowWithProperties")]
-    pub fn build(&self) -> SdlResult<Window> {
+    pub fn build(&self, _subsystem: &Video) -> SdlResult<Window> {
         Window::from_ptr(unsafe { SDL_CreateWindowWithProperties(self.inner.id()) })
     }
 }
