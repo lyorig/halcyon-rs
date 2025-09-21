@@ -1,8 +1,4 @@
-use std::{
-    mem::MaybeUninit,
-    ops::{Deref, DerefMut},
-    ptr::NonNull,
-};
+use std::mem::MaybeUninit;
 
 use sdl3_sys::{
     pixels::SDL_PixelFormat,
@@ -12,12 +8,9 @@ use sdl3_sys::{
     },
 };
 
-use crate::{coord::Pixel, defs::SdlResult, error, renderer::RendererRef, surface::SurfaceRef};
+use crate::{coord::Pixel, defs::SdlResult, renderer::RendererRef, resource, surface::SurfaceRef};
 
-#[derive(Clone, Copy)]
-pub struct TextureRef {
-    pub(crate) handle: NonNull<SDL_Texture>,
-}
+resource!(Texture, TextureRef, SDL_Texture, SDL_DestroyTexture);
 
 impl TextureRef {
     #[doc(alias = "SDL_GetTextureSize")]
@@ -32,29 +25,16 @@ impl TextureRef {
     }
 }
 
-pub struct Texture {
-    inner: TextureRef,
-}
-
 impl Texture {
-    fn from_ptr(handle: *mut SDL_Texture) -> SdlResult<Texture> {
-        match NonNull::new(handle) {
-            Some(handle) => Ok(Texture {
-                inner: TextureRef { handle },
-            }),
-            None => Err(error::get()),
-        }
-    }
-
     #[doc(alias = "SDL_CreateTexture")]
     pub fn new(
-        rnd: impl Into<RendererRef>,
+        rnd: RendererRef,
         fmt: SDL_PixelFormat,
         access: SDL_TextureAccess,
         size: (Pixel, Pixel),
     ) -> SdlResult<Texture> {
         Self::from_ptr(unsafe {
-            SDL_CreateTexture(rnd.into().handle.as_ptr(), fmt, access, size.0, size.1)
+            SDL_CreateTexture(rnd.handle.as_ptr(), fmt, access, size.0, size.1)
         })
     }
 
@@ -66,32 +46,5 @@ impl Texture {
         Self::from_ptr(unsafe {
             SDL_CreateTextureFromSurface(rnd.into().handle.as_ptr(), surf.into().handle.as_ptr())
         })
-    }
-}
-
-impl Deref for Texture {
-    type Target = TextureRef;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-impl DerefMut for Texture {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.inner
-    }
-}
-
-impl From<&Texture> for TextureRef {
-    fn from(value: &Texture) -> Self {
-        value.inner
-    }
-}
-
-impl Drop for Texture {
-    #[doc(alias = "SDL_DestroyTexture")]
-    fn drop(&mut self) {
-        unsafe { SDL_DestroyTexture(self.inner.handle.as_ptr()) }
     }
 }

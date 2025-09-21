@@ -18,6 +18,7 @@ version = "0.1.0"
 dependencies = [
  "bitmask-enum",
  "sdl3-sys",
+ "sdl3-ttf-sys",
 ]
 
 [[package]]
@@ -43,6 +44,15 @@ name = "sdl3-sys"
 version = "0.5.5+SDL3-3.2.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "488b4c68d9c0a450087a8b7c9dc6921483354127b0e60033d2d9b8f6a281331b"
+
+[[package]]
+name = "sdl3-ttf-sys"
+version = "0.2.0+SDL3-ttf-3.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d1d8477496fa2b081fb8f63cf8d0a9a9ba6a7a8f2a21b87e7d13d2ab6d73582"
+dependencies = [
+ "sdl3-sys",
+]
 
 [[package]]
 name = "syn"

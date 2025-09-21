@@ -13,6 +13,7 @@ pub mod renderer;
 pub mod subsystem;
 pub mod surface;
 pub mod texture;
+pub mod ttf;
 pub mod util;
 pub mod window;
 

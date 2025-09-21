@@ -1,8 +1,4 @@
-use std::{
-    ffi::{CStr, c_void},
-    ops::{Deref, DerefMut},
-    ptr::NonNull,
-};
+use std::ffi::{CStr, c_void};
 
 use sdl3_sys::{
     pixels::SDL_Colorspace,
@@ -12,8 +8,8 @@ use sdl3_sys::{
 
 use crate::{
     defs::SdlResult,
-    error,
     properties::Properties,
+    resource,
     surface::SurfaceRef,
     texture::TextureRef,
     util::{self, to_result},
@@ -66,6 +62,7 @@ impl RendererBuilder {
             SDL_PROP_RENDERER_CREATE_OUTPUT_COLORSPACE_NUMBER,
             value.0.into(),
         );
+
         self
     }
 
@@ -88,10 +85,7 @@ impl RendererBuilder {
     }
 }
 
-#[derive(Clone, Copy)]
-pub struct RendererRef {
-    pub(crate) handle: NonNull<SDL_Renderer>,
-}
+resource!(Renderer, RendererRef, SDL_Renderer, SDL_DestroyRenderer);
 
 impl RendererRef {
     #[doc(alias = "SDL_RenderClear")]
@@ -199,51 +193,9 @@ impl RendererRef {
     }
 }
 
-pub struct Renderer {
-    pub(crate) inner: RendererRef,
-}
-
 impl Renderer {
-    fn from_ptr(ptr: *mut SDL_Renderer) -> SdlResult<Renderer> {
-        match NonNull::new(ptr) {
-            None => Err(error::get()),
-            Some(handle) => Ok(Renderer {
-                inner: RendererRef { handle },
-            }),
-        }
-    }
-
     #[doc(alias = "SDL_CreateRenderer")]
     pub fn new(wnd: impl Into<WindowRef>) -> SdlResult<Renderer> {
         Self::from_ptr(unsafe { SDL_CreateRenderer(wnd.into().handle.as_ptr(), std::ptr::null()) })
-    }
-}
-
-impl Deref for Renderer {
-    type Target = RendererRef;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-impl DerefMut for Renderer {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.inner
-    }
-}
-
-impl From<&Renderer> for RendererRef {
-    fn from(value: &Renderer) -> Self {
-        value.inner
-    }
-}
-
-impl Drop for Renderer {
-    #[doc(alias = "SDL_DestroyRenderer")]
-    fn drop(&mut self) {
-        unsafe {
-            SDL_DestroyRenderer(self.inner.handle.as_ptr());
-        }
     }
 }

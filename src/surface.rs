@@ -1,22 +1,14 @@
-use std::{
-    ops::{Deref, DerefMut},
-    ptr::NonNull,
-};
-
 use crate::{
     color::Color,
     coord,
     defs::SdlResult,
-    error,
+    resource,
     util::{self, to_result},
 };
 
 use sdl3_sys::{pixels::SDL_PixelFormat, rect::SDL_Rect, surface::*};
 
-#[derive(Clone, Copy)]
-pub struct SurfaceRef {
-    pub(crate) handle: NonNull<SDL_Surface>,
-}
+resource!(Surface, SurfaceRef, SDL_Surface, SDL_DestroySurface);
 
 impl SurfaceRef {
     pub fn size(&self) -> (coord::Pixel, coord::Pixel) {
@@ -52,64 +44,19 @@ impl SurfaceRef {
     fn map_color(&self, c: Color) -> u32 {
         unsafe { SDL_MapSurfaceRGBA(self.handle.as_ptr(), c.r, c.g, c.b, c.a) }
     }
-}
 
-pub struct Surface {
-    pub(crate) inner: SurfaceRef,
+    #[doc(alias = "SDL_DuplicateSurface")]
+    fn try_clone(&self) -> SdlResult<Surface> {
+        Surface::from_ptr(unsafe { SDL_DuplicateSurface(self.handle.as_ptr()) })
+    }
 }
 
 impl Surface {
-    fn from_ptr(handle: *mut SDL_Surface) -> SdlResult<Self> {
-        match NonNull::new(handle) {
-            Some(handle) => Ok(Self {
-                inner: SurfaceRef { handle },
-            }),
-            None => Err(error::get()),
-        }
-    }
-
     #[doc(alias = "SDL_CreateSurface")]
     pub fn from_size_and_format(
         size: (coord::Pixel, coord::Pixel),
         format: SDL_PixelFormat,
     ) -> SdlResult<Self> {
         Self::from_ptr(unsafe { SDL_CreateSurface(size.0, size.1, format) })
-    }
-}
-
-impl Deref for Surface {
-    type Target = SurfaceRef;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-impl DerefMut for Surface {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.inner
-    }
-}
-
-impl From<&Surface> for SurfaceRef {
-    fn from(value: &Surface) -> Self {
-        value.inner
-    }
-}
-
-impl Clone for Surface {
-    #[doc(alias = "SDL_DuplicateSurface")]
-    fn clone(&self) -> Self {
-        Self::from_ptr(unsafe { SDL_DuplicateSurface(self.inner.handle.as_ptr()) })
-            .expect("Failed to duplicate surface")
-    }
-}
-
-impl Drop for Surface {
-    #[doc(alias = "SDL_DestroySurface")]
-    fn drop(&mut self) {
-        unsafe {
-            SDL_DestroySurface(self.inner.handle.as_ptr());
-        }
     }
 }

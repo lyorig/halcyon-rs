@@ -1,3 +1,5 @@
+use sdl3_sys::pixels::SDL_Color;
+
 #[cfg(target_endian = "big")]
 compile_error!("The color crate doesn't support big-endian architectures.");
 
@@ -96,6 +98,12 @@ impl Color {
 impl From<(u8, u8, u8, u8)> for Color {
     fn from(value: (u8, u8, u8, u8)) -> Self {
         Self::from_rgba(value.0, value.1, value.2, value.3)
+    }
+}
+
+impl From<SDL_Color> for Color {
+    fn from(value: SDL_Color) -> Self {
+        Self::from_rgba(value.r, value.g, value.b, value.a)
     }
 }
 
