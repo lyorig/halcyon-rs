@@ -4,7 +4,7 @@ use std::{ffi::CStr, mem::MaybeUninit};
 
 use sdl3_ttf_sys::ttf::*;
 
-use crate::{color::Color, defs::SdlResult, error, resource};
+use crate::{color::Color, defs::SdlResult, error::get_error, resource};
 
 /// Ensures SDL_ttf (de)initialization.
 pub struct TtfContext;
@@ -15,7 +15,7 @@ impl TtfContext {
         if unsafe { TTF_Init() } {
             Ok(Self {})
         } else {
-            Err(error::get())
+            Err(get_error())
         }
     }
 }

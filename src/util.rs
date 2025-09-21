@@ -1,6 +1,6 @@
 use std::ffi::CStr;
 
-use crate::{defs::SdlResult, error};
+use crate::{defs::SdlResult, error::get_error};
 
 /// Implement shared traits for resources.
 /// Currently, this implements:
@@ -49,7 +49,7 @@ macro_rules! fn_from_ptr {
                 Some(handle) => Ok(Self {
                     inner: $ref { handle },
                 }),
-                None => Err(crate::error::get()),
+                None => Err(crate::error::get_error()),
             }
         }
     };
@@ -84,7 +84,7 @@ pub fn opt2ptr<T>(opt: Option<&T>) -> *const T {
 }
 
 pub fn to_result(result: bool) -> SdlResult {
-    if result { Ok(()) } else { Err(error::get()) }
+    if result { Ok(()) } else { Err(get_error()) }
 }
 
 /// Convert a `*const i8` (commonly used in FFI) to a `&str`.
