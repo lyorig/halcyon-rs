@@ -1,10 +1,133 @@
 //! SDL_ttf wrapper.
+//!
+//! Implementation checklist:
+//! - [ ] TTF_AddFallbackFont
+//! - [ ] TTF_AppendTextString
+//! - [ ] TTF_ClearFallbackFonts
+//! - [x] TTF_CloseFont
+//! - [x] TTF_CopyFont
+//! - [ ] TTF_CreateGPUTextEngine
+//! - [ ] TTF_CreateGPUTextEngineWithProperties
+//! - [ ] TTF_CreateRendererTextEngine
+//! - [ ] TTF_CreateRendererTextEngineWithProperties
+//! - [ ] TTF_CreateSurfaceTextEngine
+//! - [x] TTF_CreateText
+//! - [ ] TTF_DeleteTextString
+//! - [ ] TTF_DestroyGPUTextEngine
+//! - [ ] TTF_DestroyRendererTextEngine
+//! - [ ] TTF_DestroySurfaceTextEngine
+//! - [x] TTF_DestroyText
+//! - [ ] TTF_DrawRendererText
+//! - [ ] TTF_DrawSurfaceText
+//! - [ ] TTF_FontHasGlyph
+//! - [ ] TTF_FontIsFixedWidth
+//! - [ ] TTF_FontIsScalable
+//! - [ ] TTF_GetFontAscent
+//! - [ ] TTF_GetFontCharSpacing
+//! - [ ] TTF_GetFontDescent
+//! - [ ] TTF_GetFontDirection
+//! - [ ] TTF_GetFontDPI
+//! - [ ] TTF_GetFontFamilyName
+//! - [ ] TTF_GetFontGeneration
+//! - [ ] TTF_GetFontHeight
+//! - [ ] TTF_GetFontHinting
+//! - [ ] TTF_GetFontKerning
+//! - [ ] TTF_GetFontLineSkip
+//! - [ ] TTF_GetFontOutline
+//! - [ ] TTF_GetFontProperties
+//! - [ ] TTF_GetFontScript
+//! - [ ] TTF_GetFontSDF
+//! - [ ] TTF_GetFontSize
+//! - [ ] TTF_GetFontStyle
+//! - [ ] TTF_GetFontStyleName
+//! - [ ] TTF_GetFontWeight
+//! - [ ] TTF_GetFontWrapAlignment
+//! - [ ] TTF_GetFreeTypeVersion
+//! - [ ] TTF_GetGlyphImage
+//! - [ ] TTF_GetGlyphImageForIndex
+//! - [ ] TTF_GetGlyphKerning
+//! - [ ] TTF_GetGlyphMetrics
+//! - [ ] TTF_GetGlyphScript
+//! - [ ] TTF_GetGPUTextDrawData
+//! - [ ] TTF_GetGPUTextEngineWinding
+//! - [ ] TTF_GetHarfBuzzVersion
+//! - [ ] TTF_GetNextTextSubString
+//! - [ ] TTF_GetNumFontFaces
+//! - [ ] TTF_GetPreviousTextSubString
+//! - [ ] TTF_GetStringSize
+//! - [ ] TTF_GetStringSizeWrapped
+//! - [x] TTF_GetTextColor
+//! - [ ] TTF_GetTextColorFloat
+//! - [ ] TTF_GetTextDirection
+//! - [ ] TTF_GetTextEngine
+//! - [ ] TTF_GetTextFont
+//! - [ ] TTF_GetTextPosition
+//! - [ ] TTF_GetTextProperties
+//! - [ ] TTF_GetTextScript
+//! - [x] TTF_GetTextSize
+//! - [ ] TTF_GetTextSubString
+//! - [ ] TTF_GetTextSubStringForLine
+//! - [ ] TTF_GetTextSubStringForPoint
+//! - [ ] TTF_GetTextSubStringsForRange
+//! - [ ] TTF_GetTextWrapWidth
+//! - [x] TTF_Init
+//! - [ ] TTF_InsertTextString
+//! - [ ] TTF_MeasureString
+//! - [x] TTF_OpenFont
+//! - [ ] TTF_OpenFontIO
+//! - [ ] TTF_OpenFontWithProperties
+//! - [x] TTF_Quit
+//! - [ ] TTF_RemoveFallbackFont
+//! - [x] TTF_RenderGlyph_Blended
+//! - [x] TTF_RenderGlyph_LCD
+//! - [x] TTF_RenderGlyph_Shaded
+//! - [x] TTF_RenderGlyph_Solid
+//! - [x] TTF_RenderText_Blended
+//! - [x] TTF_RenderText_Blended_Wrapped
+//! - [x] TTF_RenderText_LCD
+//! - [x] TTF_RenderText_LCD_Wrapped
+//! - [x] TTF_RenderText_Shaded
+//! - [x] TTF_RenderText_Shaded_Wrapped
+//! - [x] TTF_RenderText_Solid
+//! - [x] TTF_RenderText_Solid_Wrapped
+//! - [ ] TTF_SetFontCharSpacing
+//! - [ ] TTF_SetFontDirection
+//! - [ ] TTF_SetFontHinting
+//! - [ ] TTF_SetFontKerning
+//! - [ ] TTF_SetFontLanguage
+//! - [ ] TTF_SetFontLineSkip
+//! - [ ] TTF_SetFontOutline
+//! - [ ] TTF_SetFontScript
+//! - [ ] TTF_SetFontSDF
+//! - [ ] TTF_SetFontSize
+//! - [ ] TTF_SetFontSizeDPI
+//! - [ ] TTF_SetFontStyle
+//! - [ ] TTF_SetFontWrapAlignment
+//! - [ ] TTF_SetGPUTextEngineWinding
+//! - [x] TTF_SetTextColor
+//! - [ ] TTF_SetTextColorFloat
+//! - [ ] TTF_SetTextDirection
+//! - [ ] TTF_SetTextEngine
+//! - [ ] TTF_SetTextFont
+//! - [ ] TTF_SetTextPosition
+//! - [ ] TTF_SetTextScript
+//! - [ ] TTF_SetTextString
+//! - [ ] TTF_SetTextWrapWhitespaceVisible
+//! - [ ] TTF_SetTextWrapWidth
+//! - [ ] TTF_StringToTag
+//! - [ ] TTF_TagToString
+//! - [ ] TTF_TextWrapWhitespaceVisible
+//! - [x] TTF_UpdateText
+//! - [x] TTF_Version
+//! - [x] TTF_WasInit
 
 use std::{ffi::CStr, mem::MaybeUninit};
 
 use sdl3_ttf_sys::ttf::*;
 
-use crate::{color::Color, defs::SdlResult, error::get_error, resource};
+use crate::{
+    color::Color, defs::SdlResult, error::get_error, resource, surface::Surface, util::to_result,
+};
 
 /// Ensures SDL_ttf (de)initialization.
 pub struct TtfContext;
@@ -17,6 +140,16 @@ impl TtfContext {
         } else {
             Err(get_error())
         }
+    }
+
+    #[doc(alias = "TTF_WasInit")]
+    fn initialized() -> bool {
+        unsafe { TTF_WasInit() != 0 }
+    }
+
+    #[doc(alias = "TTF_Version")]
+    fn version() -> i32 {
+        unsafe { TTF_Version() }
     }
 }
 
@@ -31,8 +164,162 @@ resource!(Font, FontRef, TTF_Font, TTF_CloseFont);
 
 impl FontRef {
     #[doc(alias = "TTF_CopyFont")]
-    fn try_clone(&self) -> SdlResult<Font> {
+    pub fn try_clone(&self) -> SdlResult<Font> {
         Font::from_ptr(unsafe { TTF_CopyFont(self.handle.as_ptr()) })
+    }
+
+    #[doc(alias = "TTF_RenderGlyph_Blended")]
+    pub fn render_glyph_blended(&self, ch: char, fg: Color) -> SdlResult<Surface> {
+        Surface::from_ptr(unsafe {
+            TTF_RenderGlyph_Blended(self.handle.as_ptr(), ch.into(), fg.into())
+        })
+    }
+
+    #[doc(alias = "TTF_RenderGlyph_LCD")]
+    pub fn render_glyph_lcd(&self, ch: char, fg: Color, bg: Color) -> SdlResult<Surface> {
+        Surface::from_ptr(unsafe {
+            TTF_RenderGlyph_LCD(self.handle.as_ptr(), ch.into(), fg.into(), bg.into())
+        })
+    }
+
+    #[doc(alias = "TTF_RenderGlyph_Shaded")]
+    pub fn render_glyph_shaded(&self, ch: char, fg: Color, bg: Color) -> SdlResult<Surface> {
+        Surface::from_ptr(unsafe {
+            TTF_RenderGlyph_Shaded(self.handle.as_ptr(), ch.into(), fg.into(), bg.into())
+        })
+    }
+
+    #[doc(alias = "TTF_RenderGlyph_Solid")]
+    pub fn render_glyph_solid(&self, ch: char, fg: Color) -> SdlResult<Surface> {
+        Surface::from_ptr(unsafe {
+            TTF_RenderGlyph_Solid(self.handle.as_ptr(), ch.into(), fg.into())
+        })
+    }
+
+    #[doc(alias = "TTF_RenderText_Blended")]
+    pub fn render_text_blended(&self, text: &CStr, fg: Color) -> SdlResult<Surface> {
+        Surface::from_ptr(unsafe {
+            TTF_RenderText_Blended(
+                self.handle.as_ptr(),
+                text.as_ptr(),
+                text.count_bytes(),
+                fg.into(),
+            )
+        })
+    }
+
+    #[doc(alias = "TTF_RenderText_LCD")]
+    pub fn render_text_lcd(&self, text: &CStr, fg: Color, bg: Color) -> SdlResult<Surface> {
+        Surface::from_ptr(unsafe {
+            TTF_RenderText_LCD(
+                self.handle.as_ptr(),
+                text.as_ptr(),
+                text.count_bytes(),
+                fg.into(),
+                bg.into(),
+            )
+        })
+    }
+
+    #[doc(alias = "TTF_RenderText_Shaded")]
+    pub fn render_text_shaded(&self, text: &CStr, fg: Color, bg: Color) -> SdlResult<Surface> {
+        Surface::from_ptr(unsafe {
+            TTF_RenderText_Shaded(
+                self.handle.as_ptr(),
+                text.as_ptr(),
+                text.count_bytes(),
+                fg.into(),
+                bg.into(),
+            )
+        })
+    }
+
+    #[doc(alias = "TTF_RenderText_Solid")]
+    pub fn render_text_solid(&self, text: &CStr, fg: Color) -> SdlResult<Surface> {
+        Surface::from_ptr(unsafe {
+            TTF_RenderText_Solid(
+                self.handle.as_ptr(),
+                text.as_ptr(),
+                text.count_bytes(),
+                fg.into(),
+            )
+        })
+    }
+
+    #[doc(alias = "TTF_RenderText_Blended_Wrapped")]
+    pub fn render_text_blended_wrapped(
+        &self,
+        text: &CStr,
+        fg: Color,
+        wrap_length: i32,
+    ) -> SdlResult<Surface> {
+        Surface::from_ptr(unsafe {
+            TTF_RenderText_Blended_Wrapped(
+                self.handle.as_ptr(),
+                text.as_ptr(),
+                text.count_bytes(),
+                fg.into(),
+                wrap_length,
+            )
+        })
+    }
+
+    #[doc(alias = "TTF_RenderText_LCD_Wrapped")]
+    pub fn render_text_lcd_wrapped(
+        &self,
+        text: &CStr,
+        fg: Color,
+        bg: Color,
+        wrap_length: i32,
+    ) -> SdlResult<Surface> {
+        Surface::from_ptr(unsafe {
+            TTF_RenderText_LCD_Wrapped(
+                self.handle.as_ptr(),
+                text.as_ptr(),
+                text.count_bytes(),
+                fg.into(),
+                bg.into(),
+                wrap_length,
+            )
+        })
+    }
+
+    #[doc(alias = "TTF_RenderText_Shaded_Wrapped")]
+    pub fn render_text_shaded_wrapped(
+        &self,
+        text: &CStr,
+        fg: Color,
+        bg: Color,
+        wrap_length: i32,
+    ) -> SdlResult<Surface> {
+        Surface::from_ptr(unsafe {
+            TTF_RenderText_Shaded_Wrapped(
+                self.handle.as_ptr(),
+                text.as_ptr(),
+                text.count_bytes(),
+                fg.into(),
+                bg.into(),
+                wrap_length,
+            )
+        })
+    }
+
+    #[doc(alias = "TTF_RenderText_Solid_Wrapped")]
+    pub fn render_text_solid_wrapped(
+        &self,
+        text: &CStr,
+        fg: Color,
+        wrap_length: i32,
+    ) -> SdlResult<Surface> {
+        Surface::from_ptr(unsafe {
+            TTF_RenderText_Solid_Wrapped(
+                self.handle.as_ptr(),
+                text.as_ptr(),
+                text.count_bytes(),
+                fg.into(),
+                wrap_length,
+            )
+        })
     }
 }
 
@@ -75,5 +362,29 @@ impl TextRef {
 
             col.assume_init()
         }
+    }
+
+    #[doc(alias = "TTF_SetTextColor")]
+    pub fn set_color(&self, c: Color) -> SdlResult {
+        to_result(unsafe { TTF_SetTextColor(self.handle.as_ptr(), c.r, c.g, c.b, c.a) })
+    }
+
+    #[doc(alias = "TTF_UpdateText")]
+    pub fn update(&self) -> SdlResult {
+        to_result(unsafe { TTF_UpdateText(self.handle.as_ptr()) })
+    }
+}
+
+impl Text {
+    #[doc(alias = "TTF_CreateText")]
+    fn new(font: &Font, text: &CStr) -> SdlResult<Self> {
+        Self::from_ptr(unsafe {
+            TTF_CreateText(
+                std::ptr::null_mut(),
+                font.inner.handle.as_ptr(),
+                text.as_ptr(),
+                text.count_bytes(),
+            )
+        })
     }
 }

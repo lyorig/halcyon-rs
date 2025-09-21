@@ -2,14 +2,30 @@ use std::ffi::CStr;
 
 use crate::{defs::SdlResult, error::get_error};
 
-/// Implement shared traits for resources.
-/// Currently, this implements:
-/// - std::ops::Deref
-/// - std::ops::DerefMut
-/// - From
+/// Define a resource and implement shared traits and member functions.
 #[macro_export]
-macro_rules! impl_resource_traits {
-    ($owned:ty, $ref: ty, $dtor:expr) => {
+macro_rules! resource {
+    ($owned:ident, $ref:ident, $opaque:ty, $dtor:expr) => {
+        #[derive(Clone, Copy)]
+        pub struct $ref {
+            pub(crate) handle: std::ptr::NonNull<$opaque>,
+        }
+
+        pub struct $owned {
+            inner: $ref,
+        }
+
+        impl $owned {
+            pub(crate) fn from_ptr(handle: *mut $opaque) -> crate::defs::SdlResult<Self> {
+                match std::ptr::NonNull::new(handle) {
+                    Some(handle) => Ok(Self {
+                        inner: $ref { handle },
+                    }),
+                    None => Err(crate::error::get_error()),
+                }
+            }
+        }
+
         impl std::ops::Deref for $owned {
             type Target = $ref;
             fn deref(&self) -> &Self::Target {
@@ -34,45 +50,6 @@ macro_rules! impl_resource_traits {
                 unsafe { $dtor(self.inner.handle.as_ptr()) }
             }
         }
-    };
-}
-
-/// Defines `from_ptr(*mut $opaque) -> SdlResult<Self>`, to be
-/// used by constructors calling SDL's pointer-returning functions.
-///
-/// Must be called in an `impl` block.
-#[macro_export]
-macro_rules! fn_from_ptr {
-    ($ref:tt, $opaque:ty) => {
-        fn from_ptr(handle: *mut $opaque) -> crate::defs::SdlResult<Self> {
-            match std::ptr::NonNull::new(handle) {
-                Some(handle) => Ok(Self {
-                    inner: $ref { handle },
-                }),
-                None => Err(crate::error::get_error()),
-            }
-        }
-    };
-}
-
-/// Define a resource and implement shared traits and member functions.
-#[macro_export]
-macro_rules! resource {
-    ($owned:ident, $ref:ident, $opaque:ty, $dtor:expr) => {
-        #[derive(Clone, Copy)]
-        pub struct $ref {
-            pub(crate) handle: std::ptr::NonNull<$opaque>,
-        }
-
-        pub struct $owned {
-            inner: $ref,
-        }
-
-        impl $owned {
-            crate::fn_from_ptr!($ref, $opaque);
-        }
-
-        crate::impl_resource_traits!($owned, $ref, $dtor);
     };
 }
 

@@ -19,18 +19,16 @@ pub mod window;
 
 #[cfg(test)]
 mod tests {
-    use crate::subsystem::Video;
+    use crate::{context::Context, error::get_error, subsystem::Video};
 
     #[test]
     fn context() {
-        use crate::context::Context;
-
         let ctx = unsafe { Context::new() };
         let _vid = Video::new(&ctx).expect("Yuup");
     }
 
     #[test]
     fn error() {
-        assert_eq!(crate::error::get(), c"");
+        assert_eq!(get_error(), c"");
     }
 }

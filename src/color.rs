@@ -107,6 +107,17 @@ impl From<SDL_Color> for Color {
     }
 }
 
+impl From<Color> for SDL_Color {
+    fn from(value: Color) -> Self {
+        SDL_Color {
+            r: value.r,
+            g: value.g,
+            b: value.b,
+            a: value.a,
+        }
+    }
+}
+
 impl std::ops::Add for Color {
     type Output = Self;
 
