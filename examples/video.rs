@@ -1,7 +1,7 @@
 use halcyon::{
-    color::Color,
     context::Context,
     defs::SdlResult,
+    event::{Event, EventIter},
     renderer::RendererBuilder,
     subsystem::Video,
     surface::Surface,
@@ -11,7 +11,7 @@ use halcyon::{
 
 use sdl3_sys::pixels::SDL_PixelFormat;
 
-fn filled_surface(c: Color) -> SdlResult<Surface> {
+fn filled_surface(c: (u8, u8, u8, u8)) -> SdlResult<Surface> {
     let surf = Surface::from_size_and_format((128, 128), SDL_PixelFormat::RGB24)?;
     surf.fill(None, c)?;
     Ok(surf)
@@ -31,10 +31,18 @@ unsafe fn run() -> SdlResult {
     wnd.sync()?;
 
     let rnd = RendererBuilder::new(&wnd).vsync(1).build()?;
-    let tex = Texture::from_surface(&rnd, &filled_surface(Color::CYAN)?)?;
+    let tex = Texture::from_surface(&rnd, &filled_surface((0x00, 0xFF, 0xFF, 0x00))?)?;
 
-    for _ in 0..240 {
+    'main: loop {
         let _ = rnd.clear();
+
+        for event in EventIter::new() {
+            match event {
+                Event::Quit => break 'main,
+                _ => (),
+            }
+        }
+
         let _ = rnd.draw(&tex, None, None);
         let _ = rnd.present();
     }

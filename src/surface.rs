@@ -1,5 +1,4 @@
 use crate::{
-    color::Color,
     defs::SdlResult,
     resource,
     util::{self, to_result},
@@ -23,7 +22,7 @@ impl SurfaceRef {
     }
 
     #[doc(alias = "SDL_FillSurfaceRect")]
-    pub fn fill(&self, area: Option<&SDL_Rect>, c: Color) -> SdlResult {
+    pub fn fill(&self, area: Option<&SDL_Rect>, c: (u8, u8, u8, u8)) -> SdlResult {
         to_result(unsafe {
             SDL_FillSurfaceRect(self.handle.as_ptr(), util::opt2ptr(area), self.map_color(c))
         })
@@ -40,8 +39,8 @@ impl SurfaceRef {
     }
 
     #[doc(alias = "SDL_MapSurfaceRGBA")]
-    fn map_color(&self, c: Color) -> u32 {
-        unsafe { SDL_MapSurfaceRGBA(self.handle.as_ptr(), c.r, c.g, c.b, c.a) }
+    fn map_color(&self, (r, g, b, a): (u8, u8, u8, u8)) -> u32 {
+        unsafe { SDL_MapSurfaceRGBA(self.handle.as_ptr(), r, g, b, a) }
     }
 
     #[doc(alias = "SDL_DuplicateSurface")]
