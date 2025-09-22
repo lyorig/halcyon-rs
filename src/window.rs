@@ -1,10 +1,133 @@
-use crate::{defs::SdlResult, properties::Properties, resource, subsystem::Video, util::to_result};
+//! SDL's window API wrapper.
+//!
+//! - [ ] SDL_CreatePopupWindow
+//! - [x] SDL_CreateWindow
+//! - [x] SDL_CreateWindowWithProperties
+//! - [x] SDL_DestroyWindow
+//! - [ ] SDL_DestroyWindowSurface
+//! - [ ] SDL_DisableScreenSaver
+//! - [ ] SDL_EGL_GetCurrentConfig
+//! - [ ] SDL_EGL_GetCurrentDisplay
+//! - [ ] SDL_EGL_GetProcAddress
+//! - [ ] SDL_EGL_GetWindowSurface
+//! - [ ] SDL_EGL_SetAttributeCallbacks
+//! - [ ] SDL_EnableScreenSaver
+//! - [x] SDL_FlashWindow
+//! - [ ] SDL_GetClosestFullscreenDisplayMode
+//! - [ ] SDL_GetCurrentDisplayMode
+//! - [ ] SDL_GetCurrentDisplayOrientation
+//! - [ ] SDL_GetCurrentVideoDriver
+//! - [ ] SDL_GetDesktopDisplayMode
+//! - [ ] SDL_GetDisplayBounds
+//! - [ ] SDL_GetDisplayContentScale
+//! - [ ] SDL_GetDisplayForPoint
+//! - [ ] SDL_GetDisplayForRect
+//! - [ ] SDL_GetDisplayForWindow
+//! - [ ] SDL_GetDisplayName
+//! - [ ] SDL_GetDisplayProperties
+//! - [ ] SDL_GetDisplays
+//! - [ ] SDL_GetDisplayUsableBounds
+//! - [ ] SDL_GetFullscreenDisplayModes
+//! - [ ] SDL_GetGrabbedWindow
+//! - [ ] SDL_GetNaturalDisplayOrientation
+//! - [ ] SDL_GetNumVideoDrivers
+//! - [ ] SDL_GetPrimaryDisplay
+//! - [ ] SDL_GetSystemTheme
+//! - [ ] SDL_GetVideoDriver
+//! - [ ] SDL_GetWindowAspectRatio
+//! - [ ] SDL_GetWindowBordersSize
+//! - [ ] SDL_GetWindowDisplayScale
+//! - [x] SDL_GetWindowFlags
+//! - [x] SDL_GetWindowFromID
+//! - [ ] SDL_GetWindowFullscreenMode
+//! - [ ] SDL_GetWindowICCProfile
+//! - [x] SDL_GetWindowID
+//! - [ ] SDL_GetWindowKeyboardGrab
+//! - [ ] SDL_GetWindowMaximumSize
+//! - [ ] SDL_GetWindowMinimumSize
+//! - [ ] SDL_GetWindowMouseGrab
+//! - [ ] SDL_GetWindowMouseRect
+//! - [ ] SDL_GetWindowOpacity
+//! - [ ] SDL_GetWindowParent
+//! - [ ] SDL_GetWindowPixelDensity
+//! - [ ] SDL_GetWindowPixelFormat
+//! - [x] SDL_GetWindowPosition
+//! - [ ] SDL_GetWindowProgressState
+//! - [ ] SDL_GetWindowProgressValue
+//! - [ ] SDL_GetWindowProperties
+//! - [ ] SDL_GetWindows
+//! - [ ] SDL_GetWindowSafeArea
+//! - [x] SDL_GetWindowSize
+//! - [ ] SDL_GetWindowSizeInPixels
+//! - [ ] SDL_GetWindowSurface
+//! - [ ] SDL_GetWindowSurfaceVSync
+//! - [x] SDL_GetWindowTitle
+//! - [ ] SDL_GL_CreateContext
+//! - [ ] SDL_GL_DestroyContext
+//! - [ ] SDL_GL_ExtensionSupported
+//! - [ ] SDL_GL_GetAttribute
+//! - [ ] SDL_GL_GetCurrentContext
+//! - [ ] SDL_GL_GetCurrentWindow
+//! - [ ] SDL_GL_GetProcAddress
+//! - [ ] SDL_GL_GetSwapInterval
+//! - [ ] SDL_GL_LoadLibrary
+//! - [ ] SDL_GL_MakeCurrent
+//! - [ ] SDL_GL_ResetAttributes
+//! - [ ] SDL_GL_SetAttribute
+//! - [ ] SDL_GL_SetSwapInterval
+//! - [ ] SDL_GL_SwapWindow
+//! - [ ] SDL_GL_UnloadLibrary
+//! - [ ] SDL_HideWindow
+//! - [ ] SDL_MaximizeWindow
+//! - [ ] SDL_MinimizeWindow
+//! - [ ] SDL_RaiseWindow
+//! - [ ] SDL_RestoreWindow
+//! - [ ] SDL_ScreenSaverEnabled
+//! - [ ] SDL_SetWindowAlwaysOnTop
+//! - [ ] SDL_SetWindowAspectRatio
+//! - [ ] SDL_SetWindowBordered
+//! - [ ] SDL_SetWindowFocusable
+//! - [ ] SDL_SetWindowFullscreen
+//! - [ ] SDL_SetWindowFullscreenMode
+//! - [ ] SDL_SetWindowHitTest
+//! - [ ] SDL_SetWindowIcon
+//! - [ ] SDL_SetWindowKeyboardGrab
+//! - [ ] SDL_SetWindowMaximumSize
+//! - [ ] SDL_SetWindowMinimumSize
+//! - [ ] SDL_SetWindowModal
+//! - [ ] SDL_SetWindowMouseGrab
+//! - [ ] SDL_SetWindowMouseRect
+//! - [ ] SDL_SetWindowOpacity
+//! - [ ] SDL_SetWindowParent
+//! - [ ] SDL_SetWindowPosition
+//! - [ ] SDL_SetWindowProgressState
+//! - [ ] SDL_SetWindowProgressValue
+//! - [ ] SDL_SetWindowResizable
+//! - [ ] SDL_SetWindowShape
+//! - [ ] SDL_SetWindowSize
+//! - [ ] SDL_SetWindowSurfaceVSync
+//! - [ ] SDL_SetWindowTitle
+//! - [ ] SDL_ShowWindow
+//! - [ ] SDL_ShowWindowSystemMenu
+//! - [x] SDL_SyncWindow
+//! - [ ] SDL_UpdateWindowSurface
+//! - [ ] SDL_UpdateWindowSurfaceRects
+//! - [ ] SDL_WindowHasSurface
+
+use crate::{
+    defs::SdlResult,
+    properties::Properties,
+    resource,
+    subsystem::Video,
+    util::{c_to_str, to_result},
+};
 use bitmask_enum::bitmask;
 use sdl3_sys::video::*;
 use std::{
     ffi::{CStr, c_void},
     mem::MaybeUninit,
     num::NonZero,
+    ptr::NonNull,
 };
 
 #[bitmask(u64)]
@@ -240,14 +363,42 @@ impl WindowRef {
         to_result(unsafe { SDL_SyncWindow(self.handle.as_ptr()) })
     }
 
+    #[doc(alias = "SDL_FlashWindow")]
+    pub fn flash(&self, op: SDL_FlashOperation) -> SdlResult {
+        to_result(unsafe { SDL_FlashWindow(self.handle.as_ptr(), op) })
+    }
+
     #[doc(alias = "SDL_GetWindowSize")]
     pub fn size(&self) -> (i32, i32) {
-        let mut ret = (MaybeUninit::uninit(), MaybeUninit::uninit());
+        let mut ret = MaybeUninit::<(i32, i32)>::uninit();
+        let ptr = ret.as_mut_ptr();
 
         unsafe {
-            SDL_GetWindowSize(self.handle.as_ptr(), ret.0.as_mut_ptr(), ret.1.as_mut_ptr());
-            (ret.0.assume_init(), ret.1.assume_init())
+            SDL_GetWindowSize(self.handle.as_ptr(), &raw mut (*ptr).0, &raw mut (*ptr).1);
+            ret.assume_init()
         }
+    }
+
+    #[doc(alias = "SDL_GetWindowPosition")]
+    pub fn position(&self) -> (i32, i32) {
+        let mut ret = MaybeUninit::<(i32, i32)>::uninit();
+        let ptr = ret.as_mut_ptr();
+
+        unsafe {
+            SDL_GetWindowPosition(self.handle.as_ptr(), &raw mut (*ptr).0, &raw mut (*ptr).1);
+            ret.assume_init()
+        }
+    }
+
+    #[doc(alias = "SDL_GetWindowTitle")]
+    pub fn title(&self) -> &str {
+        // SAFETY: SDL guarantees the window title to be UTF-8.
+        unsafe { c_to_str(SDL_GetWindowTitle(self.handle.as_ptr())) }
+    }
+
+    #[doc(alias = "SDL_GetWindowFlags")]
+    pub fn flags(&self) -> WindowFlags {
+        unsafe { SDL_GetWindowFlags(self.handle.as_ptr()) }.into()
     }
 }
 
@@ -258,6 +409,11 @@ impl Window {
     #[doc(alias = "SDL_CreateWindow")]
     pub fn new(title: &CStr, width: i32, height: i32, flags: WindowFlags) -> SdlResult<Self> {
         Self::from_ptr(unsafe { SDL_CreateWindow(title.as_ptr(), width, height, flags.into()) })
+    }
+
+    #[doc(alias = "SDL_GetWindowFromID")]
+    pub fn from_id(id: SDL_WindowID) -> Option<WindowRef> {
+        NonNull::new(unsafe { SDL_GetWindowFromID(id) }).map(|handle| WindowRef { handle })
     }
 
     /// Returns this window's unique ID.

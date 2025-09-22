@@ -70,7 +70,7 @@
 //! - [ ] SDL_SetRenderGPUState
 //! - [ ] SDL_SetRenderLogicalPresentation
 //! - [ ] SDL_SetRenderScale
-//! - [ ] SDL_SetRenderTarget
+//! - [x] SDL_SetRenderTarget
 //! - [ ] SDL_SetRenderTextureAddressMode
 //! - [ ] SDL_SetRenderViewport
 //! - [ ] SDL_SetRenderVSync
@@ -274,5 +274,10 @@ impl Renderer {
     #[doc(alias = "SDL_CreateRenderer")]
     pub fn new(wnd: impl Into<WindowRef>) -> SdlResult<Renderer> {
         Self::from_ptr(unsafe { SDL_CreateRenderer(wnd.into().handle.as_ptr(), std::ptr::null()) })
+    }
+
+    #[doc(alias = "SDL_GetNumRenderDrivers")]
+    pub fn num_drivers() -> i32 {
+        unsafe { SDL_GetNumRenderDrivers() }
     }
 }
