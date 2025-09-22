@@ -4,7 +4,6 @@ mod properties;
 
 pub mod color;
 pub mod context;
-pub mod coord;
 pub mod defs;
 pub mod error;
 pub mod event;

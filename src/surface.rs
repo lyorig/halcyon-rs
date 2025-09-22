@@ -1,6 +1,5 @@
 use crate::{
     color::Color,
-    coord,
     defs::SdlResult,
     resource,
     util::{self, to_result},
@@ -11,7 +10,7 @@ use sdl3_sys::{pixels::SDL_PixelFormat, rect::SDL_Rect, surface::*};
 resource!(Surface, SurfaceRef, SDL_Surface, SDL_DestroySurface);
 
 impl SurfaceRef {
-    pub fn size(&self) -> (coord::Pixel, coord::Pixel) {
+    pub fn size(&self) -> (i32, i32) {
         let ligma = unsafe { self.handle.as_ref() };
 
         (ligma.w, ligma.h)
@@ -53,10 +52,7 @@ impl SurfaceRef {
 
 impl Surface {
     #[doc(alias = "SDL_CreateSurface")]
-    pub fn from_size_and_format(
-        size: (coord::Pixel, coord::Pixel),
-        format: SDL_PixelFormat,
-    ) -> SdlResult<Self> {
+    pub fn from_size_and_format(size: (i32, i32), format: SDL_PixelFormat) -> SdlResult<Self> {
         Self::from_ptr(unsafe { SDL_CreateSurface(size.0, size.1, format) })
     }
 }

@@ -1,14 +1,11 @@
-use crate::coord::Pixel;
-use crate::defs::SdlResult;
-use crate::properties::Properties;
-use crate::resource;
-use crate::subsystem::Video;
-use crate::util::to_result;
+use crate::{defs::SdlResult, properties::Properties, resource, subsystem::Video, util::to_result};
 use bitmask_enum::bitmask;
 use sdl3_sys::video::*;
-use std::ffi::{CStr, c_void};
-use std::mem::MaybeUninit;
-use std::num::NonZero;
+use std::{
+    ffi::{CStr, c_void},
+    mem::MaybeUninit,
+    num::NonZero,
+};
 
 #[bitmask(u64)]
 pub enum WindowFlags {
@@ -213,13 +210,13 @@ impl WindowBuilder {
     }
 
     /// Utility method that calls `self.width()` and `self.height()`.
-    pub fn size(&mut self, (w, h): (Pixel, Pixel)) -> &mut Self {
+    pub fn size(&mut self, (w, h): (i32, i32)) -> &mut Self {
         self.width(w.into());
         self.height(h.into())
     }
 
     /// Utility method that calls `self.x()` and `self.y()`.
-    pub fn position(&mut self, (x, y): (Pixel, Pixel)) -> &mut Self {
+    pub fn position(&mut self, (x, y): (i32, i32)) -> &mut Self {
         self.x(x.into());
         self.y(y.into())
     }

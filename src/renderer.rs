@@ -1,3 +1,80 @@
+//! SDL's 2D rendering API wrapper.
+//!
+//! Implementation checklist ([source](https://wiki.libsdl.org/SDL3/CategoryRender)):
+//! - [ ] SDL_AddVulkanRenderSemaphores
+//! - [ ] SDL_ConvertEventToRenderCoordinates
+//! - [ ] SDL_CreateGPURenderer
+//! - [ ] SDL_CreateGPURenderState
+//! - [x] SDL_CreateRenderer
+//! - [x] SDL_CreateRendererWithProperties
+//! - [ ] SDL_CreateSoftwareRenderer
+//! - [ ] SDL_CreateWindowAndRenderer
+//! - [ ] SDL_DestroyGPURenderState
+//! - [x] SDL_DestroyRenderer
+//! - [ ] SDL_FlushRenderer
+//! - [ ] SDL_GetCurrentRenderOutputSize
+//! - [ ] SDL_GetNumRenderDrivers
+//! - [ ] SDL_GetRenderClipRect
+//! - [ ] SDL_GetRenderColorScale
+//! - [ ] SDL_GetRenderDrawBlendMode
+//! - [ ] SDL_GetRenderDrawColor
+//! - [ ] SDL_GetRenderDrawColorFloat
+//! - [ ] SDL_GetRenderDriver
+//! - [ ] SDL_GetRenderer
+//! - [ ] SDL_GetRendererFromTexture
+//! - [ ] SDL_GetRendererName
+//! - [ ] SDL_GetRendererProperties
+//! - [ ] SDL_GetRenderLogicalPresentation
+//! - [ ] SDL_GetRenderLogicalPresentationRect
+//! - [ ] SDL_GetRenderMetalCommandEncoder
+//! - [ ] SDL_GetRenderMetalLayer
+//! - [ ] SDL_GetRenderOutputSize
+//! - [ ] SDL_GetRenderSafeArea
+//! - [ ] SDL_GetRenderScale
+//! - [ ] SDL_GetRenderTarget
+//! - [ ] SDL_GetRenderTextureAddressMode
+//! - [ ] SDL_GetRenderViewport
+//! - [ ] SDL_GetRenderVSync
+//! - [ ] SDL_GetRenderWindow
+//! - [ ] SDL_RenderClear
+//! - [ ] SDL_RenderClipEnabled
+//! - [ ] SDL_RenderCoordinatesFromWindow
+//! - [ ] SDL_RenderCoordinatesToWindow
+//! - [ ] SDL_RenderDebugText
+//! - [ ] SDL_RenderDebugTextFormat
+//! - [ ] SDL_RenderFillRect
+//! - [ ] SDL_RenderFillRects
+//! - [ ] SDL_RenderGeometry
+//! - [ ] SDL_RenderGeometryRaw
+//! - [ ] SDL_RenderLine
+//! - [ ] SDL_RenderLines
+//! - [ ] SDL_RenderPoint
+//! - [ ] SDL_RenderPoints
+//! - [ ] SDL_RenderPresent
+//! - [ ] SDL_RenderReadPixels
+//! - [ ] SDL_RenderRect
+//! - [ ] SDL_RenderRects
+//! - [ ] SDL_RenderTexture
+//! - [ ] SDL_RenderTexture9Grid
+//! - [ ] SDL_RenderTexture9GridTiled
+//! - [ ] SDL_RenderTextureAffine
+//! - [ ] SDL_RenderTextureRotated
+//! - [ ] SDL_RenderTextureTiled
+//! - [ ] SDL_RenderViewportSet
+//! - [ ] SDL_SetGPURenderStateFragmentUniforms
+//! - [ ] SDL_SetRenderClipRect
+//! - [ ] SDL_SetRenderColorScale
+//! - [ ] SDL_SetRenderDrawBlendMode
+//! - [ ] SDL_SetRenderDrawColor
+//! - [ ] SDL_SetRenderDrawColorFloat
+//! - [ ] SDL_SetRenderGPUState
+//! - [ ] SDL_SetRenderLogicalPresentation
+//! - [ ] SDL_SetRenderScale
+//! - [ ] SDL_SetRenderTarget
+//! - [ ] SDL_SetRenderTextureAddressMode
+//! - [ ] SDL_SetRenderViewport
+//! - [ ] SDL_SetRenderVSync
+
 use std::ffi::{CStr, c_void};
 
 use sdl3_sys::{

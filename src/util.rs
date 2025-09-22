@@ -46,6 +46,7 @@ macro_rules! resource {
         }
 
         impl Drop for $owned {
+            #[doc(alias = "$dtor")]
             fn drop(&mut self) {
                 unsafe { $dtor(self.inner.handle.as_ptr()) }
             }
