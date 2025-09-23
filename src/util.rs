@@ -11,6 +11,12 @@ macro_rules! resource {
             pub(crate) handle: std::ptr::NonNull<$opaque>,
         }
 
+        impl $ref {
+            pub(crate) fn from_ptr(handle: *mut $opaque) -> Option<Self> {
+                std::ptr::NonNull::new(handle).map(|handle| Self { handle })
+            }
+        }
+
         pub struct $owned {
             inner: $ref,
         }

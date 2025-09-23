@@ -7,36 +7,33 @@
 //! - [ ] SDL_CreateGPURenderState
 //! - [x] SDL_CreateRenderer
 //! - [x] SDL_CreateRendererWithProperties
-//! - [ ] SDL_CreateSoftwareRenderer
-//! - [ ] SDL_CreateWindowAndRenderer
+//! - [x] SDL_CreateSoftwareRenderer
 //! - [ ] SDL_DestroyGPURenderState
 //! - [x] SDL_DestroyRenderer
-//! - [ ] SDL_FlushRenderer
-//! - [ ] SDL_GetCurrentRenderOutputSize
-//! - [ ] SDL_GetNumRenderDrivers
+//! - [x] SDL_FlushRenderer
+//! - [x] SDL_GetCurrentRenderOutputSize
+//! - [x] SDL_GetNumRenderDrivers
 //! - [ ] SDL_GetRenderClipRect
 //! - [ ] SDL_GetRenderColorScale
-//! - [ ] SDL_GetRenderDrawBlendMode
-//! - [ ] SDL_GetRenderDrawColor
-//! - [ ] SDL_GetRenderDrawColorFloat
+//! - [x] SDL_GetRenderDrawBlendMode
+//! - [x] SDL_GetRenderDrawColor
+//! - [x] SDL_GetRenderDrawColorFloat
 //! - [ ] SDL_GetRenderDriver
-//! - [ ] SDL_GetRenderer
-//! - [ ] SDL_GetRendererFromTexture
-//! - [ ] SDL_GetRendererName
+//! - [x] SDL_GetRendererName
 //! - [ ] SDL_GetRendererProperties
 //! - [ ] SDL_GetRenderLogicalPresentation
 //! - [ ] SDL_GetRenderLogicalPresentationRect
 //! - [ ] SDL_GetRenderMetalCommandEncoder
 //! - [ ] SDL_GetRenderMetalLayer
-//! - [ ] SDL_GetRenderOutputSize
+//! - [x] SDL_GetRenderOutputSize
 //! - [ ] SDL_GetRenderSafeArea
 //! - [ ] SDL_GetRenderScale
-//! - [ ] SDL_GetRenderTarget
+//! - [x] SDL_GetRenderTarget
 //! - [ ] SDL_GetRenderTextureAddressMode
 //! - [ ] SDL_GetRenderViewport
-//! - [ ] SDL_GetRenderVSync
-//! - [ ] SDL_GetRenderWindow
-//! - [ ] SDL_RenderClear
+//! - [x] SDL_GetRenderVSync
+//! - [x] SDL_GetRenderWindow
+//! - [x] SDL_RenderClear
 //! - [ ] SDL_RenderClipEnabled
 //! - [ ] SDL_RenderCoordinatesFromWindow
 //! - [ ] SDL_RenderCoordinatesToWindow
@@ -46,38 +43,42 @@
 //! - [ ] SDL_RenderFillRects
 //! - [ ] SDL_RenderGeometry
 //! - [ ] SDL_RenderGeometryRaw
-//! - [ ] SDL_RenderLine
-//! - [ ] SDL_RenderLines
-//! - [ ] SDL_RenderPoint
-//! - [ ] SDL_RenderPoints
-//! - [ ] SDL_RenderPresent
-//! - [ ] SDL_RenderReadPixels
-//! - [ ] SDL_RenderRect
-//! - [ ] SDL_RenderRects
-//! - [ ] SDL_RenderTexture
-//! - [ ] SDL_RenderTexture9Grid
-//! - [ ] SDL_RenderTexture9GridTiled
-//! - [ ] SDL_RenderTextureAffine
-//! - [ ] SDL_RenderTextureRotated
-//! - [ ] SDL_RenderTextureTiled
+//! - [x] SDL_RenderLine
+//! - [x] SDL_RenderLines
+//! - [x] SDL_RenderPoint
+//! - [x] SDL_RenderPoints
+//! - [x] SDL_RenderPresent
+//! - [x] SDL_RenderReadPixels
+//! - [x] SDL_RenderRect
+//! - [x] SDL_RenderRects
+//! - [x] SDL_RenderTexture
+//! - [x] SDL_RenderTexture9Grid
+//! - [x] SDL_RenderTexture9GridTiled
+//! - [x] SDL_RenderTextureAffine
+//! - [x] SDL_RenderTextureRotated
+//! - [x] SDL_RenderTextureTiled
 //! - [ ] SDL_RenderViewportSet
 //! - [ ] SDL_SetGPURenderStateFragmentUniforms
 //! - [ ] SDL_SetRenderClipRect
 //! - [ ] SDL_SetRenderColorScale
-//! - [ ] SDL_SetRenderDrawBlendMode
-//! - [ ] SDL_SetRenderDrawColor
-//! - [ ] SDL_SetRenderDrawColorFloat
+//! - [x] SDL_SetRenderDrawBlendMode
+//! - [x] SDL_SetRenderDrawColor
+//! - [x] SDL_SetRenderDrawColorFloat
 //! - [ ] SDL_SetRenderGPUState
 //! - [ ] SDL_SetRenderLogicalPresentation
 //! - [ ] SDL_SetRenderScale
 //! - [x] SDL_SetRenderTarget
 //! - [ ] SDL_SetRenderTextureAddressMode
 //! - [ ] SDL_SetRenderViewport
-//! - [ ] SDL_SetRenderVSync
+//! - [x] SDL_SetRenderVSync
 
-use std::ffi::{CStr, c_void};
+use std::{
+    ffi::{CStr, c_void},
+    mem::MaybeUninit,
+};
 
 use sdl3_sys::{
+    blendmode::SDL_BlendMode,
     pixels::SDL_Colorspace,
     rect::{SDL_FPoint, SDL_FRect},
     render::*,
@@ -87,9 +88,9 @@ use crate::{
     defs::SdlResult,
     properties::Properties,
     resource,
-    surface::SurfaceRef,
+    surface::{Surface, SurfaceRef},
     texture::TextureRef,
-    util::{self, to_result},
+    util::{self, c_to_str, to_result},
     window::WindowRef,
 };
 
@@ -165,6 +166,118 @@ impl RendererBuilder {
 resource!(Renderer, RendererRef, SDL_Renderer, SDL_DestroyRenderer);
 
 impl RendererRef {
+    #[doc(alias = "SDL_GetRendererName")]
+    pub fn name(&self) -> &str {
+        unsafe { c_to_str(SDL_GetRendererName(self.handle.as_ptr())) }
+    }
+
+    #[doc(alias = "SDL_GetRenderWindow")]
+    pub fn window(&self) -> Option<WindowRef> {
+        WindowRef::from_ptr(unsafe { SDL_GetRenderWindow(self.handle.as_ptr()) })
+    }
+
+    #[doc(alias = "SDL_GetRenderTarget")]
+    pub fn target(&self) -> Option<TextureRef> {
+        TextureRef::from_ptr(unsafe { SDL_GetRenderTarget(self.handle.as_ptr()) })
+    }
+
+    #[doc(alias = "SDL_GetRenderVSync")]
+    pub fn vsync(&self) -> i32 {
+        let mut ret = MaybeUninit::uninit();
+        unsafe {
+            SDL_GetRenderVSync(self.handle.as_ptr(), ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+
+    #[doc(alias = "SDL_GetRenderOutputSize")]
+    pub fn output_size(&self) -> (i32, i32) {
+        let mut ret = MaybeUninit::<(i32, i32)>::uninit();
+        let ptr = ret.as_mut_ptr();
+
+        unsafe {
+            SDL_GetRenderOutputSize(self.handle.as_ptr(), &raw mut (*ptr).0, &raw mut (*ptr).1);
+            ret.assume_init()
+        }
+    }
+
+    #[doc(alias = "SDL_GetCurrentRenderOutputSize")]
+    pub fn target_output_size(&self) -> (i32, i32) {
+        let mut ret = MaybeUninit::<(i32, i32)>::uninit();
+        let ptr = ret.as_mut_ptr();
+
+        unsafe {
+            SDL_GetCurrentRenderOutputSize(
+                self.handle.as_ptr(),
+                &raw mut (*ptr).0,
+                &raw mut (*ptr).1,
+            );
+            ret.assume_init()
+        }
+    }
+
+    #[doc(alias = "SDL_GetRenderDrawColor")]
+    pub fn draw_color(&self) -> (u8, u8, u8, u8) {
+        let mut ret = MaybeUninit::<(u8, u8, u8, u8)>::uninit();
+        let ptr = ret.as_mut_ptr();
+
+        // SAFETY: This function only reads struct fields.
+        unsafe {
+            SDL_GetRenderDrawColor(
+                self.handle.as_ptr(),
+                &raw mut (*ptr).0,
+                &raw mut (*ptr).1,
+                &raw mut (*ptr).2,
+                &raw mut (*ptr).3,
+            );
+
+            ret.assume_init()
+        }
+    }
+
+    #[doc(alias = "SDL_GetRenderDrawColorFloat")]
+    pub fn draw_color_float(&self) -> (f32, f32, f32, f32) {
+        let mut ret = MaybeUninit::<(f32, f32, f32, f32)>::uninit();
+        let ptr = ret.as_mut_ptr();
+
+        // SAFETY: This function only reads struct fields.
+        unsafe {
+            SDL_GetRenderDrawColorFloat(
+                self.handle.as_ptr(),
+                &raw mut (*ptr).0,
+                &raw mut (*ptr).1,
+                &raw mut (*ptr).2,
+                &raw mut (*ptr).3,
+            );
+
+            ret.assume_init()
+        }
+    }
+
+    #[doc(alias = "SDL_GetRenderDrawBlendMode")]
+    pub fn blend_mode(&self) -> SDL_BlendMode {
+        let mut ret = MaybeUninit::uninit();
+        unsafe {
+            SDL_GetRenderDrawBlendMode(self.handle.as_ptr(), ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+
+    #[doc(alias = "SDL_RenderReadPixels")]
+    pub fn read_target(&self) -> SdlResult<Surface> {
+        Surface::from_ptr(unsafe { SDL_RenderReadPixels(self.handle.as_ptr(), std::ptr::null()) })
+    }
+
+    #[doc(alias = "SDL_RenderReadPixels")]
+    pub fn read_area(&self, area: (i32, i32, i32, i32)) -> SdlResult<Surface> {
+        Surface::from_ptr(unsafe {
+            SDL_RenderReadPixels(
+                self.handle.as_ptr(),
+                (&area as *const (i32, i32, i32, i32)).cast(),
+            )
+        })
+    }
+
     #[doc(alias = "SDL_RenderClear")]
     pub fn clear(&self) -> SdlResult {
         to_result(unsafe { SDL_RenderClear(self.handle.as_ptr()) })
@@ -173,6 +286,11 @@ impl RendererRef {
     #[doc(alias = "SDL_RenderPresent")]
     pub fn present(&self) -> SdlResult {
         to_result(unsafe { SDL_RenderPresent(self.handle.as_ptr()) })
+    }
+
+    #[doc(alias = "SDL_FlushRenderer")]
+    pub fn flush(&self) -> SdlResult {
+        to_result(unsafe { SDL_FlushRenderer(self.handle.as_ptr()) })
     }
 
     #[doc(alias = "SDL_RenderTexture")]
@@ -259,6 +377,92 @@ impl RendererRef {
         })
     }
 
+    #[doc(alias = "SDL_RenderLine")]
+    pub fn draw_line(
+        &self,
+        (start_x, start_y): (f32, f32),
+        (end_x, end_y): (f32, f32),
+    ) -> SdlResult {
+        to_result(unsafe { SDL_RenderLine(self.handle.as_ptr(), start_x, start_y, end_x, end_y) })
+    }
+
+    #[doc(alias = "SDL_RenderLines")]
+    pub fn draw_lines(&self, lines: &[(f32, f32)]) -> SdlResult {
+        const _: () = assert!(size_of::<(f32, f32)>() == size_of::<SDL_FPoint>());
+        to_result(unsafe {
+            SDL_RenderLines(
+                self.handle.as_ptr(),
+                lines.as_ptr().cast(),
+                lines.len() as i32,
+            )
+        })
+    }
+
+    #[doc(alias = "SDL_RenderPoint")]
+    pub fn draw_point(&self, (x, y): (f32, f32)) -> SdlResult {
+        to_result(unsafe { SDL_RenderPoint(self.handle.as_ptr(), x, y) })
+    }
+
+    #[doc(alias = "SDL_RenderPoints")]
+    pub fn draw_points(&self, points: &[(f32, f32)]) -> SdlResult {
+        const _: () = assert!(size_of::<(f32, f32)>() == size_of::<SDL_FPoint>());
+        to_result(unsafe {
+            SDL_RenderPoints(
+                self.handle.as_ptr(),
+                points.as_ptr().cast(),
+                points.len() as i32,
+            )
+        })
+    }
+
+    #[doc(alias = "SDL_RenderRect")]
+    pub fn draw_rect(&self, rect: (f32, f32, f32, f32)) -> SdlResult {
+        const _: () = assert!(size_of::<(f32, f32, f32, f32)>() == size_of::<SDL_FRect>());
+        to_result(unsafe {
+            SDL_RenderRect(
+                self.handle.as_ptr(),
+                (&rect as *const (f32, f32, f32, f32)).cast(),
+            )
+        })
+    }
+
+    #[doc(alias = "SDL_RenderRect")]
+    pub fn draw_target_outline(&self) -> SdlResult {
+        to_result(unsafe { SDL_RenderRect(self.handle.as_ptr(), std::ptr::null()) })
+    }
+
+    #[doc(alias = "SDL_RenderRects")]
+    pub fn draw_rects(&self, rects: &[(f32, f32, f32, f32)]) -> SdlResult {
+        to_result(unsafe {
+            SDL_RenderRects(
+                self.handle.as_ptr(),
+                rects.as_ptr().cast(),
+                rects.len() as i32,
+            )
+        })
+    }
+
+    #[doc(alias = "SDL_RenderFillRect")]
+    pub fn fill_rect(&self, rect: (f32, f32, f32, f32)) -> SdlResult {
+        to_result(unsafe {
+            SDL_RenderFillRect(
+                self.handle.as_ptr(),
+                (&rect as *const (f32, f32, f32, f32)).cast(),
+            )
+        })
+    }
+
+    #[doc(alias = "SDL_RenderFillRects")]
+    pub fn fill_rects(&self, rects: &[(f32, f32, f32, f32)]) -> SdlResult {
+        to_result(unsafe {
+            SDL_RenderFillRects(
+                self.handle.as_ptr(),
+                rects.as_ptr().cast(),
+                rects.len() as i32,
+            )
+        })
+    }
+
     #[doc(alias = "SDL_SetRenderTarget")]
     pub fn set_target(&self, tgt: impl Into<TextureRef>) -> SdlResult {
         to_result(unsafe { SDL_SetRenderTarget(self.handle.as_ptr(), tgt.into().handle.as_ptr()) })
@@ -267,6 +471,37 @@ impl RendererRef {
     #[doc(alias = "SDL_SetRenderTarget")]
     pub fn reset_target(&self) -> SdlResult {
         to_result(unsafe { SDL_SetRenderTarget(self.handle.as_ptr(), std::ptr::null_mut()) })
+    }
+
+    /// Quoting documentation for `SDL_SetRenderVSync()`:
+    /// Not every value is supported by every driver, so you should check
+    /// the return value to see whether the requested setting is supported.
+    ///
+    /// Can be used with `SDL_RENDERER_VSYNC_ADAPTIVE` and `SDL_RENDERER_VSYNC_DISABLED`.
+    #[doc(alias = "SDL_SetRenderVSync")]
+    pub fn set_vsync(&self, val: i32) -> bool {
+        unsafe { SDL_SetRenderVSync(self.handle.as_ptr(), val) }
+    }
+
+    #[doc(alias = "SDL_SetRenderDrawColor")]
+    pub fn set_draw_color(&self, (r, g, b, a): (u8, u8, u8, u8)) {
+        unsafe {
+            SDL_SetRenderDrawColor(self.handle.as_ptr(), r, g, b, a);
+        }
+    }
+
+    #[doc(alias = "SDL_SetRenderDrawColorFloat")]
+    pub fn set_draw_color_float(&self, (r, g, b, a): (f32, f32, f32, f32)) {
+        unsafe {
+            SDL_SetRenderDrawColorFloat(self.handle.as_ptr(), r, g, b, a);
+        }
+    }
+
+    #[doc(alias = "SDL_SetRenderDrawBlendMode")]
+    pub fn set_blend_mode(&self, bm: SDL_BlendMode) {
+        unsafe {
+            SDL_SetRenderDrawBlendMode(self.handle.as_ptr(), bm);
+        }
     }
 }
 

@@ -31,6 +31,8 @@ unsafe fn run() -> SdlResult {
     wnd.sync()?;
 
     let rnd = RendererBuilder::new(&wnd).vsync(1).build()?;
+    rnd.set_draw_color((255, 255, 255, 255));
+
     let tex = Texture::from_surface(&rnd, &filled_surface((0x00, 0xFF, 0xFF, 0x00))?)?;
 
     'main: loop {
@@ -44,6 +46,7 @@ unsafe fn run() -> SdlResult {
         }
 
         let _ = rnd.draw(&tex, None, None);
+        let _ = rnd.fill_rect((0., 0., 128., 128.));
         let _ = rnd.present();
     }
 

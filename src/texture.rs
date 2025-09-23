@@ -27,6 +27,7 @@
 //! - [ ] SDL_UpdateNVTexture
 //! - [ ] SDL_UpdateTexture
 //! - [ ] SDL_UpdateYUVTexture
+//! - [x] SDL_GetRendererFromTexture
 
 use std::mem::MaybeUninit;
 
@@ -149,6 +150,11 @@ impl TextureRef {
             SDL_GetTextureScaleMode(self.handle.as_ptr(), ret.as_mut_ptr());
             ret.assume_init()
         }
+    }
+
+    #[doc(alias = "SDL_GetRendererFromTexture")]
+    pub fn renderer(&self) -> Option<RendererRef> {
+        RendererRef::from_ptr(unsafe { SDL_GetRendererFromTexture(self.handle.as_ptr()) })
     }
 
     #[doc(alias = "SDL_SetTextureColorMod")]

@@ -113,16 +113,22 @@
 //! - [ ] SDL_UpdateWindowSurface
 //! - [ ] SDL_UpdateWindowSurfaceRects
 //! - [ ] SDL_WindowHasSurface
+//! - [x] SDL_GetRenderer
+//! - [x] SDL_CreateWindowAndRenderer
 
 use crate::{
     defs::SdlResult,
     properties::Properties,
+    renderer::{Renderer, RendererRef},
     resource,
     subsystem::Video,
     util::{c_to_str, to_result},
 };
 use bitmask_enum::bitmask;
-use sdl3_sys::video::*;
+use sdl3_sys::{
+    render::{SDL_CreateWindowAndRenderer, SDL_GetRenderer, SDL_Renderer},
+    video::*,
+};
 use std::{
     ffi::{CStr, c_void},
     mem::MaybeUninit,
@@ -400,6 +406,11 @@ impl WindowRef {
     pub fn flags(&self) -> WindowFlags {
         unsafe { SDL_GetWindowFlags(self.handle.as_ptr()) }.into()
     }
+
+    #[doc(alias = "SDL_GetRenderer")]
+    pub fn renderer(&self) -> Option<RendererRef> {
+        RendererRef::from_ptr(unsafe { SDL_GetRenderer(self.handle.as_ptr()) })
+    }
 }
 
 impl Window {
@@ -409,6 +420,30 @@ impl Window {
     #[doc(alias = "SDL_CreateWindow")]
     pub fn new(title: &CStr, width: i32, height: i32, flags: WindowFlags) -> SdlResult<Self> {
         Self::from_ptr(unsafe { SDL_CreateWindow(title.as_ptr(), width, height, flags.into()) })
+    }
+
+    #[doc(alias = "SDL_CreateWindowAndRenderer")]
+    pub fn with_renderer(
+        title: &CStr,
+        (w, h): (i32, i32),
+        flags: WindowFlags,
+    ) -> (SdlResult<Self>, SdlResult<Renderer>) {
+        let mut ret = MaybeUninit::<(*mut SDL_Window, *mut SDL_Renderer)>::uninit();
+        let ptr = ret.as_mut_ptr();
+
+        unsafe {
+            SDL_CreateWindowAndRenderer(
+                title.as_ptr(),
+                w,
+                h,
+                flags.into(),
+                &raw mut (*ptr).0,
+                &raw mut (*ptr).1,
+            );
+
+            let init = ret.assume_init();
+            (Self::from_ptr(init.0), Renderer::from_ptr(init.1))
+        }
     }
 
     #[doc(alias = "SDL_GetWindowFromID")]
