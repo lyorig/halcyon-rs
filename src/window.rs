@@ -361,7 +361,7 @@ impl WindowBuilder {
     }
 }
 
-resource!(Window, WindowRef, SDL_Window, SDL_DestroyWindow);
+resource!(Window);
 
 impl WindowRef {
     #[doc(alias = "SDL_SyncWindow")]

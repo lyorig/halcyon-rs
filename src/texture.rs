@@ -37,7 +37,7 @@ use sdl3_sys::{
 
 use crate::{defs::SdlResult, renderer::RendererRef, resource, surface::SurfaceRef};
 
-resource!(Texture, TextureRef, SDL_Texture, SDL_DestroyTexture);
+resource!(Texture);
 
 impl TextureRef {
     #[doc(alias = "SDL_GetTextureSize")]

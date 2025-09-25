@@ -163,7 +163,7 @@ impl RendererBuilder {
     }
 }
 
-resource!(Renderer, RendererRef, SDL_Renderer, SDL_DestroyRenderer);
+resource!(Renderer);
 
 impl RendererRef {
     #[doc(alias = "SDL_GetRendererName")]

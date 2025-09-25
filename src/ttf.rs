@@ -159,7 +159,7 @@ impl Drop for TtfContext {
     }
 }
 
-resource!(Font, FontRef, TTF_Font, TTF_CloseFont);
+resource!(Font, TTF, Close);
 
 impl FontRef {
     #[doc(alias = "TTF_CopyFont")]
@@ -435,7 +435,7 @@ impl Font {
     }
 }
 
-resource!(Text, TextRef, TTF_Text, TTF_DestroyText);
+resource!(Text, TTF);
 
 impl TextRef {
     #[doc(alias = "TTF_GetTextSize")]

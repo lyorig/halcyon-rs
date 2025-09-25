@@ -9,11 +9,11 @@ use halcyon::{
     window::{Window, WindowBuilder},
 };
 
-use sdl3_sys::pixels::SDL_PixelFormat;
+use sdl3_sys::{pixels::SDL_PixelFormat, rect::SDL_FRect};
 
 fn filled_surface(c: (u8, u8, u8, u8)) -> SdlResult<Surface> {
     let surf = Surface::from_size_and_format((128, 128), SDL_PixelFormat::RGB24)?;
-    surf.fill(None, c)?;
+    surf.fill(c)?;
     Ok(surf)
 }
 
@@ -31,9 +31,21 @@ unsafe fn run() -> SdlResult {
     wnd.sync()?;
 
     let rnd = RendererBuilder::new(&wnd).vsync(1).build()?;
-    rnd.set_draw_color((255, 255, 255, 255));
-
     let tex = Texture::from_surface(&rnd, &filled_surface((0x00, 0xFF, 0xFF, 0x00))?)?;
+
+    rnd.set_draw_color((255, 255, 255, 255));
+    let _ = rnd.clear();
+    let _ = rnd.draw(
+        &tex,
+        None,
+        Some(&SDL_FRect {
+            x: 128.,
+            y: 128.,
+            w: 128.,
+            h: 128.,
+        }),
+    );
+    let _ = rnd.present();
 
     'main: loop {
         let _ = rnd.clear();
@@ -44,10 +56,6 @@ unsafe fn run() -> SdlResult {
                 _ => (),
             }
         }
-
-        let _ = rnd.draw(&tex, None, None);
-        let _ = rnd.fill_rect((0., 0., 128., 128.));
-        let _ = rnd.present();
     }
 
     Ok(())
