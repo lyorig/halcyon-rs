@@ -26,10 +26,7 @@
 //! - [x] SDL_TextInputActive
 
 use sdl3_sys::{
-    keyboard::{
-        SDL_GetKeyName, SDL_GetKeyboardState, SDL_GetModState, SDL_GetScancodeName,
-        SDL_StartTextInput, SDL_StopTextInput, SDL_TextInputActive,
-    },
+    keyboard::*,
     keycode::{SDL_Keycode, SDL_Keymod},
     scancode::{SDL_SCANCODE_COUNT, SDL_Scancode},
 };
