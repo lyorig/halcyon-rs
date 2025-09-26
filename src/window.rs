@@ -447,8 +447,8 @@ impl Window {
     }
 
     #[doc(alias = "SDL_GetWindowFromID")]
-    pub fn from_id(id: SDL_WindowID) -> Option<WindowRef> {
-        NonNull::new(unsafe { SDL_GetWindowFromID(id) }).map(|handle| WindowRef { handle })
+    pub fn from_id(id: NonZero<SDL_WindowID>) -> Option<WindowRef> {
+        NonNull::new(unsafe { SDL_GetWindowFromID(id.get()) }).map(|handle| WindowRef { handle })
     }
 
     /// Returns this window's unique ID.
