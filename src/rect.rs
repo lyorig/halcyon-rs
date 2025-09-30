@@ -1,3 +1,4 @@
+/// Wrapper around `SDL_(F)Point`, can be transmuted.
 #[repr(C)]
 #[derive(Clone, Copy, Default, Debug)]
 pub struct Point<T: Default> {
@@ -9,11 +10,12 @@ pub type PointI = Point<i32>;
 pub type PointF = Point<f32>;
 
 impl<T: Default> Point<T> {
-    pub fn new(x: T, y: T) -> Self {
+    pub const fn new(x: T, y: T) -> Self {
         Self { x, y }
     }
 }
 
+/// Wrapper around `SDL_(F)Rect`, can be transmuted.
 #[repr(C)]
 #[derive(Clone, Copy, Default, Debug)]
 pub struct Rect<T: Default> {
@@ -26,16 +28,14 @@ pub type RectF = Rect<f32>;
 
 impl<T: Default> Rect<T> {
     /// Create a `Rect` with all fields specified.
-    pub fn new(x: T, y: T, w: T, h: T) -> Self {
-        Self::from_points(Point::new(x, y), Point::new(w, h))
+    pub const fn new(x: T, y: T, w: T, h: T) -> Self {
+        Self {
+            pos: Point::new(x, y),
+            size: Point::new(w, h),
+        }
     }
 
-    /// Create a `Rect` from a pair of points (the internal representation).
-    pub fn from_points(pos: Point<T>, size: Point<T>) -> Self {
-        Self { pos, size }
-    }
-
-    /// Convenience function, identical to `RectI::new(T::default(), T::default(), w, h)`.
+    /// Convenience function, identical to `Rect::new(T::default(), T::default(), w, h)`.
     pub fn sized(w: T, h: T) -> Self {
         Self::new(T::default(), T::default(), w, h)
     }

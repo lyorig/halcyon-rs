@@ -70,8 +70,9 @@ macro_rules! resource {
     };
 }
 
-pub fn opt2ptr<T>(opt: Option<&T>) -> *const T {
-    opt.map_or(std::ptr::null(), |s| s as *const T)
+/// Converts a Halcyon `Option` to an SDL pointer.
+pub fn opt2ptr<T, Dst>(opt: Option<&T>) -> *const Dst {
+    opt.map_or(std::ptr::null(), |s| s as *const T as *const Dst)
 }
 
 pub fn to_result(result: bool) -> SdlResult {

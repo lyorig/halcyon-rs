@@ -2,20 +2,11 @@ use halcyon::{
     context::Context,
     defs::SdlResult,
     event::{Event, EventIter},
+    rect::{Point, Rect},
     renderer::RendererBuilder,
     subsystem::Video,
-    surface::Surface,
-    texture::Texture,
     window::{Window, WindowBuilder},
 };
-
-use sdl3_sys::{pixels::SDL_PixelFormat, rect::SDL_FRect};
-
-fn filled_surface(c: (u8, u8, u8, u8)) -> SdlResult<Surface> {
-    let surf = Surface::from_size_and_format((128, 128), SDL_PixelFormat::RGB24)?;
-    surf.fill(c)?;
-    Ok(surf)
-}
 
 /// SAFETY: Only call this on the main thread!
 unsafe fn run() -> SdlResult {
@@ -31,24 +22,30 @@ unsafe fn run() -> SdlResult {
     wnd.sync()?;
 
     let rnd = RendererBuilder::new(&wnd).vsync(1).build()?;
-    let tex = Texture::from_surface(&rnd, &filled_surface((0x00, 0xFF, 0xFF, 0x00))?)?;
+    rnd.clear()?;
 
-    rnd.set_draw_color((255, 255, 255, 255));
-    let _ = rnd.clear();
-    let _ = rnd.draw(
-        &tex,
-        None,
-        Some(&SDL_FRect {
-            x: 128.,
-            y: 128.,
-            w: 128.,
-            h: 128.,
-        }),
+    println!(
+        "Platform = {}, renderer backend = {}",
+        Context::platform(),
+        rnd.name()
     );
-    let _ = rnd.present();
+
+    rnd.set_draw_color((0xFF, 0xFF, 0xFF, 0xFF));
+    rnd.draw_line(Point::new(10., 10.), Point::new(128., 64.))?;
+    rnd.fill_rect(Rect::new(10., 90., 256., 256.))?;
+
+    rnd.set_draw_color((0x00, 0xFF, 0xFF, 0xFF));
+    rnd.fill_rects(&[
+        Rect::new(100., 100., 10., 10.),
+        Rect::new(110., 110., 20., 20.),
+        Rect::new(130., 130., 20., 20.),
+        Rect::new(150., 150., 30., 30.),
+    ])?;
+
+    rnd.present()?;
 
     'main: loop {
-        let _ = rnd.clear();
+        rnd.clear()?;
 
         for event in EventIter::new() {
             match event {
@@ -63,8 +60,6 @@ unsafe fn run() -> SdlResult {
 
 fn main() {
     if let Err(e) = unsafe { run() } {
-        println!("Nope, err: {}", e.to_string_lossy());
-    } else {
-        println!("All fine!")
+        println!("An error occurred: {}", e.to_string_lossy());
     }
 }

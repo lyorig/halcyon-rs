@@ -77,21 +77,16 @@ use std::{
     mem::MaybeUninit,
 };
 
-use sdl3_sys::{
-    blendmode::SDL_BlendMode,
-    pixels::SDL_Colorspace,
-    rect::{SDL_FPoint, SDL_FRect},
-    render::*,
-};
+use sdl3_sys::{blendmode::SDL_BlendMode, pixels::SDL_Colorspace, render::*};
 
 use crate::{
     defs::SdlResult,
     properties::Properties,
-    rect::{Point, PointF, Rect, RectF},
+    rect::{PointF, PointI, RectF, RectI},
     resource,
     surface::{Surface, SurfaceRef},
     texture::TextureRef,
-    util::{self, c_to_str, to_result},
+    util::{c_to_str, opt2ptr, to_result},
     window::WindowRef,
 };
 
@@ -172,6 +167,8 @@ impl RendererRef {
         unsafe { c_to_str(SDL_GetRendererName(self.handle.as_ptr())) }
     }
 
+    /// This function doesn't return an `Option`, as all renderers should have
+    /// an associated window. If that's somehow violated, the program will panic.
     #[doc(alias = "SDL_GetRenderWindow")]
     pub fn window(&self) -> WindowRef {
         WindowRef::from_ptr(unsafe { SDL_GetRenderWindow(self.handle.as_ptr()) })
@@ -193,26 +190,26 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_GetRenderOutputSize")]
-    pub fn output_size(&self) -> (i32, i32) {
-        let mut ret = MaybeUninit::<(i32, i32)>::uninit();
+    pub fn output_size(&self) -> PointI {
+        let mut ret = MaybeUninit::<PointI>::uninit();
         let ptr = ret.as_mut_ptr();
 
         unsafe {
-            SDL_GetRenderOutputSize(self.handle.as_ptr(), &raw mut (*ptr).0, &raw mut (*ptr).1);
+            SDL_GetRenderOutputSize(self.handle.as_ptr(), &raw mut (*ptr).x, &raw mut (*ptr).y);
             ret.assume_init()
         }
     }
 
     #[doc(alias = "SDL_GetCurrentRenderOutputSize")]
-    pub fn target_output_size(&self) -> (i32, i32) {
-        let mut ret = MaybeUninit::<(i32, i32)>::uninit();
+    pub fn target_output_size(&self) -> PointI {
+        let mut ret = MaybeUninit::<PointI>::uninit();
         let ptr = ret.as_mut_ptr();
 
         unsafe {
             SDL_GetCurrentRenderOutputSize(
                 self.handle.as_ptr(),
-                &raw mut (*ptr).0,
-                &raw mut (*ptr).1,
+                &raw mut (*ptr).x,
+                &raw mut (*ptr).y,
             );
             ret.assume_init()
         }
@@ -271,12 +268,9 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_RenderReadPixels")]
-    pub fn read_area(&self, area: (i32, i32, i32, i32)) -> SdlResult<Surface> {
+    pub fn read_target_area(&self, area: RectI) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
-            SDL_RenderReadPixels(
-                self.handle.as_ptr(),
-                (&area as *const (i32, i32, i32, i32)).cast(),
-            )
+            SDL_RenderReadPixels(self.handle.as_ptr(), (&raw const area).cast())
         })
     }
 
@@ -306,8 +300,8 @@ impl RendererRef {
             SDL_RenderTexture(
                 self.handle.as_ptr(),
                 tex.into().handle.as_ptr(),
-                src.map_or(std::ptr::null(), |o| &raw const o as _),
-                dst.map_or(std::ptr::null(), |o| &raw const o as _),
+                opt2ptr(src),
+                opt2ptr(dst),
             )
         })
     }
@@ -325,10 +319,10 @@ impl RendererRef {
             SDL_RenderTextureAffine(
                 self.handle.as_ptr(),
                 tex.into().handle.as_ptr(),
-                src.map_or(std::ptr::null(), |o| &raw const o as _),
-                origin.map_or(std::ptr::null(), |o| &raw const o as _),
-                right.map_or(std::ptr::null(), |o| &raw const o as _),
-                down.map_or(std::ptr::null(), |o| &raw const o as _),
+                opt2ptr(src),
+                opt2ptr(origin),
+                opt2ptr(right),
+                opt2ptr(down),
             )
         })
     }
@@ -345,9 +339,9 @@ impl RendererRef {
             SDL_RenderTextureTiled(
                 self.handle.as_ptr(),
                 tex.into().handle.as_ptr(),
-                src.map_or(std::ptr::null(), |o| &raw const o as _),
+                opt2ptr(src),
                 scale,
-                dst.map_or(std::ptr::null(), |o| &raw const o as _),
+                opt2ptr(dst),
             )
         })
     }
@@ -368,29 +362,24 @@ impl RendererRef {
             SDL_RenderTexture9Grid(
                 self.handle.as_ptr(),
                 tex.into().handle.as_ptr(),
-                util::opt2ptr(src),
+                opt2ptr(src),
                 width_left,
                 width_right,
                 width_top,
                 width_bottom,
                 scale,
-                util::opt2ptr(dst),
+                opt2ptr(dst),
             )
         })
     }
 
     #[doc(alias = "SDL_RenderLine")]
-    pub fn draw_line(
-        &self,
-        (start_x, start_y): (f32, f32),
-        (end_x, end_y): (f32, f32),
-    ) -> SdlResult {
-        to_result(unsafe { SDL_RenderLine(self.handle.as_ptr(), start_x, start_y, end_x, end_y) })
+    pub fn draw_line(&self, start: PointF, end: PointF) -> SdlResult {
+        to_result(unsafe { SDL_RenderLine(self.handle.as_ptr(), start.x, start.y, end.x, end.y) })
     }
 
     #[doc(alias = "SDL_RenderLines")]
-    pub fn draw_lines(&self, lines: &[(f32, f32)]) -> SdlResult {
-        const _: () = assert!(size_of::<(f32, f32)>() == size_of::<SDL_FPoint>());
+    pub fn draw_lines(&self, lines: &[PointF]) -> SdlResult {
         to_result(unsafe {
             SDL_RenderLines(
                 self.handle.as_ptr(),
@@ -401,13 +390,12 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_RenderPoint")]
-    pub fn draw_point(&self, (x, y): (f32, f32)) -> SdlResult {
-        to_result(unsafe { SDL_RenderPoint(self.handle.as_ptr(), x, y) })
+    pub fn draw_point(&self, pos: PointF) -> SdlResult {
+        to_result(unsafe { SDL_RenderPoint(self.handle.as_ptr(), pos.x, pos.y) })
     }
 
     #[doc(alias = "SDL_RenderPoints")]
-    pub fn draw_points(&self, points: &[(f32, f32)]) -> SdlResult {
-        const _: () = assert!(size_of::<(f32, f32)>() == size_of::<SDL_FPoint>());
+    pub fn draw_points(&self, points: &[PointF]) -> SdlResult {
         to_result(unsafe {
             SDL_RenderPoints(
                 self.handle.as_ptr(),
@@ -418,14 +406,8 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_RenderRect")]
-    pub fn draw_rect(&self, rect: (f32, f32, f32, f32)) -> SdlResult {
-        const _: () = assert!(size_of::<(f32, f32, f32, f32)>() == size_of::<SDL_FRect>());
-        to_result(unsafe {
-            SDL_RenderRect(
-                self.handle.as_ptr(),
-                (&rect as *const (f32, f32, f32, f32)).cast(),
-            )
-        })
+    pub fn draw_rect(&self, rect: RectF) -> SdlResult {
+        to_result(unsafe { SDL_RenderRect(self.handle.as_ptr(), (&raw const rect).cast()) })
     }
 
     #[doc(alias = "SDL_RenderRect")]
@@ -434,7 +416,7 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_RenderRects")]
-    pub fn draw_rects(&self, rects: &[(f32, f32, f32, f32)]) -> SdlResult {
+    pub fn draw_rects(&self, rects: &[RectF]) -> SdlResult {
         to_result(unsafe {
             SDL_RenderRects(
                 self.handle.as_ptr(),
@@ -445,17 +427,12 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_RenderFillRect")]
-    pub fn fill_rect(&self, rect: (f32, f32, f32, f32)) -> SdlResult {
-        to_result(unsafe {
-            SDL_RenderFillRect(
-                self.handle.as_ptr(),
-                (&rect as *const (f32, f32, f32, f32)).cast(),
-            )
-        })
+    pub fn fill_rect(&self, rect: RectF) -> SdlResult {
+        to_result(unsafe { SDL_RenderFillRect(self.handle.as_ptr(), (&raw const rect).cast()) })
     }
 
     #[doc(alias = "SDL_RenderFillRects")]
-    pub fn fill_rects(&self, rects: &[(f32, f32, f32, f32)]) -> SdlResult {
+    pub fn fill_rects(&self, rects: &[RectF]) -> SdlResult {
         to_result(unsafe {
             SDL_RenderFillRects(
                 self.handle.as_ptr(),
@@ -479,7 +456,7 @@ impl RendererRef {
     /// Not every value is supported by every driver, so you should check
     /// the return value to see whether the requested setting is supported.
     ///
-    /// Can be used with `SDL_RENDERER_VSYNC_ADAPTIVE` and `SDL_RENDERER_VSYNC_DISABLED`.
+    /// Can be used with `Renderer::VSYNC_ADAPTIVE` and `Renderer::VSYNC_DISABLED`.
     #[doc(alias = "SDL_SetRenderVSync")]
     pub fn set_vsync(&self, val: i32) -> bool {
         unsafe { SDL_SetRenderVSync(self.handle.as_ptr(), val) }
@@ -508,6 +485,9 @@ impl RendererRef {
 }
 
 impl Renderer {
+    const VSYNC_DISABLED: i32 = SDL_RENDERER_VSYNC_DISABLED;
+    const VSYNC_ADAPTIVE: i32 = SDL_RENDERER_VSYNC_ADAPTIVE;
+
     #[doc(alias = "SDL_CreateRenderer")]
     pub fn new(wnd: impl Into<WindowRef>, name: Option<&CStr>) -> SdlResult<Renderer> {
         Self::from_ptr(unsafe {
