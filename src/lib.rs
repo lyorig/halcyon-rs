@@ -7,6 +7,7 @@ pub mod defs;
 pub mod error;
 pub mod event;
 pub mod keyboard;
+pub mod rect;
 pub mod renderer;
 pub mod subsystem;
 pub mod surface;

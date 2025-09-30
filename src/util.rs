@@ -71,10 +71,7 @@ macro_rules! resource {
 }
 
 pub fn opt2ptr<T>(opt: Option<&T>) -> *const T {
-    match opt {
-        Some(s) => s as *const T,
-        None => std::ptr::null(),
-    }
+    opt.map_or(std::ptr::null(), |s| s as *const T)
 }
 
 pub fn to_result(result: bool) -> SdlResult {

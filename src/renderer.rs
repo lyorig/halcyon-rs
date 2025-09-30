@@ -87,6 +87,7 @@ use sdl3_sys::{
 use crate::{
     defs::SdlResult,
     properties::Properties,
+    rect::{Point, PointF, Rect, RectF},
     resource,
     surface::{Surface, SurfaceRef},
     texture::TextureRef,
@@ -172,8 +173,9 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_GetRenderWindow")]
-    pub fn window(&self) -> Option<WindowRef> {
+    pub fn window(&self) -> WindowRef {
         WindowRef::from_ptr(unsafe { SDL_GetRenderWindow(self.handle.as_ptr()) })
+            .expect("Renderer has no associated window")
     }
 
     #[doc(alias = "SDL_GetRenderTarget")]
@@ -297,15 +299,15 @@ impl RendererRef {
     pub fn draw(
         &self,
         tex: impl Into<TextureRef>,
-        src: Option<&SDL_FRect>,
-        dst: Option<&SDL_FRect>,
+        src: Option<&RectF>,
+        dst: Option<&RectF>,
     ) -> SdlResult {
         to_result(unsafe {
             SDL_RenderTexture(
                 self.handle.as_ptr(),
                 tex.into().handle.as_ptr(),
-                util::opt2ptr(src),
-                util::opt2ptr(dst),
+                src.map_or(std::ptr::null(), |o| &raw const o as _),
+                dst.map_or(std::ptr::null(), |o| &raw const o as _),
             )
         })
     }
@@ -314,19 +316,19 @@ impl RendererRef {
     pub fn draw_affine(
         &self,
         tex: impl Into<TextureRef>,
-        src: Option<&SDL_FRect>,
-        origin: Option<&SDL_FPoint>,
-        right: Option<&SDL_FPoint>,
-        down: Option<&SDL_FPoint>,
+        src: Option<&RectF>,
+        origin: Option<&PointF>,
+        right: Option<&PointF>,
+        down: Option<&PointF>,
     ) -> SdlResult {
         to_result(unsafe {
             SDL_RenderTextureAffine(
                 self.handle.as_ptr(),
                 tex.into().handle.as_ptr(),
-                util::opt2ptr(src),
-                util::opt2ptr(origin),
-                util::opt2ptr(right),
-                util::opt2ptr(down),
+                src.map_or(std::ptr::null(), |o| &raw const o as _),
+                origin.map_or(std::ptr::null(), |o| &raw const o as _),
+                right.map_or(std::ptr::null(), |o| &raw const o as _),
+                down.map_or(std::ptr::null(), |o| &raw const o as _),
             )
         })
     }
@@ -335,17 +337,17 @@ impl RendererRef {
     pub fn draw_tiled(
         &self,
         tex: impl Into<TextureRef>,
-        src: Option<&SDL_FRect>,
+        src: Option<&RectF>,
         scale: f32,
-        dst: Option<&SDL_FRect>,
+        dst: Option<&RectF>,
     ) -> SdlResult {
         to_result(unsafe {
             SDL_RenderTextureTiled(
                 self.handle.as_ptr(),
                 tex.into().handle.as_ptr(),
-                util::opt2ptr(src),
+                src.map_or(std::ptr::null(), |o| &raw const o as _),
                 scale,
-                util::opt2ptr(dst),
+                dst.map_or(std::ptr::null(), |o| &raw const o as _),
             )
         })
     }
@@ -354,13 +356,13 @@ impl RendererRef {
     pub fn draw_9grid(
         &self,
         tex: impl Into<TextureRef>,
-        src: Option<&SDL_FRect>,
+        src: Option<&RectF>,
         width_left: f32,
         width_right: f32,
         width_top: f32,
         width_bottom: f32,
         scale: f32,
-        dst: Option<&SDL_FRect>,
+        dst: Option<&RectF>,
     ) -> SdlResult {
         to_result(unsafe {
             SDL_RenderTexture9Grid(
@@ -507,8 +509,13 @@ impl RendererRef {
 
 impl Renderer {
     #[doc(alias = "SDL_CreateRenderer")]
-    pub fn new(wnd: impl Into<WindowRef>) -> SdlResult<Renderer> {
-        Self::from_ptr(unsafe { SDL_CreateRenderer(wnd.into().handle.as_ptr(), std::ptr::null()) })
+    pub fn new(wnd: impl Into<WindowRef>, name: Option<&CStr>) -> SdlResult<Renderer> {
+        Self::from_ptr(unsafe {
+            SDL_CreateRenderer(
+                wnd.into().handle.as_ptr(),
+                name.map_or(std::ptr::null(), |n| n.as_ptr()),
+            )
+        })
     }
 
     #[doc(alias = "SDL_GetNumRenderDrivers")]
