@@ -58,17 +58,23 @@
 //! - [ ] SDL_WriteSurfacePixel
 //! - [ ] SDL_WriteSurfacePixelFloat
 
-use crate::{defs::SdlResult, resource, util::to_result};
+use crate::{
+    color::{RgbU8, RgbaF32, RgbaU8},
+    defs::SdlResult,
+    rect::{PointI32, RectI32},
+    resource,
+    util::to_result,
+};
 
 use sdl3_sys::{pixels::SDL_PixelFormat, surface::*};
 
 resource!(Surface);
 
 impl SurfaceRef {
-    pub fn size(&self) -> (i32, i32) {
+    pub fn size(&self) -> PointI32 {
         let ligma = unsafe { self.handle.as_ref() };
 
-        (ligma.w, ligma.h)
+        PointI32::new(ligma.w, ligma.h)
     }
 
     pub fn format(&self) -> SDL_PixelFormat {
@@ -78,14 +84,14 @@ impl SurfaceRef {
     }
 
     #[doc(alias = "SDL_FillSurfaceRect")]
-    pub fn fill(&self, c: (u8, u8, u8, u8)) -> SdlResult {
+    pub fn fill(&self, c: RgbaU8) -> SdlResult {
         to_result(unsafe {
             SDL_FillSurfaceRect(self.handle.as_ptr(), std::ptr::null(), self.map_rgba(c))
         })
     }
 
     #[doc(alias = "SDL_FillSurfaceRect")]
-    pub fn fill_rect(&self, pos: (i32, i32, i32, i32), c: (u8, u8, u8, u8)) -> SdlResult {
+    pub fn fill_rect(&self, pos: RectI32, c: RgbaU8) -> SdlResult {
         to_result(unsafe {
             SDL_FillSurfaceRect(
                 self.handle.as_ptr(),
@@ -96,7 +102,7 @@ impl SurfaceRef {
     }
 
     #[doc(alias = "SDL_FillSurfaceRects")]
-    pub fn fill_rects(&self, pos: &[(i32, i32, i32, i32)], c: (u8, u8, u8, u8)) -> SdlResult {
+    pub fn fill_rects(&self, pos: &[RectI32], c: RgbaU8) -> SdlResult {
         to_result(unsafe {
             SDL_FillSurfaceRects(
                 self.handle.as_ptr(),
@@ -108,8 +114,8 @@ impl SurfaceRef {
     }
 
     #[doc(alias = "SDL_ClearSurface")]
-    pub fn clear(&self, r: f32, g: f32, b: f32, a: f32) -> SdlResult {
-        to_result(unsafe { SDL_ClearSurface(self.handle.as_ptr(), r, g, b, a) })
+    pub fn clear(&self, c: RgbaF32) -> SdlResult {
+        to_result(unsafe { SDL_ClearSurface(self.handle.as_ptr(), c.rgb.r, c.rgb.g, c.rgb.b, c.a) })
     }
 
     #[doc(alias = "SDL_FlipSurface")]
@@ -118,18 +124,26 @@ impl SurfaceRef {
     }
 
     #[doc(alias = "SDL_ScaleSurface")]
-    pub fn scale(&self, size: (i32, i32), sm: SDL_ScaleMode) -> SdlResult<Surface> {
-        Surface::from_ptr(unsafe { SDL_ScaleSurface(self.handle.as_ptr(), size.0, size.1, sm) })
+    pub fn scale(&self, size: PointI32, sm: SDL_ScaleMode) -> SdlResult<Surface> {
+        Surface::from_ptr(unsafe { SDL_ScaleSurface(self.handle.as_ptr(), size.x, size.y, sm) })
     }
 
     #[doc(alias = "SDL_MapSurfaceRGB")]
-    fn map_rgb(&self, (r, g, b): (u8, u8, u8)) -> u32 {
-        unsafe { SDL_MapSurfaceRGB(self.handle.as_ptr(), r, g, b) }
+    fn map_rgb(&self, rgb: RgbU8) -> u32 {
+        unsafe { SDL_MapSurfaceRGB(self.handle.as_ptr(), rgb.r, rgb.g, rgb.b) }
     }
 
     #[doc(alias = "SDL_MapSurfaceRGBA")]
-    fn map_rgba(&self, (r, g, b, a): (u8, u8, u8, u8)) -> u32 {
-        unsafe { SDL_MapSurfaceRGBA(self.handle.as_ptr(), r, g, b, a) }
+    fn map_rgba(&self, rgba: RgbaU8) -> u32 {
+        unsafe {
+            SDL_MapSurfaceRGBA(
+                self.handle.as_ptr(),
+                rgba.rgb.r,
+                rgba.rgb.g,
+                rgba.rgb.b,
+                rgba.a,
+            )
+        }
     }
 
     #[doc(alias = "SDL_DuplicateSurface")]
@@ -140,7 +154,7 @@ impl SurfaceRef {
 
 impl Surface {
     #[doc(alias = "SDL_CreateSurface")]
-    pub fn from_size_and_format(size: (i32, i32), format: SDL_PixelFormat) -> SdlResult<Self> {
-        Self::from_ptr(unsafe { SDL_CreateSurface(size.0, size.1, format) })
+    pub fn from_size_and_format(size: PointI32, format: SDL_PixelFormat) -> SdlResult<Self> {
+        Self::from_ptr(unsafe { SDL_CreateSurface(size.x, size.y, format) })
     }
 }

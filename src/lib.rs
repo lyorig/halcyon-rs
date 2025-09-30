@@ -2,6 +2,7 @@
 
 mod properties;
 
+pub mod color;
 pub mod context;
 pub mod defs;
 pub mod error;

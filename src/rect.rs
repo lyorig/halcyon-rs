@@ -6,8 +6,8 @@ pub struct Point<T: Default> {
     pub y: T,
 }
 
-pub type PointI = Point<i32>;
-pub type PointF = Point<f32>;
+pub type PointI32 = Point<i32>;
+pub type PointF32 = Point<f32>;
 
 impl<T: Default> Point<T> {
     pub const fn new(x: T, y: T) -> Self {
@@ -23,8 +23,8 @@ pub struct Rect<T: Default> {
     pub size: Point<T>,
 }
 
-pub type RectI = Rect<i32>;
-pub type RectF = Rect<f32>;
+pub type RectI32 = Rect<i32>;
+pub type RectF32 = Rect<f32>;
 
 impl<T: Default> Rect<T> {
     /// Create a `Rect` with all fields specified.

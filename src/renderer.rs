@@ -80,9 +80,10 @@ use std::{
 use sdl3_sys::{blendmode::SDL_BlendMode, pixels::SDL_Colorspace, render::*};
 
 use crate::{
+    color::{RgbaF32, RgbaU8},
     defs::SdlResult,
     properties::Properties,
-    rect::{PointF, PointI, RectF, RectI},
+    rect::{PointF32, PointI32, RectF32, RectI32},
     resource,
     surface::{Surface, SurfaceRef},
     texture::TextureRef,
@@ -190,8 +191,8 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_GetRenderOutputSize")]
-    pub fn output_size(&self) -> PointI {
-        let mut ret = MaybeUninit::<PointI>::uninit();
+    pub fn output_size(&self) -> PointI32 {
+        let mut ret = MaybeUninit::<PointI32>::uninit();
         let ptr = ret.as_mut_ptr();
 
         unsafe {
@@ -201,8 +202,8 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_GetCurrentRenderOutputSize")]
-    pub fn target_output_size(&self) -> PointI {
-        let mut ret = MaybeUninit::<PointI>::uninit();
+    pub fn target_output_size(&self) -> PointI32 {
+        let mut ret = MaybeUninit::<PointI32>::uninit();
         let ptr = ret.as_mut_ptr();
 
         unsafe {
@@ -216,18 +217,18 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_GetRenderDrawColor")]
-    pub fn draw_color(&self) -> (u8, u8, u8, u8) {
-        let mut ret = MaybeUninit::<(u8, u8, u8, u8)>::uninit();
+    pub fn draw_color_u8(&self) -> RgbaU8 {
+        let mut ret = MaybeUninit::<RgbaU8>::uninit();
         let ptr = ret.as_mut_ptr();
 
         // SAFETY: This function only reads struct fields.
         unsafe {
             SDL_GetRenderDrawColor(
                 self.handle.as_ptr(),
-                &raw mut (*ptr).0,
-                &raw mut (*ptr).1,
-                &raw mut (*ptr).2,
-                &raw mut (*ptr).3,
+                &raw mut (*ptr).rgb.r,
+                &raw mut (*ptr).rgb.g,
+                &raw mut (*ptr).rgb.b,
+                &raw mut (*ptr).a,
             );
 
             ret.assume_init()
@@ -235,18 +236,18 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_GetRenderDrawColorFloat")]
-    pub fn draw_color_float(&self) -> (f32, f32, f32, f32) {
-        let mut ret = MaybeUninit::<(f32, f32, f32, f32)>::uninit();
+    pub fn draw_color_f32(&self) -> RgbaF32 {
+        let mut ret = MaybeUninit::<RgbaF32>::uninit();
         let ptr = ret.as_mut_ptr();
 
         // SAFETY: This function only reads struct fields.
         unsafe {
             SDL_GetRenderDrawColorFloat(
                 self.handle.as_ptr(),
-                &raw mut (*ptr).0,
-                &raw mut (*ptr).1,
-                &raw mut (*ptr).2,
-                &raw mut (*ptr).3,
+                &raw mut (*ptr).rgb.r,
+                &raw mut (*ptr).rgb.g,
+                &raw mut (*ptr).rgb.b,
+                &raw mut (*ptr).a,
             );
 
             ret.assume_init()
@@ -268,7 +269,7 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_RenderReadPixels")]
-    pub fn read_target_area(&self, area: RectI) -> SdlResult<Surface> {
+    pub fn read_target_area(&self, area: RectI32) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
             SDL_RenderReadPixels(self.handle.as_ptr(), (&raw const area).cast())
         })
@@ -293,8 +294,8 @@ impl RendererRef {
     pub fn draw(
         &self,
         tex: impl Into<TextureRef>,
-        src: Option<&RectF>,
-        dst: Option<&RectF>,
+        src: Option<&RectF32>,
+        dst: Option<&RectF32>,
     ) -> SdlResult {
         to_result(unsafe {
             SDL_RenderTexture(
@@ -310,10 +311,10 @@ impl RendererRef {
     pub fn draw_affine(
         &self,
         tex: impl Into<TextureRef>,
-        src: Option<&RectF>,
-        origin: Option<&PointF>,
-        right: Option<&PointF>,
-        down: Option<&PointF>,
+        src: Option<&RectF32>,
+        origin: Option<&PointF32>,
+        right: Option<&PointF32>,
+        down: Option<&PointF32>,
     ) -> SdlResult {
         to_result(unsafe {
             SDL_RenderTextureAffine(
@@ -331,9 +332,9 @@ impl RendererRef {
     pub fn draw_tiled(
         &self,
         tex: impl Into<TextureRef>,
-        src: Option<&RectF>,
+        src: Option<&RectF32>,
         scale: f32,
-        dst: Option<&RectF>,
+        dst: Option<&RectF32>,
     ) -> SdlResult {
         to_result(unsafe {
             SDL_RenderTextureTiled(
@@ -350,13 +351,13 @@ impl RendererRef {
     pub fn draw_9grid(
         &self,
         tex: impl Into<TextureRef>,
-        src: Option<&RectF>,
+        src: Option<&RectF32>,
         width_left: f32,
         width_right: f32,
         width_top: f32,
         width_bottom: f32,
         scale: f32,
-        dst: Option<&RectF>,
+        dst: Option<&RectF32>,
     ) -> SdlResult {
         to_result(unsafe {
             SDL_RenderTexture9Grid(
@@ -374,12 +375,12 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_RenderLine")]
-    pub fn draw_line(&self, start: PointF, end: PointF) -> SdlResult {
+    pub fn draw_line(&self, start: PointF32, end: PointF32) -> SdlResult {
         to_result(unsafe { SDL_RenderLine(self.handle.as_ptr(), start.x, start.y, end.x, end.y) })
     }
 
     #[doc(alias = "SDL_RenderLines")]
-    pub fn draw_lines(&self, lines: &[PointF]) -> SdlResult {
+    pub fn draw_lines(&self, lines: &[PointF32]) -> SdlResult {
         to_result(unsafe {
             SDL_RenderLines(
                 self.handle.as_ptr(),
@@ -390,12 +391,12 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_RenderPoint")]
-    pub fn draw_point(&self, pos: PointF) -> SdlResult {
+    pub fn draw_point(&self, pos: PointF32) -> SdlResult {
         to_result(unsafe { SDL_RenderPoint(self.handle.as_ptr(), pos.x, pos.y) })
     }
 
     #[doc(alias = "SDL_RenderPoints")]
-    pub fn draw_points(&self, points: &[PointF]) -> SdlResult {
+    pub fn draw_points(&self, points: &[PointF32]) -> SdlResult {
         to_result(unsafe {
             SDL_RenderPoints(
                 self.handle.as_ptr(),
@@ -406,7 +407,7 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_RenderRect")]
-    pub fn draw_rect(&self, rect: RectF) -> SdlResult {
+    pub fn draw_rect(&self, rect: RectF32) -> SdlResult {
         to_result(unsafe { SDL_RenderRect(self.handle.as_ptr(), (&raw const rect).cast()) })
     }
 
@@ -416,7 +417,7 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_RenderRects")]
-    pub fn draw_rects(&self, rects: &[RectF]) -> SdlResult {
+    pub fn draw_rects(&self, rects: &[RectF32]) -> SdlResult {
         to_result(unsafe {
             SDL_RenderRects(
                 self.handle.as_ptr(),
@@ -427,12 +428,12 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_RenderFillRect")]
-    pub fn fill_rect(&self, rect: RectF) -> SdlResult {
+    pub fn fill_rect(&self, rect: RectF32) -> SdlResult {
         to_result(unsafe { SDL_RenderFillRect(self.handle.as_ptr(), (&raw const rect).cast()) })
     }
 
     #[doc(alias = "SDL_RenderFillRects")]
-    pub fn fill_rects(&self, rects: &[RectF]) -> SdlResult {
+    pub fn fill_rects(&self, rects: &[RectF32]) -> SdlResult {
         to_result(unsafe {
             SDL_RenderFillRects(
                 self.handle.as_ptr(),
@@ -463,16 +464,28 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_SetRenderDrawColor")]
-    pub fn set_draw_color(&self, (r, g, b, a): (u8, u8, u8, u8)) {
+    pub fn set_draw_color_u8(&self, rgba: RgbaU8) {
         unsafe {
-            SDL_SetRenderDrawColor(self.handle.as_ptr(), r, g, b, a);
+            SDL_SetRenderDrawColor(
+                self.handle.as_ptr(),
+                rgba.rgb.r,
+                rgba.rgb.g,
+                rgba.rgb.b,
+                rgba.a,
+            );
         }
     }
 
     #[doc(alias = "SDL_SetRenderDrawColorFloat")]
-    pub fn set_draw_color_float(&self, (r, g, b, a): (f32, f32, f32, f32)) {
+    pub fn set_draw_color_f32(&self, rgba: RgbaF32) {
         unsafe {
-            SDL_SetRenderDrawColorFloat(self.handle.as_ptr(), r, g, b, a);
+            SDL_SetRenderDrawColorFloat(
+                self.handle.as_ptr(),
+                rgba.rgb.r,
+                rgba.rgb.g,
+                rgba.rgb.b,
+                rgba.a,
+            );
         }
     }
 
