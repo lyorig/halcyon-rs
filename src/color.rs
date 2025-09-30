@@ -1,6 +1,7 @@
 /// "Sub-struct" of `Rgba`, because some functions only use the RGB components
 /// and don't require the alpha.
 #[repr(C)]
+#[derive(Clone, Copy, Default)]
 pub struct Rgb<T> {
     pub r: T,
     pub g: T,
@@ -18,6 +19,7 @@ impl<T> Rgb<T> {
 
 /// Wrapper around `SDL_Color`. Can be transmuted.
 #[repr(C)]
+#[derive(Clone, Copy, Default)]
 pub struct Rgba<T> {
     pub rgb: Rgb<T>,
     pub a: T,
