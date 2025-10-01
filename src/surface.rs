@@ -20,11 +20,11 @@
 //! - [x] SDL_FillSurfaceRect
 //! - [x] SDL_FillSurfaceRects
 //! - [x] SDL_FlipSurface
-//! - [ ] SDL_GetSurfaceAlphaMod
-//! - [ ] SDL_GetSurfaceBlendMode
+//! - [x] SDL_GetSurfaceAlphaMod
+//! - [x] SDL_GetSurfaceBlendMode
 //! - [ ] SDL_GetSurfaceClipRect
-//! - [ ] SDL_GetSurfaceColorKey
-//! - [ ] SDL_GetSurfaceColorMod
+//! - [x] SDL_GetSurfaceColorKey
+//! - [x] SDL_GetSurfaceColorMod
 //! - [ ] SDL_GetSurfaceColorspace
 //! - [ ] SDL_GetSurfaceImages
 //! - [ ] SDL_GetSurfacePalette
@@ -42,11 +42,11 @@
 //! - [ ] SDL_SaveBMP
 //! - [ ] SDL_SaveBMP_IO
 //! - [x] SDL_ScaleSurface
-//! - [ ] SDL_SetSurfaceAlphaMod
-//! - [ ] SDL_SetSurfaceBlendMode
+//! - [x] SDL_SetSurfaceAlphaMod
+//! - [x] SDL_SetSurfaceBlendMode
 //! - [ ] SDL_SetSurfaceClipRect
 //! - [ ] SDL_SetSurfaceColorKey
-//! - [ ] SDL_SetSurfaceColorMod
+//! - [x] SDL_SetSurfaceColorMod
 //! - [ ] SDL_SetSurfaceColorspace
 //! - [ ] SDL_SetSurfacePalette
 //! - [ ] SDL_SetSurfaceRLE
@@ -58,29 +58,69 @@
 //! - [ ] SDL_WriteSurfacePixel
 //! - [ ] SDL_WriteSurfacePixelFloat
 
+use std::mem::MaybeUninit;
+
 use crate::{
-    color::{RgbU8, RgbaF32, RgbaU8},
+    color::{RgbU8, Rgba, RgbaF32, RgbaU8},
     defs::SdlResult,
     rect::{PointI32, RectI32},
     resource,
     util::to_result,
 };
 
-use sdl3_sys::{pixels::SDL_PixelFormat, surface::*};
+use sdl3_sys::{blendmode::SDL_BlendMode, pixels::SDL_PixelFormat, surface::*};
 
 resource!(Surface);
 
 impl SurfaceRef {
     pub fn size(&self) -> PointI32 {
         let ligma = unsafe { self.handle.as_ref() };
-
         PointI32::new(ligma.w, ligma.h)
     }
 
     pub fn format(&self) -> SDL_PixelFormat {
         let ligma = unsafe { self.handle.as_ref() };
-
         ligma.format
+    }
+
+    #[doc(alias = "SDL_GetSurfaceBlendMode")]
+    pub fn blend_mode(&self) -> SDL_BlendMode {
+        let mut ret = MaybeUninit::uninit();
+
+        unsafe {
+            SDL_GetSurfaceBlendMode(self.handle.as_ptr(), ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+
+    #[doc(alias = "SDL_GetSurfaceColorMod")]
+    pub fn rgb_mod(&self) -> RgbU8 {
+        let mut ret = MaybeUninit::<RgbU8>::uninit();
+        let ptr = ret.as_mut_ptr();
+
+        unsafe {
+            SDL_GetSurfaceColorMod(
+                self.handle.as_ptr(),
+                &raw mut (*ptr).r,
+                &raw mut (*ptr).g,
+                &raw mut (*ptr).b,
+            );
+            ret.assume_init()
+        }
+    }
+
+    #[doc(alias = "SDL_GetSurfaceAlphaMod")]
+    pub fn alpha_mod(&self) -> u8 {
+        let mut ret = MaybeUninit::uninit();
+
+        unsafe {
+            SDL_GetSurfaceAlphaMod(self.handle.as_ptr(), ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+
+    pub fn color_mod(&self) -> RgbaU8 {
+        Rgba::new(self.rgb_mod(), self.alpha_mod())
     }
 
     #[doc(alias = "SDL_FillSurfaceRect")]
@@ -129,12 +169,12 @@ impl SurfaceRef {
     }
 
     #[doc(alias = "SDL_MapSurfaceRGB")]
-    fn map_rgb(&self, rgb: RgbU8) -> u32 {
+    pub fn map_rgb(&self, rgb: RgbU8) -> u32 {
         unsafe { SDL_MapSurfaceRGB(self.handle.as_ptr(), rgb.r, rgb.g, rgb.b) }
     }
 
     #[doc(alias = "SDL_MapSurfaceRGBA")]
-    fn map_rgba(&self, rgba: RgbaU8) -> u32 {
+    pub fn map_rgba(&self, rgba: RgbaU8) -> u32 {
         unsafe {
             SDL_MapSurfaceRGBA(
                 self.handle.as_ptr(),
@@ -147,8 +187,29 @@ impl SurfaceRef {
     }
 
     #[doc(alias = "SDL_DuplicateSurface")]
-    fn try_clone(&self) -> SdlResult<Surface> {
+    pub fn try_clone(&self) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe { SDL_DuplicateSurface(self.handle.as_ptr()) })
+    }
+
+    #[doc(alias = "SDL_SetSurfaceBlendMode")]
+    pub fn set_blend_mode(&self, bm: SDL_BlendMode) -> SdlResult {
+        to_result(unsafe { SDL_SetSurfaceBlendMode(self.handle.as_ptr(), bm) })
+    }
+
+    #[doc(alias = "SDL_SetSurfaceColorMod")]
+    pub fn set_rgb_mod(&self, rgb: RgbU8) -> SdlResult {
+        to_result(unsafe { SDL_SetSurfaceColorMod(self.handle.as_ptr(), rgb.r, rgb.g, rgb.b) })
+    }
+
+    #[doc(alias = "SDL_SetSurfaceAlphaMod")]
+    pub fn set_alpha_mod(&self, alpha: u8) -> SdlResult {
+        to_result(unsafe { SDL_SetSurfaceAlphaMod(self.handle.as_ptr(), alpha) })
+    }
+
+    /// Convenience function that calls `Surface::set_rgb_mod()` and `Surface::set_alpha_mod()`.
+    pub fn set_color_mod(&self, rgba: RgbaU8) -> SdlResult {
+        self.set_rgb_mod(rgba.rgb)?;
+        self.set_alpha_mod(rgba.a)
     }
 }
 

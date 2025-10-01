@@ -384,13 +384,13 @@ impl TextRef {
 
 impl Text {
     #[doc(alias = "TTF_CreateText")]
-    fn new(font: &Font, text: &CStr) -> SdlResult<Self> {
+    pub fn new(font: impl Into<FontRef>, text: &str) -> SdlResult<Self> {
         Self::from_ptr(unsafe {
             TTF_CreateText(
                 std::ptr::null_mut(),
-                font.inner.handle.as_ptr(),
-                text.as_ptr(),
-                text.count_bytes(),
+                font.into().handle.as_ptr(),
+                text.as_ptr().cast(),
+                text.len(),
             )
         })
     }
