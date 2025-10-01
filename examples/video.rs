@@ -15,9 +15,9 @@ unsafe fn run() -> SdlResult {
     let vid = Video::new(&ctx).expect("Video creation failed");
 
     let wnd = WindowBuilder::new()
-        .position((Window::POS_CENTERED, Window::POS_CENTERED))
+        .position(Point::new(Window::POS_CENTERED, Window::POS_CENTERED))
         .title(c"Halcyon Example")
-        .size((640, 480))
+        .size(Point::new(640, 480))
         .build(&vid)?;
 
     wnd.sync()?;
@@ -31,11 +31,11 @@ unsafe fn run() -> SdlResult {
         rnd.name()
     );
 
-    rnd.set_draw_color_u8(Rgba::rgba(0xFF, 0xFF, 0xFF, 0xFF));
+    rnd.set_draw_color_f32(Rgba::rgb(1., 1., 1.));
     rnd.draw_line(Point::new(10., 10.), Point::new(128., 64.))?;
     rnd.fill_rect(Rect::new(10., 90., 256., 256.))?;
 
-    rnd.set_draw_color_u8(Rgba::rgba(0x00, 0xFF, 0xFF, 0xFF));
+    rnd.set_draw_color_f32(Rgba::rgb(0., 1., 1.));
     rnd.fill_rects(&[
         Rect::new(100., 100., 10., 10.),
         Rect::new(110., 110., 20., 20.),

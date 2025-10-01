@@ -1,5 +1,7 @@
-/// "Sub-struct" of `Rgba`, because some functions only use the RGB components
-/// and don't require the alpha.
+use sdl3_sys::pixels::SDL_Color;
+
+/// "Sub-struct" of `Rgba`, because some SDL functions only use
+/// the RGB components and don't require the alpha.
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
 pub struct Rgb<T> {
@@ -19,7 +21,7 @@ impl<T> Rgb<T> {
 
 /// Wrapper around `SDL_Color`. Can be transmuted.
 #[repr(C)]
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy)]
 pub struct Rgba<T> {
     pub rgb: Rgb<T>,
     pub a: T,
@@ -28,7 +30,22 @@ pub struct Rgba<T> {
 pub type RgbaU8 = Rgba<u8>;
 pub type RgbaF32 = Rgba<f32>;
 
-impl<T> Rgba<T> {
+pub trait OpacityBounds {
+    const MIN_OPACITY: Self;
+    const MAX_OPACITY: Self;
+}
+
+impl OpacityBounds for u8 {
+    const MIN_OPACITY: Self = 0;
+    const MAX_OPACITY: Self = Self::MAX;
+}
+
+impl OpacityBounds for f32 {
+    const MIN_OPACITY: Self = 0.0;
+    const MAX_OPACITY: Self = 1.0;
+}
+
+impl<T: OpacityBounds> Rgba<T> {
     pub fn new(rgb: Rgb<T>, a: T) -> Self {
         Self { rgb, a }
     }
@@ -36,16 +53,23 @@ impl<T> Rgba<T> {
     pub fn rgba(r: T, g: T, b: T, a: T) -> Self {
         Self::new(Rgb::new(r, g, b), a)
     }
-}
 
-impl Rgba<u8> {
-    pub fn rgb(rgb: Rgb<u8>) -> Self {
-        Self { rgb, a: u8::MAX }
+    pub fn rgb(r: T, g: T, b: T) -> Self {
+        Self::rgba(r, g, b, T::MAX_OPACITY)
     }
 }
 
-impl Rgba<f32> {
-    pub fn rgb(rgb: Rgb<f32>) -> Self {
-        Self { rgb, a: 1. }
+impl<T: OpacityBounds> From<Rgb<T>> for Rgba<T> {
+    fn from(value: Rgb<T>) -> Self {
+        Self {
+            rgb: value,
+            a: T::MAX_OPACITY,
+        }
+    }
+}
+
+impl From<RgbaU8> for SDL_Color {
+    fn from(value: RgbaU8) -> Self {
+        unsafe { std::mem::transmute_copy(&value) }
     }
 }

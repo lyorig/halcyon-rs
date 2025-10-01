@@ -38,6 +38,7 @@ use sdl3_sys::{
 use crate::{
     color::{RgbF32, RgbU8, Rgba, RgbaF32, RgbaU8},
     defs::SdlResult,
+    rect::PointI32,
     renderer::RendererRef,
     resource,
     surface::SurfaceRef,
@@ -222,9 +223,11 @@ impl Texture {
         rnd: RendererRef,
         fmt: SDL_PixelFormat,
         access: SDL_TextureAccess,
-        (w, h): (i32, i32),
+        size: PointI32,
     ) -> SdlResult<Texture> {
-        Self::from_ptr(unsafe { SDL_CreateTexture(rnd.handle.as_ptr(), fmt, access, w, h) })
+        Self::from_ptr(unsafe {
+            SDL_CreateTexture(rnd.handle.as_ptr(), fmt, access, size.x, size.y)
+        })
     }
 
     #[doc(alias = "SDL_CreateTextureFromSurface")]

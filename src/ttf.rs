@@ -123,10 +123,12 @@
 
 use std::{ffi::CStr, mem::MaybeUninit};
 
-use sdl3_sys::pixels::SDL_Color;
 use sdl3_ttf_sys::ttf::*;
 
-use crate::{defs::SdlResult, error::get_error, resource, surface::Surface, util::to_result};
+use crate::{
+    color::RgbaU8, defs::SdlResult, error::get_error, rect::PointI32, resource, surface::Surface,
+    util::to_result,
+};
 
 /// Ensures SDL_ttf (de)initialization.
 pub struct TtfContext;
@@ -168,165 +170,79 @@ impl FontRef {
     }
 
     #[doc(alias = "TTF_RenderGlyph_Blended")]
-    pub fn render_glyph_blended(
-        &self,
-        ch: char,
-        (r, g, b, a): (u8, u8, u8, u8),
-    ) -> SdlResult<Surface> {
+    pub fn render_glyph_blended(&self, ch: char, color: RgbaU8) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
-            TTF_RenderGlyph_Blended(self.handle.as_ptr(), ch.into(), SDL_Color { r, g, b, a })
+            TTF_RenderGlyph_Blended(self.handle.as_ptr(), ch.into(), color.into())
         })
     }
 
     #[doc(alias = "TTF_RenderGlyph_LCD")]
-    pub fn render_glyph_lcd(
-        &self,
-        ch: char,
-        (fr, fg, fb, fa): (u8, u8, u8, u8),
-        (br, bg, bb, ba): (u8, u8, u8, u8),
-    ) -> SdlResult<Surface> {
+    pub fn render_glyph_lcd(&self, ch: char, fg: RgbaU8, bg: RgbaU8) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
-            TTF_RenderGlyph_LCD(
-                self.handle.as_ptr(),
-                ch.into(),
-                SDL_Color {
-                    r: fr,
-                    g: fg,
-                    b: fb,
-                    a: fa,
-                },
-                SDL_Color {
-                    r: br,
-                    g: bg,
-                    b: bb,
-                    a: ba,
-                },
-            )
+            TTF_RenderGlyph_LCD(self.handle.as_ptr(), ch.into(), fg.into(), bg.into())
         })
     }
 
     #[doc(alias = "TTF_RenderGlyph_Shaded")]
-    pub fn render_glyph_shaded(
-        &self,
-        ch: char,
-        (fr, fg, fb, fa): (u8, u8, u8, u8),
-        (br, bg, bb, ba): (u8, u8, u8, u8),
-    ) -> SdlResult<Surface> {
+    pub fn render_glyph_shaded(&self, ch: char, fg: RgbaU8, bg: RgbaU8) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
-            TTF_RenderGlyph_Shaded(
-                self.handle.as_ptr(),
-                ch.into(),
-                SDL_Color {
-                    r: fr,
-                    g: fg,
-                    b: fb,
-                    a: fa,
-                },
-                SDL_Color {
-                    r: br,
-                    g: bg,
-                    b: bb,
-                    a: ba,
-                },
-            )
+            TTF_RenderGlyph_Shaded(self.handle.as_ptr(), ch.into(), fg.into(), bg.into())
         })
     }
 
     #[doc(alias = "TTF_RenderGlyph_Solid")]
-    pub fn render_glyph_solid(
-        &self,
-        ch: char,
-        (r, g, b, a): (u8, u8, u8, u8),
-    ) -> SdlResult<Surface> {
+    pub fn render_glyph_solid(&self, ch: char, color: RgbaU8) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
-            TTF_RenderGlyph_Solid(self.handle.as_ptr(), ch.into(), SDL_Color { r, g, b, a })
+            TTF_RenderGlyph_Solid(self.handle.as_ptr(), ch.into(), color.into())
         })
     }
 
     #[doc(alias = "TTF_RenderText_Blended")]
-    pub fn render_text_blended(
-        &self,
-        text: &CStr,
-        (r, g, b, a): (u8, u8, u8, u8),
-    ) -> SdlResult<Surface> {
+    pub fn render_text_blended(&self, text: &CStr, color: RgbaU8) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_Blended(
                 self.handle.as_ptr(),
                 text.as_ptr(),
                 text.count_bytes(),
-                SDL_Color { r, g, b, a },
+                color.into(),
             )
         })
     }
 
     #[doc(alias = "TTF_RenderText_LCD")]
-    pub fn render_text_lcd(
-        &self,
-        text: &CStr,
-        (fr, fg, fb, fa): (u8, u8, u8, u8),
-        (br, bg, bb, ba): (u8, u8, u8, u8),
-    ) -> SdlResult<Surface> {
+    pub fn render_text_lcd(&self, text: &CStr, fg: RgbaU8, bg: RgbaU8) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_LCD(
                 self.handle.as_ptr(),
                 text.as_ptr(),
                 text.count_bytes(),
-                SDL_Color {
-                    r: fr,
-                    g: fg,
-                    b: fb,
-                    a: fa,
-                },
-                SDL_Color {
-                    r: br,
-                    g: bg,
-                    b: bb,
-                    a: ba,
-                },
+                fg.into(),
+                bg.into(),
             )
         })
     }
 
     #[doc(alias = "TTF_RenderText_Shaded")]
-    pub fn render_text_shaded(
-        &self,
-        text: &CStr,
-        (fr, fg, fb, fa): (u8, u8, u8, u8),
-        (br, bg, bb, ba): (u8, u8, u8, u8),
-    ) -> SdlResult<Surface> {
+    pub fn render_text_shaded(&self, text: &CStr, fg: RgbaU8, bg: RgbaU8) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_Shaded(
                 self.handle.as_ptr(),
                 text.as_ptr(),
                 text.count_bytes(),
-                SDL_Color {
-                    r: fr,
-                    g: fg,
-                    b: fb,
-                    a: fa,
-                },
-                SDL_Color {
-                    r: br,
-                    g: bg,
-                    b: bb,
-                    a: ba,
-                },
+                fg.into(),
+                bg.into(),
             )
         })
     }
 
     #[doc(alias = "TTF_RenderText_Solid")]
-    pub fn render_text_solid(
-        &self,
-        text: &CStr,
-        (r, g, b, a): (u8, u8, u8, u8),
-    ) -> SdlResult<Surface> {
+    pub fn render_text_solid(&self, text: &CStr, color: RgbaU8) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_Solid(
                 self.handle.as_ptr(),
                 text.as_ptr(),
                 text.count_bytes(),
-                SDL_Color { r, g, b, a },
+                color.into(),
             )
         })
     }
@@ -335,7 +251,7 @@ impl FontRef {
     pub fn render_text_blended_wrapped(
         &self,
         text: &CStr,
-        (r, g, b, a): (u8, u8, u8, u8),
+        color: RgbaU8,
         wrap_length: i32,
     ) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
@@ -343,7 +259,7 @@ impl FontRef {
                 self.handle.as_ptr(),
                 text.as_ptr(),
                 text.count_bytes(),
-                SDL_Color { r, g, b, a },
+                color.into(),
                 wrap_length,
             )
         })
@@ -353,8 +269,8 @@ impl FontRef {
     pub fn render_text_lcd_wrapped(
         &self,
         text: &CStr,
-        (fr, fg, fb, fa): (u8, u8, u8, u8),
-        (br, bg, bb, ba): (u8, u8, u8, u8),
+        fg: RgbaU8,
+        bg: RgbaU8,
         wrap_length: i32,
     ) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
@@ -362,18 +278,8 @@ impl FontRef {
                 self.handle.as_ptr(),
                 text.as_ptr(),
                 text.count_bytes(),
-                SDL_Color {
-                    r: fr,
-                    g: fg,
-                    b: fb,
-                    a: fa,
-                },
-                SDL_Color {
-                    r: br,
-                    g: bg,
-                    b: bb,
-                    a: ba,
-                },
+                fg.into(),
+                bg.into(),
                 wrap_length,
             )
         })
@@ -383,8 +289,8 @@ impl FontRef {
     pub fn render_text_shaded_wrapped(
         &self,
         text: &CStr,
-        (fr, fg, fb, fa): (u8, u8, u8, u8),
-        (br, bg, bb, ba): (u8, u8, u8, u8),
+        fg: RgbaU8,
+        bg: RgbaU8,
         wrap_length: i32,
     ) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
@@ -392,18 +298,8 @@ impl FontRef {
                 self.handle.as_ptr(),
                 text.as_ptr(),
                 text.count_bytes(),
-                SDL_Color {
-                    r: fr,
-                    g: fg,
-                    b: fb,
-                    a: fa,
-                },
-                SDL_Color {
-                    r: br,
-                    g: bg,
-                    b: bb,
-                    a: ba,
-                },
+                fg.into(),
+                bg.into(),
                 wrap_length,
             )
         })
@@ -413,7 +309,7 @@ impl FontRef {
     pub fn render_text_solid_wrapped(
         &self,
         text: &CStr,
-        (r, g, b, a): (u8, u8, u8, u8),
+        color: RgbaU8,
         wrap_length: i32,
     ) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
@@ -421,7 +317,7 @@ impl FontRef {
                 self.handle.as_ptr(),
                 text.as_ptr(),
                 text.count_bytes(),
-                SDL_Color { r, g, b, a },
+                color.into(),
                 wrap_length,
             )
         })
@@ -439,30 +335,28 @@ resource!(Text, TTF);
 
 impl TextRef {
     #[doc(alias = "TTF_GetTextSize")]
-    pub fn size(&self) -> (i32, i32) {
-        let mut size = (MaybeUninit::uninit(), MaybeUninit::uninit());
+    pub fn size(&self) -> PointI32 {
+        let mut ret = MaybeUninit::<PointI32>::uninit();
+        let ptr = ret.as_mut_ptr();
+
         unsafe {
-            TTF_GetTextSize(
-                self.handle.as_ptr(),
-                size.0.as_mut_ptr(),
-                size.1.as_mut_ptr(),
-            );
-            (size.0.assume_init(), size.1.assume_init())
+            TTF_GetTextSize(self.handle.as_ptr(), &raw mut (*ptr).x, &raw mut (*ptr).y);
+            ret.assume_init()
         }
     }
 
     #[doc(alias = "TTF_GetTextColor")]
-    pub fn color(&self) -> (u8, u8, u8, u8) {
-        let mut col = MaybeUninit::<(u8, u8, u8, u8)>::uninit();
+    pub fn color(&self) -> RgbaU8 {
+        let mut col = MaybeUninit::<RgbaU8>::uninit();
         let ptr = col.as_mut_ptr();
 
         unsafe {
             TTF_GetTextColor(
                 self.handle.as_ptr(),
-                &raw mut (*ptr).0,
-                &raw mut (*ptr).1,
-                &raw mut (*ptr).2,
-                &raw mut (*ptr).3,
+                &raw mut (*ptr).rgb.r,
+                &raw mut (*ptr).rgb.g,
+                &raw mut (*ptr).rgb.b,
+                &raw mut (*ptr).a,
             );
 
             col.assume_init()
@@ -470,8 +364,16 @@ impl TextRef {
     }
 
     #[doc(alias = "TTF_SetTextColor")]
-    pub fn set_color(&self, (r, g, b, a): (u8, u8, u8, u8)) -> SdlResult {
-        to_result(unsafe { TTF_SetTextColor(self.handle.as_ptr(), r, g, b, a) })
+    pub fn set_color(&self, color: RgbaU8) -> SdlResult {
+        to_result(unsafe {
+            TTF_SetTextColor(
+                self.handle.as_ptr(),
+                color.rgb.r,
+                color.rgb.g,
+                color.rgb.b,
+                color.a,
+            )
+        })
     }
 
     #[doc(alias = "TTF_UpdateText")]

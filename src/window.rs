@@ -119,6 +119,7 @@
 use crate::{
     defs::SdlResult,
     properties::Properties,
+    rect::PointI32,
     renderer::{Renderer, RendererRef},
     resource,
     subsystem::Video,
@@ -339,15 +340,15 @@ impl WindowBuilder {
     }
 
     /// Utility method that calls `self.width()` and `self.height()`.
-    pub fn size(&mut self, (w, h): (i32, i32)) -> &mut Self {
-        self.width(w.into());
-        self.height(h.into())
+    pub fn size(&mut self, size: PointI32) -> &mut Self {
+        self.width(size.x.into());
+        self.height(size.y.into())
     }
 
     /// Utility method that calls `self.x()` and `self.y()`.
-    pub fn position(&mut self, (x, y): (i32, i32)) -> &mut Self {
-        self.x(x.into());
-        self.y(y.into())
+    pub fn position(&mut self, pos: PointI32) -> &mut Self {
+        self.x(pos.x.into());
+        self.y(pos.y.into())
     }
 
     /// Build the window.
@@ -375,23 +376,23 @@ impl WindowRef {
     }
 
     #[doc(alias = "SDL_GetWindowSize")]
-    pub fn size(&self) -> (i32, i32) {
-        let mut ret = MaybeUninit::<(i32, i32)>::uninit();
+    pub fn size(&self) -> PointI32 {
+        let mut ret = MaybeUninit::<PointI32>::uninit();
         let ptr = ret.as_mut_ptr();
 
         unsafe {
-            SDL_GetWindowSize(self.handle.as_ptr(), &raw mut (*ptr).0, &raw mut (*ptr).1);
+            SDL_GetWindowSize(self.handle.as_ptr(), &raw mut (*ptr).x, &raw mut (*ptr).y);
             ret.assume_init()
         }
     }
 
     #[doc(alias = "SDL_GetWindowPosition")]
-    pub fn position(&self) -> (i32, i32) {
-        let mut ret = MaybeUninit::<(i32, i32)>::uninit();
+    pub fn position(&self) -> PointI32 {
+        let mut ret = MaybeUninit::<PointI32>::uninit();
         let ptr = ret.as_mut_ptr();
 
         unsafe {
-            SDL_GetWindowPosition(self.handle.as_ptr(), &raw mut (*ptr).0, &raw mut (*ptr).1);
+            SDL_GetWindowPosition(self.handle.as_ptr(), &raw mut (*ptr).x, &raw mut (*ptr).y);
             ret.assume_init()
         }
     }
@@ -418,14 +419,14 @@ impl Window {
     pub const POS_UNDEFINED: i32 = SDL_WINDOWPOS_UNDEFINED;
 
     #[doc(alias = "SDL_CreateWindow")]
-    pub fn new(title: &CStr, width: i32, height: i32, flags: WindowFlags) -> SdlResult<Self> {
-        Self::from_ptr(unsafe { SDL_CreateWindow(title.as_ptr(), width, height, flags.into()) })
+    pub fn new(title: &CStr, size: PointI32, flags: WindowFlags) -> SdlResult<Self> {
+        Self::from_ptr(unsafe { SDL_CreateWindow(title.as_ptr(), size.x, size.y, flags.into()) })
     }
 
     #[doc(alias = "SDL_CreateWindowAndRenderer")]
     pub fn with_renderer(
         title: &CStr,
-        (w, h): (i32, i32),
+        size: PointI32,
         flags: WindowFlags,
     ) -> (SdlResult<Self>, SdlResult<Renderer>) {
         let mut ret = MaybeUninit::<(*mut SDL_Window, *mut SDL_Renderer)>::uninit();
@@ -434,8 +435,8 @@ impl Window {
         unsafe {
             SDL_CreateWindowAndRenderer(
                 title.as_ptr(),
-                w,
-                h,
+                size.x,
+                size.y,
                 flags.into(),
                 &raw mut (*ptr).0,
                 &raw mut (*ptr).1,
