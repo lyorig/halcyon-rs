@@ -135,7 +135,7 @@ pub struct TtfContext;
 
 impl TtfContext {
     #[doc(alias = "TTF_Init")]
-    fn new() -> SdlResult<Self> {
+    pub fn new() -> SdlResult<Self> {
         if unsafe { TTF_Init() } {
             Ok(Self {})
         } else {
@@ -144,12 +144,12 @@ impl TtfContext {
     }
 
     #[doc(alias = "TTF_WasInit")]
-    fn initialized() -> bool {
+    pub fn initialized() -> bool {
         unsafe { TTF_WasInit() != 0 }
     }
 
     #[doc(alias = "TTF_Version")]
-    fn version() -> i32 {
+    pub fn version() -> i32 {
         unsafe { TTF_Version() }
     }
 }
