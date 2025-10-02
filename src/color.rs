@@ -14,7 +14,7 @@ pub type RgbU8 = Rgb<u8>;
 pub type RgbF32 = Rgb<f32>;
 
 impl<T> Rgb<T> {
-    pub fn new(r: T, g: T, b: T) -> Self {
+    pub const fn new(r: T, g: T, b: T) -> Self {
         Self { r, g, b }
     }
 }
@@ -46,16 +46,37 @@ impl OpacityBounds for f32 {
 }
 
 impl<T: OpacityBounds> Rgba<T> {
-    pub fn new(rgb: Rgb<T>, a: T) -> Self {
+    pub const fn new(rgb: Rgb<T>, a: T) -> Self {
         Self { rgb, a }
     }
 
-    pub fn rgba(r: T, g: T, b: T, a: T) -> Self {
-        Self::new(Rgb::new(r, g, b), a)
+    pub const fn rgb(r: T, g: T, b: T) -> Self {
+        Self::rgba(r, g, b, T::MAX_OPACITY)
     }
 
-    pub fn rgb(r: T, g: T, b: T) -> Self {
-        Self::rgba(r, g, b, T::MAX_OPACITY)
+    pub const fn rgba(r: T, g: T, b: T, a: T) -> Self {
+        Self::new(Rgb::new(r, g, b), a)
+    }
+}
+
+impl RgbaU8 {
+    /// Create an `RgbaU8` from a hex (0xRRGGBB) representation.
+    /// This forwards the extracted red, green, and blue components
+    /// to `RgbaU8::rgb()`.
+    pub const fn rgb_hex(val: u32) -> Self {
+        Self::rgb((val >> 16) as u8, (val >> 8) as u8, val as u8)
+    }
+
+    /// Create an `RgbaU8` from a hex (0xRRGGBBAA) representation.
+    /// This forwards the extracted red, green, blue, and alpha components
+    /// to `RgbaU8::rgba()`.
+    pub const fn rgba_hex(val: u32) -> Self {
+        Self::rgba(
+            (val >> 24) as u8,
+            (val >> 16) as u8,
+            (val >> 8) as u8,
+            val as u8,
+        )
     }
 }
 
