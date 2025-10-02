@@ -1,21 +1,20 @@
-use std::{ffi::CString, fmt::Display, mem::ManuallyDrop, ops::Deref};
+use std::{ffi::CStr, fmt::Display, ops::Deref, ptr::NonNull};
 
 use sdl3_sys::stdinc::SDL_free;
 
-/// An owned `String`, but it gets dropped via SDL's
+/// Like an owned `String`, but it gets dropped via SDL's
 /// custom `SDL_free()` function.
 pub struct SdlString {
-    inner: ManuallyDrop<String>,
+    handle: NonNull<i8>,
+    len: usize,
 }
 
 impl SdlString {
-    pub(crate) unsafe fn from_ptr(ptr: *mut i8) -> Self {
+    pub(crate) fn from_ptr(handle: NonNull<i8>) -> Self {
+        let cs = unsafe { CStr::from_ptr(handle.as_ptr()) };
         Self {
-            inner: ManuallyDrop::new(
-                unsafe { CString::from_raw(ptr) }
-                    .into_string()
-                    .expect("SDL string contains non-valid UTF-8"),
-            ),
+            handle,
+            len: cs.count_bytes(),
         }
     }
 }
@@ -24,7 +23,12 @@ impl Deref for SdlString {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
-        &self.inner
+        unsafe {
+            std::str::from_utf8_unchecked(std::slice::from_raw_parts(
+                self.handle.as_ptr().cast(),
+                self.len,
+            ))
+        }
     }
 }
 
@@ -36,6 +40,6 @@ impl Display for SdlString {
 
 impl Drop for SdlString {
     fn drop(&mut self) {
-        unsafe { SDL_free(self.inner.as_mut_ptr().cast()) };
+        unsafe { SDL_free(self.handle.as_ptr().cast()) };
     }
 }

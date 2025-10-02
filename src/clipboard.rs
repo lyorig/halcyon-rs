@@ -1,4 +1,4 @@
-use std::ffi::CStr;
+use std::{ffi::CStr, ptr::NonNull};
 
 use sdl3_sys::clipboard::*;
 
@@ -9,8 +9,10 @@ pub fn has_text() -> bool {
 }
 
 pub fn text() -> SdlString {
-    // SAFETY: `SDL_GetClipboardText()` never returns a null pointer.
-    unsafe { SdlString::from_ptr(SDL_GetClipboardText()) }
+    SdlString::from_ptr(
+        NonNull::new(unsafe { SDL_GetClipboardText() })
+            .expect("SDL_GetClipboardText() should never return a null pointer"),
+    )
 }
 
 pub fn set_text(text: &CStr) -> SdlResult {

@@ -26,7 +26,7 @@ mod tests {
     #[test]
     fn context() {
         let ctx = unsafe { Context::new() };
-        let _vid = Video::new(&ctx).expect("Yuup");
+        let _vid = Video::new(&ctx).expect("Should be able to initialize video subsystem");
     }
 
     #[test]

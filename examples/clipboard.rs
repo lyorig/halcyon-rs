@@ -10,7 +10,7 @@ fn main() {
     );
 
     halcyon::clipboard::set_text(c"And now I see, with eye serene")
-        .expect("Couldn't set clipboard text :(");
+        .expect("Couldn't set clipboard text");
 
     println!("New clipboard content: \"{}\"", halcyon::clipboard::text());
 }

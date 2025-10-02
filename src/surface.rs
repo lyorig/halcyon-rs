@@ -1,10 +1,10 @@
 //! Implementation checklist ([source](https://wiki.libsdl.org/SDL3/CategorySurface)):
 //! - [ ] SDL_AddSurfaceAlternateImage
-//! - [ ] SDL_BlitSurface
-//! - [ ] SDL_BlitSurface9Grid
-//! - [ ] SDL_BlitSurfaceScaled
-//! - [ ] SDL_BlitSurfaceTiled
-//! - [ ] SDL_BlitSurfaceTiledWithScale
+//! - [x] SDL_BlitSurface
+//! - [x] SDL_BlitSurface9Grid
+//! - [x] SDL_BlitSurfaceScaled
+//! - [x] SDL_BlitSurfaceTiled
+//! - [x] SDL_BlitSurfaceTiledWithScale
 //! - [ ] SDL_BlitSurfaceUnchecked
 //! - [ ] SDL_BlitSurfaceUncheckedScaled
 //! - [x] SDL_ClearSurface
@@ -50,7 +50,7 @@
 //! - [ ] SDL_SetSurfaceColorspace
 //! - [ ] SDL_SetSurfacePalette
 //! - [ ] SDL_SetSurfaceRLE
-//! - [ ] SDL_StretchSurface
+//! - [x] SDL_StretchSurface
 //! - [ ] SDL_SurfaceHasAlternateImages
 //! - [ ] SDL_SurfaceHasColorKey
 //! - [ ] SDL_SurfaceHasRLE
@@ -65,7 +65,7 @@ use crate::{
     defs::SdlResult,
     rect::{PointI32, RectI32},
     resource,
-    util::to_result,
+    util::{opt2ptr, to_result},
 };
 
 use sdl3_sys::{blendmode::SDL_BlendMode, pixels::SDL_PixelFormat, surface::*};
@@ -191,6 +191,24 @@ impl SurfaceRef {
         Surface::from_ptr(unsafe { SDL_DuplicateSurface(self.handle.as_ptr()) })
     }
 
+    pub fn stretch(
+        &self,
+        target: impl Into<SurfaceRef>,
+        src: Option<&PointI32>,
+        dst: Option<&PointI32>,
+        scale_mode: SDL_ScaleMode,
+    ) -> SdlResult {
+        to_result(unsafe {
+            SDL_StretchSurface(
+                self.handle.as_ptr(),
+                opt2ptr(src),
+                target.into().handle.as_ptr(),
+                opt2ptr(dst),
+                scale_mode,
+            )
+        })
+    }
+
     #[doc(alias = "SDL_SetSurfaceBlendMode")]
     pub fn set_blend_mode(&self, bm: SDL_BlendMode) -> SdlResult {
         to_result(unsafe { SDL_SetSurfaceBlendMode(self.handle.as_ptr(), bm) })
@@ -210,6 +228,109 @@ impl SurfaceRef {
     pub fn set_color_mod(&self, rgba: RgbaU8) -> SdlResult {
         self.set_rgb_mod(rgba.rgb)?;
         self.set_alpha_mod(rgba.a)
+    }
+
+    #[doc(alias = "SDL_BlitSurface")]
+    pub fn blit(
+        &self,
+        target: impl Into<SurfaceRef>,
+        src: Option<&PointI32>,
+        dst: Option<&PointI32>,
+    ) -> SdlResult {
+        to_result(unsafe {
+            SDL_BlitSurface(
+                self.handle.as_ptr(),
+                opt2ptr(src),
+                target.into().handle.as_ptr(),
+                opt2ptr(dst),
+            )
+        })
+    }
+
+    #[doc(alias = "SDL_BlitSurface9Grid")]
+    pub fn blit_9grid(
+        &self,
+        target: impl Into<SurfaceRef>,
+        src: Option<&PointI32>,
+        dst: Option<&PointI32>,
+        left_width: i32,
+        right_width: i32,
+        top_height: i32,
+        bottom_height: i32,
+        scale: f32,
+        scale_mode: SDL_ScaleMode,
+    ) -> SdlResult {
+        to_result(unsafe {
+            SDL_BlitSurface9Grid(
+                self.handle.as_ptr(),
+                opt2ptr(src),
+                left_width,
+                right_width,
+                top_height,
+                bottom_height,
+                scale,
+                scale_mode,
+                target.into().handle.as_ptr(),
+                opt2ptr(dst),
+            )
+        })
+    }
+
+    #[doc(alias = "SDL_BlitSurfaceScaled")]
+    pub fn blit_scaled(
+        &self,
+        target: impl Into<SurfaceRef>,
+        src: Option<&PointI32>,
+        dst: Option<&PointI32>,
+        scale_mode: SDL_ScaleMode,
+    ) -> SdlResult {
+        to_result(unsafe {
+            SDL_BlitSurfaceScaled(
+                self.handle.as_ptr(),
+                opt2ptr(src),
+                target.into().handle.as_ptr(),
+                opt2ptr(dst),
+                scale_mode,
+            )
+        })
+    }
+
+    #[doc(alias = "SDL_BlitSurfaceTiled")]
+    pub fn blit_tiled(
+        &self,
+        target: impl Into<SurfaceRef>,
+        src: Option<&PointI32>,
+        dst: Option<&PointI32>,
+    ) -> SdlResult {
+        to_result(unsafe {
+            SDL_BlitSurfaceTiled(
+                self.handle.as_ptr(),
+                opt2ptr(src),
+                target.into().handle.as_ptr(),
+                opt2ptr(dst),
+            )
+        })
+    }
+
+    #[doc(alias = "SDL_BlitSurfaceTiledWithScale")]
+    pub fn blit_tiled_scaled(
+        &self,
+        target: impl Into<SurfaceRef>,
+        src: Option<&PointI32>,
+        dst: Option<&PointI32>,
+        scale: f32,
+        scale_mode: SDL_ScaleMode,
+    ) -> SdlResult {
+        to_result(unsafe {
+            SDL_BlitSurfaceTiledWithScale(
+                self.handle.as_ptr(),
+                opt2ptr(src),
+                scale,
+                scale_mode,
+                target.into().handle.as_ptr(),
+                opt2ptr(dst),
+            )
+        })
     }
 }
 

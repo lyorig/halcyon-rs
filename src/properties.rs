@@ -4,7 +4,7 @@ use sdl3_sys::properties::*;
 
 use crate::{defs::SdlResult, util::to_result};
 
-/// OWned SDL properties.
+/// Owned SDL properties.
 pub struct Properties {
     id: SDL_PropertiesID,
 }
