@@ -11,7 +11,7 @@ pub mod event;
 pub mod keyboard;
 pub mod rect;
 pub mod renderer;
-pub mod sdl_cstring;
+pub mod sdl_string;
 pub mod subsystem;
 pub mod surface;
 pub mod texture;
