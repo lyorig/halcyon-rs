@@ -220,13 +220,13 @@ impl TextureRef {
 impl Texture {
     #[doc(alias = "SDL_CreateTexture")]
     pub fn new(
-        rnd: RendererRef,
+        rnd: impl Into<RendererRef>,
         fmt: SDL_PixelFormat,
         access: SDL_TextureAccess,
         size: PointI32,
     ) -> SdlResult<Texture> {
         Self::from_ptr(unsafe {
-            SDL_CreateTexture(rnd.handle.as_ptr(), fmt, access, size.x, size.y)
+            SDL_CreateTexture(rnd.into().handle.as_ptr(), fmt, access, size.x, size.y)
         })
     }
 
