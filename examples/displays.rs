@@ -22,7 +22,7 @@ fn outer() -> SdlResult {
     );
 
     println!("All primary desktop display modes:");
-    for (x, y, hz) in p.display_modes()?.iter().map(|dm| {
+    for (x, y, hz) in p.modes()?.iter().map(|dm| {
         let dm = unsafe { dm.read() };
         (dm.w, dm.h, dm.refresh_rate)
     }) {

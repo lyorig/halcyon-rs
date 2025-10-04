@@ -3,18 +3,18 @@
 //! Implementation checklist (source):
 //! - [ ] SDL_GetClosestFullscreenDisplayMode
 //! - [x] SDL_GetCurrentDisplayMode
-//! - [ ] SDL_GetCurrentDisplayOrientation
+//! - [x] SDL_GetCurrentDisplayOrientation
 //! - [x] SDL_GetDesktopDisplayMode
 //! - [x] SDL_GetDisplayBounds
-//! - [ ] SDL_GetDisplayContentScale
-//! - [ ] SDL_GetDisplayForPoint
-//! - [ ] SDL_GetDisplayForRect
+//! - [x] SDL_GetDisplayContentScale
+//! - [x] SDL_GetDisplayForPoint
+//! - [x] SDL_GetDisplayForRect
 //! - [x] SDL_GetDisplayName
 //! - [ ] SDL_GetDisplayProperties
 //! - [x] SDL_GetDisplays
 //! - [x] SDL_GetDisplayUsableBounds
 //! - [x] SDL_GetFullscreenDisplayModes
-//! - [ ] SDL_GetNaturalDisplayOrientation
+//! - [x] SDL_GetNaturalDisplayOrientation
 //! - [x] SDL_GetPrimaryDisplay
 
 use crate::{
@@ -92,7 +92,7 @@ impl DisplayHandle {
     }
 
     #[doc(alias = "SDL_GetCurrentDisplayMode")]
-    pub fn display_mode_current(&self) -> SdlResult<NonNull<SDL_DisplayMode>> {
+    pub fn mode_current(&self) -> SdlResult<NonNull<SDL_DisplayMode>> {
         let ptr = unsafe { SDL_GetCurrentDisplayMode(self.id.get()) };
         if ptr.is_null() {
             Err(get_error())
@@ -102,7 +102,7 @@ impl DisplayHandle {
     }
 
     #[doc(alias = "SDL_GetDesktopDisplayMode")]
-    pub fn display_mode_desktop(&self) -> SdlResult<NonNull<SDL_DisplayMode>> {
+    pub fn mode_desktop(&self) -> SdlResult<NonNull<SDL_DisplayMode>> {
         let ptr = unsafe { SDL_GetDesktopDisplayMode(self.id.get()) };
         if ptr.is_null() {
             Err(get_error())
@@ -112,7 +112,7 @@ impl DisplayHandle {
     }
 
     #[doc(alias = "SDL_GetFullscreenDisplayModes")]
-    pub fn display_modes(&self) -> SdlResult<SdlBoxArr<NonNull<SDL_DisplayMode>>> {
+    pub fn modes(&self) -> SdlResult<SdlBoxArr<NonNull<SDL_DisplayMode>>> {
         let mut count = MaybeUninit::uninit();
 
         unsafe {
@@ -121,5 +121,20 @@ impl DisplayHandle {
                 count,
             )
         }
+    }
+
+    #[doc(alias = "SDL_GetDisplayContentScale")]
+    pub fn content_scale(&self) -> f32 {
+        unsafe { SDL_GetDisplayContentScale(self.id.get()) }
+    }
+
+    #[doc(alias = "SDL_GetCurrentDisplayOrientation")]
+    pub fn orientation_current(&self) -> SDL_DisplayOrientation {
+        unsafe { SDL_GetCurrentDisplayOrientation(self.id.get()) }
+    }
+
+    #[doc(alias = "SDL_GetNaturalDisplayOrientation")]
+    pub fn orientation_natural(&self) -> SDL_DisplayOrientation {
+        unsafe { SDL_GetNaturalDisplayOrientation(self.id.get()) }
     }
 }
