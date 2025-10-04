@@ -17,7 +17,13 @@
 //! - [ ] SDL_GetNaturalDisplayOrientation
 //! - [x] SDL_GetPrimaryDisplay
 
-use crate::{defs::SdlResult, error::get_error, rect::RectI32, sdl_box::SdlBoxArr, util::c_to_str};
+use crate::{
+    defs::SdlResult,
+    error::get_error,
+    rect::{PointI32, RectI32},
+    sdl_box::SdlBoxArr,
+    util::c_to_str,
+};
 use sdl3_sys::video::*;
 use std::{mem::MaybeUninit, num::NonZero, ptr::NonNull};
 
@@ -26,7 +32,7 @@ pub type DisplayId = NonZero<SDL_DisplayID>;
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
 pub struct DisplayHandle {
-    id: NonZero<SDL_DisplayID>,
+    pub(crate) id: NonZero<SDL_DisplayID>,
 }
 
 impl DisplayHandle {
@@ -39,6 +45,20 @@ impl DisplayHandle {
     #[doc(alias = "SDL_GetPrimaryDisplay")]
     pub fn primary() -> SdlResult<Self> {
         match NonZero::new(unsafe { SDL_GetPrimaryDisplay() }) {
+            Some(id) => Ok(Self { id }),
+            None => Err(get_error()),
+        }
+    }
+
+    pub fn for_point(point: PointI32) -> SdlResult<Self> {
+        match NonZero::new(unsafe { SDL_GetDisplayForPoint((&raw const point).cast()) }) {
+            Some(id) => Ok(Self { id }),
+            None => Err(get_error()),
+        }
+    }
+
+    pub fn for_rect(rect: RectI32) -> SdlResult<Self> {
+        match NonZero::new(unsafe { SDL_GetDisplayForRect((&raw const rect).cast()) }) {
             Some(id) => Ok(Self { id }),
             None => Err(get_error()),
         }

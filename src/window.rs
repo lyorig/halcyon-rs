@@ -115,9 +115,11 @@
 //! - [ ] SDL_WindowHasSurface
 //! - [x] SDL_GetRenderer
 //! - [x] SDL_CreateWindowAndRenderer
+//! - [x] SDL_GetDisplayForWindow
 
 use crate::{
     defs::SdlResult,
+    display::DisplayHandle,
     properties::Properties,
     rect::PointI32,
     renderer::{Renderer, RendererRef},
@@ -411,6 +413,14 @@ impl WindowRef {
     #[doc(alias = "SDL_GetRenderer")]
     pub fn renderer(&self) -> Option<RendererRef> {
         RendererRef::from_ptr(unsafe { SDL_GetRenderer(self.handle.as_ptr()) })
+    }
+
+    #[doc(alias = "SDL_GetDisplayForWindow")]
+    pub fn display(&self) -> DisplayHandle {
+        DisplayHandle {
+            id: NonZero::new(unsafe { SDL_GetDisplayForWindow(self.handle.as_ptr()) })
+                .expect("Window isn't on any display"),
+        }
     }
 }
 
