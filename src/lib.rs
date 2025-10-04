@@ -1,11 +1,13 @@
 #![allow(dead_code)]
 
 mod properties;
+mod sdl_box;
 
 pub mod clipboard;
 pub mod color;
 pub mod context;
 pub mod defs;
+pub mod display;
 pub mod error;
 pub mod event;
 pub mod keyboard;

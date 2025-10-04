@@ -1,7 +1,9 @@
+use std::fmt::Display;
+
 /// Wrapper around `SDL_(F)Point`, can be transmuted.
 #[repr(C)]
 #[derive(Clone, Copy, Default, Debug)]
-pub struct Point<T: Default> {
+pub struct Point<T> {
     pub x: T,
     pub y: T,
 }
@@ -18,7 +20,7 @@ impl<T: Default> Point<T> {
 /// Wrapper around `SDL_(F)Rect`, can be transmuted.
 #[repr(C)]
 #[derive(Clone, Copy, Default, Debug)]
-pub struct Rect<T: Default> {
+pub struct Rect<T> {
     pub pos: Point<T>,
     pub size: Point<T>,
 }
@@ -38,5 +40,15 @@ impl<T: Default> Rect<T> {
     /// Convenience function, identical to `Rect::new(T::default(), T::default(), w, h)`.
     pub fn sized(w: T, h: T) -> Self {
         Self::new(T::default(), T::default(), w, h)
+    }
+}
+
+impl<T: Display> Display for Rect<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "([{},{}], {}x{})",
+            self.pos.x, self.pos.y, self.size.x, self.size.y
+        )
     }
 }
