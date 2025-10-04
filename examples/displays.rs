@@ -1,31 +1,31 @@
-use halcyon::{context::Context, defs::SdlResult, display, subsystem::Video};
+use halcyon::{context::Context, defs::SdlResult, display::DisplayHandle, subsystem::Video};
 
 fn outer() -> SdlResult {
     let context = unsafe { Context::new() };
     let _video = Video::new(&context);
 
-    for (i, disp) in display::all()?.iter().copied().enumerate() {
+    for (i, disp) in DisplayHandle::all()?.iter().copied().enumerate() {
         println!(
             "Display #{}: \"{}\", bounds {} (usable {})",
             i,
-            display::name(disp),
-            display::bounds(disp),
-            display::bounds_usable(disp),
+            disp.name(),
+            disp.bounds(),
+            disp.bounds_usable(),
         )
     }
 
-    let p = display::primary()?;
+    let p = DisplayHandle::primary()?;
     println!(
         "Primary display has ID {} and name \"{}\"",
-        p,
-        display::name(p)
+        p.id(),
+        p.name()
     );
 
     println!("All primary desktop display modes:");
-    for (x, y, hz) in display::display_modes(p.into())?
-        .iter()
-        .map(|dm| (dm.w, dm.h, dm.refresh_rate))
-    {
+    for (x, y, hz) in p.display_modes()?.iter().map(|dm| {
+        let dm = unsafe { dm.read() };
+        (dm.w, dm.h, dm.refresh_rate)
+    }) {
         println!("{x}x{y}, {hz} Hz");
     }
 
