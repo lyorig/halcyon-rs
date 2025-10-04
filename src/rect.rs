@@ -17,6 +17,12 @@ impl<T: Default> Point<T> {
     }
 }
 
+impl<T: Display> Display for Point<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[{},{}]", self.x, self.y)
+    }
+}
+
 /// Wrapper around `SDL_(F)Rect`, can be transmuted.
 #[repr(C)]
 #[derive(Clone, Copy, Default, Debug)]
