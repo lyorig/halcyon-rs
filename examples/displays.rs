@@ -8,11 +8,12 @@ fn outer() -> SdlResult {
 
     for (i, disp) in DisplayHandle::all()?.iter().copied().enumerate() {
         println!(
-            "Display #{}: \"{}\", bounds {} (usable {})",
+            "Display #{}: \"{}\", bounds {} (usable {}), content scale = {:.2}",
             i,
             unsafe { c_to_str(disp.name()?.as_ptr()) },
             disp.bounds()?,
             disp.bounds_usable()?,
+            disp.content_scale()?
         )
     }
 

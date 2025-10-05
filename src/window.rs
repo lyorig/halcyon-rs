@@ -1,5 +1,6 @@
 //! SDL's window API wrapper.
 //!
+//! Implementation checklist ([source](https://wiki.libsdl.org/SDL3/CategoryVideo)):
 //! - [ ] SDL_CreatePopupWindow
 //! - [x] SDL_CreateWindow
 //! - [x] SDL_CreateWindowWithProperties
@@ -13,25 +14,10 @@
 //! - [ ] SDL_EGL_SetAttributeCallbacks
 //! - [ ] SDL_EnableScreenSaver
 //! - [x] SDL_FlashWindow
-//! - [ ] SDL_GetClosestFullscreenDisplayMode
-//! - [ ] SDL_GetCurrentDisplayMode
-//! - [ ] SDL_GetCurrentDisplayOrientation
 //! - [ ] SDL_GetCurrentVideoDriver
-//! - [ ] SDL_GetDesktopDisplayMode
-//! - [ ] SDL_GetDisplayBounds
-//! - [ ] SDL_GetDisplayContentScale
-//! - [ ] SDL_GetDisplayForPoint
-//! - [ ] SDL_GetDisplayForRect
-//! - [ ] SDL_GetDisplayForWindow
-//! - [ ] SDL_GetDisplayName
-//! - [ ] SDL_GetDisplayProperties
-//! - [ ] SDL_GetDisplays
-//! - [ ] SDL_GetDisplayUsableBounds
-//! - [ ] SDL_GetFullscreenDisplayModes
+//! - [x] SDL_GetDisplayForWindow
 //! - [ ] SDL_GetGrabbedWindow
-//! - [ ] SDL_GetNaturalDisplayOrientation
 //! - [ ] SDL_GetNumVideoDrivers
-//! - [ ] SDL_GetPrimaryDisplay
 //! - [ ] SDL_GetSystemTheme
 //! - [ ] SDL_GetVideoDriver
 //! - [ ] SDL_GetWindowAspectRatio
@@ -115,7 +101,6 @@
 //! - [ ] SDL_WindowHasSurface
 //! - [x] SDL_GetRenderer
 //! - [x] SDL_CreateWindowAndRenderer
-//! - [x] SDL_GetDisplayForWindow
 
 use crate::{
     defs::SdlResult,

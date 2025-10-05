@@ -51,10 +51,6 @@ impl<T: Default> Rect<T> {
 
 impl<T: Display> Display for Rect<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "([{},{}], {}x{})",
-            self.pos.x, self.pos.y, self.size.x, self.size.y
-        )
+        write!(f, "({}, {}x{})", self.pos, self.size.x, self.size.y)
     }
 }

@@ -1,7 +1,7 @@
 //! SDL display API.
 //!
-//! Implementation checklist (source):
-//! - [ ] SDL_GetClosestFullscreenDisplayMode
+//! Implementation checklist ([source](https://wiki.libsdl.org/SDL3/CategoryVideo)):
+//! - [x] SDL_GetClosestFullscreenDisplayMode
 //! - [x] SDL_GetCurrentDisplayMode
 //! - [x] SDL_GetCurrentDisplayOrientation
 //! - [x] SDL_GetDesktopDisplayMode
@@ -24,11 +24,13 @@ use crate::{
     sdl_box::SdlBoxArr,
     util::c_to_str,
 };
+
 use sdl3_sys::video::*;
 use std::{ffi::c_char, mem::MaybeUninit, num::NonZero, ptr::NonNull};
 
-pub type DisplayId = NonZero<SDL_DisplayID>;
-
+/// A handle to a display owned by SDL.
+/// This is essentially just a number, and since displays can be
+/// added and removed at will, member functions mostly return an `SdlResult`.
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
 pub struct DisplayHandle {
@@ -153,5 +155,30 @@ impl DisplayHandle {
     #[doc(alias = "SDL_GetNaturalDisplayOrientation")]
     pub fn orientation_natural(&self) -> SDL_DisplayOrientation {
         unsafe { SDL_GetNaturalDisplayOrientation(self.id.get()) }
+    }
+
+    #[doc(alias = "SDL_GetClosestFullscreenDisplayMode")]
+    pub fn closest_fullscreen_mode(
+        &self,
+        size: PointI32,
+        refresh_rate: f32,
+        include_high_density_modes: bool,
+    ) -> SdlResult<SDL_DisplayMode> {
+        let mut ret = MaybeUninit::uninit();
+
+        unsafe {
+            if SDL_GetClosestFullscreenDisplayMode(
+                self.id.get(),
+                size.x,
+                size.y,
+                refresh_rate,
+                include_high_density_modes,
+                ret.as_mut_ptr(),
+            ) {
+                Ok(ret.assume_init())
+            } else {
+                Err(get_error())
+            }
+        }
     }
 }
