@@ -1,4 +1,6 @@
-use halcyon::{context::Context, defs::SdlResult, display::DisplayHandle, subsystem::Video};
+use halcyon::{
+    context::Context, defs::SdlResult, display::DisplayHandle, subsystem::Video, util::c_to_str,
+};
 
 fn outer() -> SdlResult {
     let context = unsafe { Context::new() };
@@ -8,9 +10,9 @@ fn outer() -> SdlResult {
         println!(
             "Display #{}: \"{}\", bounds {} (usable {})",
             i,
-            disp.name(),
-            disp.bounds(),
-            disp.bounds_usable(),
+            unsafe { c_to_str(disp.name()?.as_ptr()) },
+            disp.bounds()?,
+            disp.bounds_usable()?,
         )
     }
 
@@ -18,7 +20,7 @@ fn outer() -> SdlResult {
     println!(
         "Primary display has ID {} and name \"{}\"",
         p.id(),
-        p.name()
+        unsafe { c_to_str(p.name()?.as_ptr()) } // Or you can use `DisplayHandle::name_owned()`.
     );
 
     println!("All primary desktop display modes:");

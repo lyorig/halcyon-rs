@@ -25,7 +25,7 @@ use crate::{
     util::c_to_str,
 };
 use sdl3_sys::video::*;
-use std::{mem::MaybeUninit, num::NonZero, ptr::NonNull};
+use std::{ffi::c_char, mem::MaybeUninit, num::NonZero, ptr::NonNull};
 
 pub type DisplayId = NonZero<SDL_DisplayID>;
 
@@ -69,25 +69,41 @@ impl DisplayHandle {
     }
 
     #[doc(alias = "SDL_GetDisplayName")]
-    pub fn name(&self) -> &'static str {
-        unsafe { c_to_str(SDL_GetDisplayName(self.id.get())) }
+    pub fn name(&self) -> SdlResult<NonNull<c_char>> {
+        NonNull::new(unsafe { SDL_GetDisplayName(self.id.get()).cast_mut() }).ok_or_else(get_error)
+    }
+
+    #[doc(alias = "SDL_GetDisplayName")]
+    pub fn name_owned(&self) -> SdlResult<String> {
+        let ptr = unsafe { SDL_GetDisplayName(self.id.get()) };
+        if ptr.is_null() {
+            Err(get_error())
+        } else {
+            Ok(unsafe { c_to_str(ptr).to_owned() })
+        }
     }
 
     #[doc(alias = "SDL_GetDisplayBounds")]
-    pub fn bounds(&self) -> RectI32 {
+    pub fn bounds(&self) -> SdlResult<RectI32> {
         let mut ret = MaybeUninit::uninit();
         unsafe {
-            SDL_GetDisplayBounds(self.id.get(), ret.as_mut_ptr());
-            std::mem::transmute_copy(ret.assume_init_ref())
+            if SDL_GetDisplayBounds(self.id.get(), ret.as_mut_ptr()) {
+                Ok(std::mem::transmute_copy(ret.assume_init_ref()))
+            } else {
+                Err(get_error())
+            }
         }
     }
 
     #[doc(alias = "SDL_GetDisplayUsableBounds")]
-    pub fn bounds_usable(&self) -> RectI32 {
+    pub fn bounds_usable(&self) -> SdlResult<RectI32> {
         let mut ret = MaybeUninit::uninit();
         unsafe {
-            SDL_GetDisplayUsableBounds(self.id.get(), ret.as_mut_ptr());
-            std::mem::transmute_copy(ret.assume_init_ref())
+            if SDL_GetDisplayUsableBounds(self.id.get(), ret.as_mut_ptr()) {
+                Ok(std::mem::transmute_copy(ret.assume_init_ref()))
+            } else {
+                Err(get_error())
+            }
         }
     }
 
@@ -124,8 +140,9 @@ impl DisplayHandle {
     }
 
     #[doc(alias = "SDL_GetDisplayContentScale")]
-    pub fn content_scale(&self) -> f32 {
-        unsafe { SDL_GetDisplayContentScale(self.id.get()) }
+    pub fn content_scale(&self) -> SdlResult<f32> {
+        let ret = unsafe { SDL_GetDisplayContentScale(self.id.get()) };
+        if ret == 0. { Err(get_error()) } else { Ok(ret) }
     }
 
     #[doc(alias = "SDL_GetCurrentDisplayOrientation")]
