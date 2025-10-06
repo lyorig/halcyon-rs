@@ -1,5 +1,5 @@
 use halcyon::{
-    context::Context, defs::SdlResult, display::DisplayHandle, subsystem::Video, util::c_to_str,
+    context::Context, defs::SdlResult, display::DisplayHandle, subsystem::Video, util::c_ptr_to_str,
 };
 
 fn outer() -> SdlResult {
@@ -10,7 +10,7 @@ fn outer() -> SdlResult {
         println!(
             "Display #{}: \"{}\", bounds {} (usable {}), content scale = {:.2}",
             i,
-            unsafe { c_to_str(disp.name()?.as_ptr()) },
+            unsafe { c_ptr_to_str(disp.name()?) },
             disp.bounds()?,
             disp.bounds_usable()?,
             disp.content_scale()?
@@ -21,7 +21,7 @@ fn outer() -> SdlResult {
     println!(
         "Primary display has ID {} and name \"{}\"",
         p.id(),
-        unsafe { c_to_str(p.name()?.as_ptr()) } // Or you can use `DisplayHandle::name_owned()`.
+        unsafe { c_ptr_to_str(p.name()?) }
     );
 
     println!("All primary desktop display modes:");
@@ -37,6 +37,6 @@ fn outer() -> SdlResult {
 
 fn main() {
     if let Err(e) = outer() {
-        println!("Something went wrong: {}", e.to_string_lossy());
+        println!("Something went wrong: {}", unsafe { c_ptr_to_str(e) });
     }
 }

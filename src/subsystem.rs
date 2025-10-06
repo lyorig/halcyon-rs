@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use sdl3_sys::init::*;
 
-use crate::{context::Context, defs::SdlResult, error::get_error};
+use crate::{context::Context, defs::SdlResult, error::get};
 
 /// A handle to an SDL subsystem.
 /// This doesn't actually de-initialize the
@@ -23,7 +23,7 @@ impl<'a, const N: u32> Subsystem<'a, N> {
                 marker: PhantomData,
             })
         } else {
-            Err(get_error())
+            Err(get())
         }
     }
 }

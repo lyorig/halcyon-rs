@@ -110,7 +110,7 @@ use crate::{
     renderer::{Renderer, RendererRef},
     resource,
     subsystem::Video,
-    util::{c_to_str, to_result},
+    util::to_result,
 };
 use bitmask_enum::bitmask;
 use sdl3_sys::{
@@ -118,7 +118,7 @@ use sdl3_sys::{
     video::*,
 };
 use std::{
-    ffi::{CStr, c_void},
+    ffi::{CStr, c_char, c_void},
     mem::MaybeUninit,
     num::NonZero,
     ptr::NonNull,
@@ -385,9 +385,9 @@ impl WindowRef {
     }
 
     #[doc(alias = "SDL_GetWindowTitle")]
-    pub fn title(&self) -> &str {
-        // SAFETY: SDL guarantees the window title to be UTF-8.
-        unsafe { c_to_str(SDL_GetWindowTitle(self.handle.as_ptr())) }
+    pub fn title(&self) -> NonNull<c_char> {
+        NonNull::new(unsafe { SDL_GetWindowTitle(self.handle.as_ptr()).cast_mut() })
+            .expect("SDL_GetWindowTitle should return a valid pointer")
     }
 
     #[doc(alias = "SDL_GetWindowFlags")]

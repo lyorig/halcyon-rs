@@ -2,7 +2,7 @@ use std::{mem::MaybeUninit, ops::Deref, ptr::NonNull};
 
 use sdl3_sys::stdinc::SDL_free;
 
-use crate::{defs::SdlResult, error::get_error};
+use crate::{defs::SdlResult, error::get};
 
 /// Wrapper for SDL allocations.
 pub struct SdlBox<T> {
@@ -16,7 +16,7 @@ impl<T> SdlBox<T> {
     pub unsafe fn from_ptr(ptr: *mut T) -> SdlResult<Self> {
         match NonNull::new(ptr) {
             Some(handle) => Ok(Self { handle }),
-            None => Err(get_error()),
+            None => Err(get()),
         }
     }
 }

@@ -25,28 +25,28 @@
 //! - [x] SDL_StopTextInput
 //! - [x] SDL_TextInputActive
 
+use std::ffi::CStr;
+
 use sdl3_sys::{
     keyboard::*,
     keycode::{SDL_Keycode, SDL_Keymod},
     scancode::{SDL_SCANCODE_COUNT, SDL_Scancode},
 };
 
-use crate::{
-    defs::SdlResult,
-    util::{c_to_str, to_result},
-    window::WindowRef,
-};
+use crate::{defs::SdlResult, util::to_result, window::WindowRef};
 
 const NUM_SCANCODES: usize = SDL_SCANCODE_COUNT.0 as usize;
 
 #[doc(alias = "SDL_GetScancodeName")]
 pub fn scancode_name(scancode: SDL_Scancode) -> &'static str {
-    unsafe { c_to_str(SDL_GetScancodeName(scancode)) }
+    unsafe {
+        std::str::from_utf8_unchecked(CStr::from_ptr(SDL_GetScancodeName(scancode)).to_bytes())
+    }
 }
 
 #[doc(alias = "SDL_GetKeyName")]
 pub fn key_name(key: SDL_Keycode) -> &'static str {
-    unsafe { c_to_str(SDL_GetKeyName(key)) }
+    unsafe { std::str::from_utf8_unchecked(CStr::from_ptr(SDL_GetKeyName(key)).to_bytes()) }
 }
 
 #[doc(alias = "SDL_GetKeyboardState")]

@@ -23,7 +23,9 @@ pub mod window;
 
 #[cfg(test)]
 mod tests {
-    use crate::{context::Context, error::get_error, subsystem::Video};
+    use sdl3_sys::stdinc::SDL_strcmp;
+
+    use crate::{context::Context, error, subsystem::Video};
 
     #[test]
     fn context() {
@@ -33,6 +35,9 @@ mod tests {
 
     #[test]
     fn error() {
-        assert_eq!(get_error(), c"");
+        assert_eq!(
+            unsafe { SDL_strcmp(error::get().as_ptr(), c"".as_ptr()) },
+            0
+        );
     }
 }

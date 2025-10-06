@@ -87,7 +87,7 @@ use crate::{
     resource,
     surface::{Surface, SurfaceRef},
     texture::TextureRef,
-    util::{c_to_str, opt2ptr, to_result},
+    util::{opt2ptr, to_result},
     window::WindowRef,
 };
 
@@ -165,7 +165,12 @@ resource!(Renderer);
 impl RendererRef {
     #[doc(alias = "SDL_GetRendererName")]
     pub fn name(&self) -> &str {
-        unsafe { c_to_str(SDL_GetRendererName(self.handle.as_ptr())) }
+        unsafe {
+            // SAFETY: Renderer name strings are stored in a static array.
+            std::str::from_utf8_unchecked(
+                CStr::from_ptr(SDL_GetRendererName(self.handle.as_ptr())).to_bytes(),
+            )
+        }
     }
 
     /// This function doesn't return an `Option`, as all renderers should have

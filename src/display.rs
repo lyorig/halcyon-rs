@@ -19,18 +19,25 @@
 
 use crate::{
     defs::SdlResult,
-    error::get_error,
+    error::get,
     rect::{PointI32, RectI32},
     sdl_box::SdlBoxArr,
-    util::c_to_str,
+    util::c_ptr_to_str,
 };
 
 use sdl3_sys::video::*;
 use std::{ffi::c_char, mem::MaybeUninit, num::NonZero, ptr::NonNull};
 
 /// A handle to a display owned by SDL.
+///
 /// This is essentially just a number, and since displays can be
 /// added and removed at will, member functions mostly return an `SdlResult`.
+///
+/// Some SDL display-related functions provide owned data, while others return
+/// a pointer to data managed by SDL itself. Due to the aforementioned display
+/// invalidation stuff, this would be quite a mess to implement as a reference
+/// in Rust (owing to lifetimes), so instead, the raw pointer is provided,
+/// offloading the risk to you.
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
 pub struct DisplayHandle {
@@ -48,21 +55,21 @@ impl DisplayHandle {
     pub fn primary() -> SdlResult<Self> {
         match NonZero::new(unsafe { SDL_GetPrimaryDisplay() }) {
             Some(id) => Ok(Self { id }),
-            None => Err(get_error()),
+            None => Err(get()),
         }
     }
 
     pub fn for_point(point: PointI32) -> SdlResult<Self> {
         match NonZero::new(unsafe { SDL_GetDisplayForPoint((&raw const point).cast()) }) {
             Some(id) => Ok(Self { id }),
-            None => Err(get_error()),
+            None => Err(get()),
         }
     }
 
     pub fn for_rect(rect: RectI32) -> SdlResult<Self> {
         match NonZero::new(unsafe { SDL_GetDisplayForRect((&raw const rect).cast()) }) {
             Some(id) => Ok(Self { id }),
-            None => Err(get_error()),
+            None => Err(get()),
         }
     }
 
@@ -70,18 +77,26 @@ impl DisplayHandle {
         self.id
     }
 
+    /// The returned string is guaranteed to be valid UTF-8.
     #[doc(alias = "SDL_GetDisplayName")]
     pub fn name(&self) -> SdlResult<NonNull<c_char>> {
-        NonNull::new(unsafe { SDL_GetDisplayName(self.id.get()).cast_mut() }).ok_or_else(get_error)
+        NonNull::new(unsafe { SDL_GetDisplayName(self.id.get()).cast_mut() }).ok_or_else(get)
     }
 
+    /// Convenience function to return `DisplayHandle::name()` as an owned `String`.
     #[doc(alias = "SDL_GetDisplayName")]
     pub fn name_owned(&self) -> SdlResult<String> {
         let ptr = unsafe { SDL_GetDisplayName(self.id.get()) };
         if ptr.is_null() {
-            Err(get_error())
+            Err(get())
         } else {
-            Ok(unsafe { c_to_str(ptr).to_owned() })
+            Ok(unsafe {
+                c_ptr_to_str(
+                    NonNull::new(ptr.cast_mut())
+                        .expect("SDL_GetDisplayName shouldn't return a null pointer"),
+                )
+                .to_owned()
+            })
         }
     }
 
@@ -92,7 +107,7 @@ impl DisplayHandle {
             if SDL_GetDisplayBounds(self.id.get(), ret.as_mut_ptr()) {
                 Ok(std::mem::transmute_copy(ret.assume_init_ref()))
             } else {
-                Err(get_error())
+                Err(get())
             }
         }
     }
@@ -104,7 +119,7 @@ impl DisplayHandle {
             if SDL_GetDisplayUsableBounds(self.id.get(), ret.as_mut_ptr()) {
                 Ok(std::mem::transmute_copy(ret.assume_init_ref()))
             } else {
-                Err(get_error())
+                Err(get())
             }
         }
     }
@@ -113,7 +128,7 @@ impl DisplayHandle {
     pub fn mode_current(&self) -> SdlResult<NonNull<SDL_DisplayMode>> {
         let ptr = unsafe { SDL_GetCurrentDisplayMode(self.id.get()) };
         if ptr.is_null() {
-            Err(get_error())
+            Err(get())
         } else {
             Ok(NonNull::new(ptr.cast_mut()).unwrap())
         }
@@ -123,7 +138,7 @@ impl DisplayHandle {
     pub fn mode_desktop(&self) -> SdlResult<NonNull<SDL_DisplayMode>> {
         let ptr = unsafe { SDL_GetDesktopDisplayMode(self.id.get()) };
         if ptr.is_null() {
-            Err(get_error())
+            Err(get())
         } else {
             Ok(NonNull::new(ptr.cast_mut()).unwrap())
         }
@@ -144,7 +159,7 @@ impl DisplayHandle {
     #[doc(alias = "SDL_GetDisplayContentScale")]
     pub fn content_scale(&self) -> SdlResult<f32> {
         let ret = unsafe { SDL_GetDisplayContentScale(self.id.get()) };
-        if ret == 0. { Err(get_error()) } else { Ok(ret) }
+        if ret == 0. { Err(get()) } else { Ok(ret) }
     }
 
     #[doc(alias = "SDL_GetCurrentDisplayOrientation")]
@@ -177,7 +192,7 @@ impl DisplayHandle {
             ) {
                 Ok(ret.assume_init())
             } else {
-                Err(get_error())
+                Err(get())
             }
         }
     }

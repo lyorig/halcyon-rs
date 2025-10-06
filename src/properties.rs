@@ -1,4 +1,4 @@
-use std::ffi::{CStr, c_void};
+use std::ffi::{CStr, c_char, c_void};
 
 use sdl3_sys::properties::*;
 
@@ -22,52 +22,52 @@ impl Properties {
     }
 
     #[doc(alias = "SDL_GetNumberProperty")]
-    pub fn number(&self, key: *const i8, default: i64) -> i64 {
+    pub fn number(&self, key: *const c_char, default: i64) -> i64 {
         unsafe { SDL_GetNumberProperty(self.id, key, default) }
     }
 
     #[doc(alias = "SDL_SetNumberProperty")]
-    pub fn set_number(&mut self, key: *const i8, value: i64) -> SdlResult {
+    pub fn set_number(&mut self, key: *const c_char, value: i64) -> SdlResult {
         to_result(unsafe { SDL_SetNumberProperty(self.id, key, value) })
     }
 
     #[doc(alias = "SDL_GetFloatProperty")]
-    pub fn float(&self, key: *const i8, default: f32) -> f32 {
+    pub fn float(&self, key: *const c_char, default: f32) -> f32 {
         unsafe { SDL_GetFloatProperty(self.id, key, default) }
     }
 
     #[doc(alias = "SDL_SetFloatProperty")]
-    pub fn set_float(&mut self, key: *const i8, value: f32) -> SdlResult {
+    pub fn set_float(&mut self, key: *const c_char, value: f32) -> SdlResult {
         to_result(unsafe { SDL_SetFloatProperty(self.id, key, value) })
     }
 
     #[doc(alias = "SDL_GetPointerProperty")]
-    pub fn pointer(&self, key: *const i8, default: *mut c_void) -> *mut c_void {
+    pub fn pointer(&self, key: *const c_char, default: *mut c_void) -> *mut c_void {
         unsafe { SDL_GetPointerProperty(self.id, key, default) }
     }
 
     #[doc(alias = "SDL_SetPointerProperty")]
-    pub fn set_pointer(&mut self, key: *const i8, value: *mut c_void) -> SdlResult {
+    pub fn set_pointer(&mut self, key: *const c_char, value: *mut c_void) -> SdlResult {
         to_result(unsafe { SDL_SetPointerProperty(self.id, key, value) })
     }
 
     #[doc(alias = "SDL_GetStringProperty")]
-    pub fn string(&self, key: *const i8, default: &CStr) -> &CStr {
+    pub fn string(&self, key: *const c_char, default: &CStr) -> &CStr {
         unsafe { CStr::from_ptr(SDL_GetStringProperty(self.id, key, default.as_ptr())) }
     }
 
     #[doc(alias = "SDL_SetStringProperty")]
-    pub fn set_string(&mut self, key: *const i8, value: &CStr) -> SdlResult {
+    pub fn set_string(&mut self, key: *const c_char, value: &CStr) -> SdlResult {
         to_result(unsafe { SDL_SetStringProperty(self.id, key, value.as_ptr()) })
     }
 
     #[doc(alias = "SDL_GetBooleanProperty")]
-    pub fn bool(&self, key: *const i8, default: bool) -> bool {
+    pub fn bool(&self, key: *const c_char, default: bool) -> bool {
         unsafe { SDL_GetBooleanProperty(self.id, key, default) }
     }
 
     #[doc(alias = "SDL_SetBooleanProperty")]
-    pub fn set_bool(&mut self, key: *const i8, value: bool) -> SdlResult {
+    pub fn set_bool(&mut self, key: *const c_char, value: bool) -> SdlResult {
         to_result(unsafe { SDL_SetBooleanProperty(self.id, key, value) })
     }
 }

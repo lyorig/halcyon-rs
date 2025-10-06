@@ -1,16 +1,21 @@
-use std::{ffi::CStr, fmt::Display, ops::Deref, ptr::NonNull};
+use std::{
+    ffi::{CStr, c_char},
+    fmt::Display,
+    ops::Deref,
+    ptr::NonNull,
+};
 
 use sdl3_sys::stdinc::SDL_free;
 
 /// Like an owned `String`, but it gets dropped via SDL's
 /// custom `SDL_free()` function.
 pub struct SdlString {
-    handle: NonNull<i8>,
+    handle: NonNull<c_char>,
     len: usize,
 }
 
 impl SdlString {
-    pub(crate) fn from_ptr(handle: NonNull<i8>) -> Self {
+    pub(crate) fn from_ptr(handle: NonNull<c_char>) -> Self {
         let cs = unsafe { CStr::from_ptr(handle.as_ptr()) };
         Self {
             handle,

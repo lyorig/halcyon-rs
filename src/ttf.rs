@@ -126,7 +126,7 @@ use std::{ffi::CStr, mem::MaybeUninit};
 use sdl3_ttf_sys::ttf::*;
 
 use crate::{
-    color::RgbaU8, defs::SdlResult, error::get_error, rect::PointI32, resource, surface::Surface,
+    color::RgbaU8, defs::SdlResult, error::get, rect::PointI32, resource, surface::Surface,
     util::to_result,
 };
 
@@ -139,7 +139,7 @@ impl TtfContext {
         if unsafe { TTF_Init() } {
             Ok(Self {})
         } else {
-            Err(get_error())
+            Err(get())
         }
     }
 

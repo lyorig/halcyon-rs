@@ -1,8 +1,14 @@
+use std::ptr::NonNull;
+
 use sdl3_sys::init::SDL_Quit;
 use sdl3_sys::platform::SDL_GetPlatform;
 
-/// This struct only exists to call `SDL_Quit()`.
-/// However, its existence is required for everything else.
+use crate::util::c_ptr_to_str;
+
+/// A zero-sized type that only exists to call `SDL_Quit()`.
+/// As such, think of it as a guard that creates a scope for
+/// the initialization of subsystems, ensuring they're properly
+/// quit once it goes out of scope.
 pub struct Context;
 
 impl Context {
@@ -13,17 +19,8 @@ impl Context {
 
     #[doc(alias = "SDL_GetPlatform")]
     pub fn platform() -> &'static str {
-        use std::ffi::CStr;
-
         // SAFETY: All SDL3 platform strings are UTF-8.
-        unsafe {
-            let c = CStr::from_ptr(SDL_GetPlatform());
-
-            std::str::from_utf8_unchecked(std::slice::from_raw_parts(
-                c.as_ptr() as *const u8,
-                c.count_bytes(),
-            ))
-        }
+        unsafe { c_ptr_to_str(NonNull::new_unchecked(SDL_GetPlatform().cast_mut())) }
     }
 }
 
