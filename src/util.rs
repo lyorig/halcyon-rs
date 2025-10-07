@@ -90,7 +90,8 @@ pub fn to_result(result: bool) -> SdlResult {
 ///
 /// The returned slice's lifetime is `'static`, which is EVEN MORE unsound
 /// and I recommend only using it as a one-off temporary value, i.e. to
-/// construct a `String`, or for printing.
+/// construct a `String`, or for printing (unless you know for sure that the
+/// foreign string won't change its location and/or size).
 pub unsafe fn c_ptr_to_str(ptr: NonNull<c_char>) -> &'static str {
     unsafe { std::str::from_utf8_unchecked(CStr::from_ptr(ptr.as_ptr()).to_bytes()) }
 }
