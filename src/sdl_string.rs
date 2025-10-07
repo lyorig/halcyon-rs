@@ -15,7 +15,7 @@ pub struct SdlString {
 }
 
 impl SdlString {
-    pub(crate) fn from_ptr(handle: NonNull<c_char>) -> Self {
+    pub(crate) unsafe fn from_ptr(handle: NonNull<c_char>) -> Self {
         let cs = unsafe { CStr::from_ptr(handle.as_ptr()) };
         Self {
             handle,
