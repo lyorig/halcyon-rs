@@ -62,6 +62,6 @@ unsafe fn run() -> SdlResult {
 
 fn main() {
     if let Err(e) = unsafe { run() } {
-        println!("An error occurred: {}", unsafe { c_ptr_to_str(e) });
+        println!("An error occurred: {}", unsafe { c_ptr_to_str(e.as_ptr()) });
     }
 }

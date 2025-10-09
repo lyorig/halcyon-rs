@@ -10,7 +10,7 @@ fn outer() -> SdlResult {
         println!(
             "Display #{}: \"{}\", bounds {} (usable {}), content scale = {:.2}",
             i,
-            unsafe { c_ptr_to_str(disp.name()?) },
+            unsafe { c_ptr_to_str(disp.name()?.as_ptr()) },
             disp.bounds()?,
             disp.bounds_usable()?,
             disp.content_scale()?
@@ -21,7 +21,7 @@ fn outer() -> SdlResult {
     println!(
         "Primary display has ID {} and name \"{}\"",
         p.id(),
-        unsafe { c_ptr_to_str(p.name()?) }
+        unsafe { c_ptr_to_str(p.name()?.as_ptr()) }
     );
 
     println!("All primary desktop display modes:");
@@ -37,6 +37,8 @@ fn outer() -> SdlResult {
 
 fn main() {
     if let Err(e) = outer() {
-        println!("Something went wrong: {}", unsafe { c_ptr_to_str(e) });
+        println!("Something went wrong: {}", unsafe {
+            c_ptr_to_str(e.as_ptr())
+        });
     }
 }

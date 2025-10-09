@@ -20,14 +20,14 @@
 //! - [ ] TTF_DrawRendererText
 //! - [ ] TTF_DrawSurfaceText
 //! - [ ] TTF_FontHasGlyph
-//! - [ ] TTF_FontIsFixedWidth
+//! - [x] TTF_FontIsFixedWidth
 //! - [ ] TTF_FontIsScalable
 //! - [ ] TTF_GetFontAscent
 //! - [ ] TTF_GetFontCharSpacing
 //! - [ ] TTF_GetFontDescent
 //! - [ ] TTF_GetFontDirection
 //! - [ ] TTF_GetFontDPI
-//! - [ ] TTF_GetFontFamilyName
+//! - [x] TTF_GetFontFamilyName
 //! - [ ] TTF_GetFontGeneration
 //! - [ ] TTF_GetFontHeight
 //! - [ ] TTF_GetFontHinting
@@ -126,8 +126,13 @@ use std::{ffi::CStr, mem::MaybeUninit};
 use sdl3_ttf_sys::ttf::*;
 
 use crate::{
-    color::RgbaU8, defs::SdlResult, error::get, rect::PointI32, resource, surface::Surface,
-    util::to_result,
+    color::RgbaU8,
+    defs::SdlResult,
+    error::get,
+    rect::PointI32,
+    resource,
+    surface::Surface,
+    util::{c_ptr_to_str, to_result},
 };
 
 /// Ensures SDL_ttf (de)initialization.
@@ -144,7 +149,7 @@ impl TtfContext {
     }
 
     #[doc(alias = "TTF_WasInit")]
-    pub fn initialized() -> bool {
+    pub fn is_initialized() -> bool {
         unsafe { TTF_WasInit() != 0 }
     }
 
@@ -163,7 +168,7 @@ impl Drop for TtfContext {
 
 resource!(Font, TTF, Close);
 
-impl FontRef {
+impl<'a> FontRef {
     #[doc(alias = "TTF_CopyFont")]
     pub fn try_clone(&self) -> SdlResult<Font> {
         Font::from_ptr(unsafe { TTF_CopyFont(self.handle.as_ptr()) })
@@ -321,6 +326,16 @@ impl FontRef {
                 wrap_length,
             )
         })
+    }
+
+    #[doc(alias = "TTF_GetFontFamilyName")]
+    pub fn family(&self) -> &'a str {
+        unsafe { c_ptr_to_str(TTF_GetFontFamilyName(self.handle.as_ptr())) }
+    }
+
+    #[doc(alias = "TTF_FontIsFixedWidth")]
+    pub fn is_mono(&self) -> bool {
+        unsafe { TTF_FontIsFixedWidth(self.handle.as_ptr()) }
     }
 }
 

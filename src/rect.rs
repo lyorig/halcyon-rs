@@ -11,7 +11,7 @@ pub struct Point<T> {
 pub type PointI32 = Point<i32>;
 pub type PointF32 = Point<f32>;
 
-impl<T: Default> Point<T> {
+impl<T> Point<T> {
     pub const fn new(x: T, y: T) -> Self {
         Self { x, y }
     }

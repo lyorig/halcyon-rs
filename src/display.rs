@@ -90,13 +90,7 @@ impl DisplayHandle {
         if ptr.is_null() {
             Err(get())
         } else {
-            Ok(unsafe {
-                c_ptr_to_str(
-                    NonNull::new(ptr.cast_mut())
-                        .expect("SDL_GetDisplayName shouldn't return a null pointer"),
-                )
-                .to_owned()
-            })
+            Ok(unsafe { c_ptr_to_str(ptr).to_owned() })
         }
     }
 
