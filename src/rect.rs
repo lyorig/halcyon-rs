@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 /// Wrapper around `SDL_(F)Point`, can be transmuted.
 #[repr(C)]
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, PartialEq)]
 pub struct Point<T> {
     pub x: T,
     pub y: T,
@@ -25,7 +25,7 @@ impl<T: Display> Display for Point<T> {
 
 /// Wrapper around `SDL_(F)Rect`, can be transmuted.
 #[repr(C)]
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, PartialEq)]
 pub struct Rect<T> {
     pub pos: Point<T>,
     pub size: Point<T>,
