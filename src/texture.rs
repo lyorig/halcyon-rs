@@ -38,7 +38,7 @@ use sdl3_sys::{
 use crate::{
     color::{RgbF32, RgbU8, Rgba, RgbaF32, RgbaU8},
     defs::SdlResult,
-    rect::PointI32,
+    rect::{PointF32, PointI32},
     renderer::RendererRef,
     resource,
     surface::SurfaceRef,
@@ -48,13 +48,13 @@ resource!(Texture);
 
 impl TextureRef {
     #[doc(alias = "SDL_GetTextureSize")]
-    pub fn size(&self) -> (f32, f32) {
-        let mut ret = MaybeUninit::<(f32, f32)>::uninit();
+    pub fn size(&self) -> PointF32 {
+        let mut ret = MaybeUninit::<PointF32>::uninit();
         let ptr = ret.as_mut_ptr();
 
         // SAFETY: This function only reads struct fields.
         unsafe {
-            SDL_GetTextureSize(self.handle.as_ptr(), &raw mut (*ptr).0, &raw mut (*ptr).1);
+            SDL_GetTextureSize(self.handle.as_ptr(), &raw mut (*ptr).x, &raw mut (*ptr).y);
             ret.assume_init()
         }
     }
