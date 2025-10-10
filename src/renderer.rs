@@ -433,6 +433,11 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_RenderFillRect")]
+    pub fn fill_target(&self) -> SdlResult {
+        to_result(unsafe { SDL_RenderFillRect(self.handle.as_ptr(), std::ptr::null()) })
+    }
+
+    #[doc(alias = "SDL_RenderFillRect")]
     pub fn fill_rect(&self, rect: RectF32) -> SdlResult {
         to_result(unsafe { SDL_RenderFillRect(self.handle.as_ptr(), (&raw const rect).cast()) })
     }
