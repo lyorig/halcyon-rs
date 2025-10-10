@@ -295,6 +295,8 @@ impl RendererRef {
         to_result(unsafe { SDL_FlushRenderer(self.handle.as_ptr()) })
     }
 
+    /// This function is a direct wrapper of SDL's `SDL_RenderTexture()`;
+    /// see `DrawBuilder` for a neater way to draw to a renderer.
     #[doc(alias = "SDL_RenderTexture")]
     pub fn draw(
         &self,
@@ -524,5 +526,40 @@ impl Renderer {
     #[doc(alias = "SDL_GetNumRenderDrivers")]
     pub fn num_drivers() -> i32 {
         unsafe { SDL_GetNumRenderDrivers() }
+    }
+}
+
+/// A builder-like struct intended an an alternative
+/// to `Renderer::draw()`.
+pub struct DrawBuilder<'a> {
+    renderer: RendererRef,
+
+    texture: TextureRef,
+    src: Option<&'a RectF32>,
+    dst: Option<&'a RectF32>,
+}
+
+impl<'a> DrawBuilder<'a> {
+    pub fn new(rnd: impl Into<RendererRef>, tex: impl Into<TextureRef>) -> Self {
+        Self {
+            renderer: rnd.into(),
+            texture: tex.into(),
+            src: None,
+            dst: None,
+        }
+    }
+
+    pub fn from(&mut self, src: &'a RectF32) -> &mut Self {
+        self.src = Some(src);
+        self
+    }
+
+    pub fn to(&mut self, dst: &'a RectF32) -> &mut Self {
+        self.dst = Some(dst);
+        self
+    }
+
+    pub fn draw(&self) -> SdlResult {
+        self.renderer.draw(self.texture, self.src, self.dst)
     }
 }
