@@ -65,13 +65,15 @@ impl<T: Default + Copy> Rect<T> {
 
     /// Create a `Rect` with all fields specified.
     pub const fn xywh(x: T, y: T, w: T, h: T) -> Self {
-        Self {
-            pos: Point::new(x, y),
-            size: Point::new(w, h),
-        }
+        Self::new(Point::new(x, y), Point::new(w, h))
     }
 
-    /// Convenience function, identical to `Rect::new(T::default(), T::default(), w, h)`.
+    /// Convenience function, identical to `Rect::xywh(x, y, T::default(), T::default())`.
+    pub fn xy(x: T, y: T) -> Self {
+        Self::xywh(x, y, T::default(), T::default())
+    }
+
+    /// Convenience function, identical to `Rect::xywh(T::default(), T::default(), w, h)`.
     pub fn wh(w: T, h: T) -> Self {
         Self::xywh(T::default(), T::default(), w, h)
     }
