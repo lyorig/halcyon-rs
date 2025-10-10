@@ -11,7 +11,19 @@ pub struct Point<T> {
 pub type PointI32 = Point<i32>;
 pub type PointF32 = Point<f32>;
 
-impl<T> Point<T> {
+impl From<PointI32> for PointF32 {
+    fn from(value: PointI32) -> Self {
+        Point::new(value.x as _, value.y as _)
+    }
+}
+
+impl From<PointF32> for PointI32 {
+    fn from(value: PointF32) -> Self {
+        Point::new(value.x as _, value.y as _)
+    }
+}
+
+impl<T: Copy> Point<T> {
     pub const fn new(x: T, y: T) -> Self {
         Self { x, y }
     }
@@ -34,9 +46,25 @@ pub struct Rect<T> {
 pub type RectI32 = Rect<i32>;
 pub type RectF32 = Rect<f32>;
 
-impl<T: Default> Rect<T> {
+impl From<RectI32> for RectF32 {
+    fn from(value: RectI32) -> Self {
+        Rect::new(value.pos.into(), value.size.into())
+    }
+}
+
+impl From<RectF32> for RectI32 {
+    fn from(value: RectF32) -> Self {
+        Rect::new(value.pos.into(), value.size.into())
+    }
+}
+
+impl<T: Default + Copy> Rect<T> {
+    pub const fn new(pos: Point<T>, size: Point<T>) -> Self {
+        Self { pos, size }
+    }
+
     /// Create a `Rect` with all fields specified.
-    pub const fn new(x: T, y: T, w: T, h: T) -> Self {
+    pub const fn xywh(x: T, y: T, w: T, h: T) -> Self {
         Self {
             pos: Point::new(x, y),
             size: Point::new(w, h),
@@ -44,8 +72,8 @@ impl<T: Default> Rect<T> {
     }
 
     /// Convenience function, identical to `Rect::new(T::default(), T::default(), w, h)`.
-    pub fn sized(w: T, h: T) -> Self {
-        Self::new(T::default(), T::default(), w, h)
+    pub fn wh(w: T, h: T) -> Self {
+        Self::xywh(T::default(), T::default(), w, h)
     }
 }
 
