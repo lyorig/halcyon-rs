@@ -203,24 +203,24 @@ impl<'a> FontRef {
     }
 
     #[doc(alias = "TTF_RenderText_Blended")]
-    pub fn render_text_blended(&self, text: &CStr, color: RgbaU8) -> SdlResult<Surface> {
+    pub fn render_text_blended(&self, text: &str, color: RgbaU8) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_Blended(
                 self.handle.as_ptr(),
-                text.as_ptr(),
-                text.count_bytes(),
+                text.as_ptr().cast(),
+                text.len(),
                 color.into(),
             )
         })
     }
 
     #[doc(alias = "TTF_RenderText_LCD")]
-    pub fn render_text_lcd(&self, text: &CStr, fg: RgbaU8, bg: RgbaU8) -> SdlResult<Surface> {
+    pub fn render_text_lcd(&self, text: &str, fg: RgbaU8, bg: RgbaU8) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_LCD(
                 self.handle.as_ptr(),
-                text.as_ptr(),
-                text.count_bytes(),
+                text.as_ptr().cast(),
+                text.len(),
                 fg.into(),
                 bg.into(),
             )
@@ -228,12 +228,12 @@ impl<'a> FontRef {
     }
 
     #[doc(alias = "TTF_RenderText_Shaded")]
-    pub fn render_text_shaded(&self, text: &CStr, fg: RgbaU8, bg: RgbaU8) -> SdlResult<Surface> {
+    pub fn render_text_shaded(&self, text: &str, fg: RgbaU8, bg: RgbaU8) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_Shaded(
                 self.handle.as_ptr(),
-                text.as_ptr(),
-                text.count_bytes(),
+                text.as_ptr().cast(),
+                text.len(),
                 fg.into(),
                 bg.into(),
             )
@@ -241,12 +241,12 @@ impl<'a> FontRef {
     }
 
     #[doc(alias = "TTF_RenderText_Solid")]
-    pub fn render_text_solid(&self, text: &CStr, color: RgbaU8) -> SdlResult<Surface> {
+    pub fn render_text_solid(&self, text: &str, color: RgbaU8) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_Solid(
                 self.handle.as_ptr(),
-                text.as_ptr(),
-                text.count_bytes(),
+                text.as_ptr().cast(),
+                text.len(),
                 color.into(),
             )
         })
