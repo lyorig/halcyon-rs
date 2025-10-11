@@ -10,6 +10,7 @@ pub mod defs;
 pub mod display;
 pub mod error;
 pub mod event;
+pub mod guard;
 pub mod keyboard;
 pub mod rect;
 pub mod renderer;
