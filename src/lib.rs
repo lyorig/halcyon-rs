@@ -13,6 +13,7 @@ pub mod event;
 pub mod keyboard;
 pub mod rect;
 pub mod renderer;
+pub mod resource_loader;
 pub mod sdl_string;
 pub mod subsystem;
 pub mod surface;
