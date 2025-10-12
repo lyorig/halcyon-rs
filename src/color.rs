@@ -19,6 +19,15 @@ impl<T> Rgb<T> {
     }
 }
 
+impl<T: OpacityBounds> Rgb<T> {
+    pub const BLACK: Self = Self::new(T::MIN_OPACITY, T::MIN_OPACITY, T::MIN_OPACITY);
+    pub const RED: Self = Self::new(T::MAX_OPACITY, T::MIN_OPACITY, T::MIN_OPACITY);
+    pub const GREEN: Self = Self::new(T::MIN_OPACITY, T::MAX_OPACITY, T::MIN_OPACITY);
+    pub const BLUE: Self = Self::new(T::MIN_OPACITY, T::MIN_OPACITY, T::MAX_OPACITY);
+    pub const CYAN: Self = Self::new(T::MIN_OPACITY, T::MAX_OPACITY, T::MAX_OPACITY);
+    pub const WHITE: Self = Self::new(T::MAX_OPACITY, T::MAX_OPACITY, T::MAX_OPACITY);
+}
+
 /// Wrapper around `SDL_Color`. Can be transmuted.
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -57,6 +66,15 @@ impl<T: OpacityBounds> Rgba<T> {
     pub const fn rgba(r: T, g: T, b: T, a: T) -> Self {
         Self::new(Rgb::new(r, g, b), a)
     }
+
+    pub const BLACK: Self = Self::new(Rgb::BLACK, T::MAX_OPACITY);
+    pub const RED: Self = Self::new(Rgb::RED, T::MAX_OPACITY);
+    pub const GREEN: Self = Self::new(Rgb::GREEN, T::MAX_OPACITY);
+    pub const BLUE: Self = Self::new(Rgb::BLUE, T::MAX_OPACITY);
+    pub const CYAN: Self = Self::new(Rgb::CYAN, T::MAX_OPACITY);
+    pub const WHITE: Self = Self::new(Rgb::WHITE, T::MAX_OPACITY);
+
+    pub const TRANSPARENT: Self = Self::new(Rgb::BLACK, T::MIN_OPACITY);
 }
 
 impl RgbaU8 {
