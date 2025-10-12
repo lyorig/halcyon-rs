@@ -1,3 +1,5 @@
+use sdl3_sys::blendmode::SDL_BlendMode;
+
 use crate::{color::RgbaF32, renderer::RendererRef, texture::TextureRef};
 
 pub struct DrawColorGuard {
@@ -52,5 +54,31 @@ impl Drop for RenderTargetGuard {
             Some(tgt) => self.rnd.set_target(tgt),
             None => self.rnd.reset_target(),
         };
+    }
+}
+
+pub struct BlendModeGuard {
+    rnd: RendererRef,
+    old: SDL_BlendMode,
+}
+
+impl BlendModeGuard {
+    pub fn new(rnd: impl Into<RendererRef>, bm: SDL_BlendMode) -> Self {
+        let rnd: RendererRef = rnd.into();
+        let old = rnd.blend_mode();
+
+        let _ = rnd.set_blend_mode(bm);
+
+        Self { rnd, old }
+    }
+
+    pub fn set(&self, bm: SDL_BlendMode) {
+        let _ = self.rnd.set_blend_mode(bm);
+    }
+}
+
+impl Drop for BlendModeGuard {
+    fn drop(&mut self) {
+        self.rnd.set_blend_mode(self.old);
     }
 }
