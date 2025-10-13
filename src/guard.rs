@@ -1,11 +1,36 @@
 use sdl3_sys::blendmode::SDL_BlendMode;
 
 use crate::{
-    color::{RgbF32, RgbaF32},
+    color::{RgbF32, RgbU8, RgbaF32, RgbaU8},
     renderer::RendererRef,
     texture::TextureRef,
-    traits::{BlendMode, ColorMod},
+    traits::{BlendMode, ColorModF32, ColorModU8},
 };
+
+pub struct BlendModeGuard<T: BlendMode> {
+    rnd: T,
+    old: SDL_BlendMode,
+}
+
+impl<T: BlendMode> BlendModeGuard<T> {
+    pub fn new(rnd: T, bm: SDL_BlendMode) -> Self {
+        let old = rnd.blend_mode();
+
+        let _ = rnd.set_blend_mode(bm);
+
+        Self { rnd, old }
+    }
+
+    pub fn set(&self, bm: SDL_BlendMode) {
+        let _ = self.rnd.set_blend_mode(bm);
+    }
+}
+
+impl<T: BlendMode> Drop for BlendModeGuard<T> {
+    fn drop(&mut self) {
+        self.rnd.set_blend_mode(self.old);
+    }
+}
 
 pub struct DrawColorGuard {
     rnd: RendererRef,
@@ -62,12 +87,12 @@ impl Drop for RenderTargetGuard {
     }
 }
 
-pub struct AlphaModGuard<T: ColorMod> {
+pub struct AlphaModF32Guard<T: ColorModF32> {
     obj: T,
     old: f32,
 }
 
-impl<T: ColorMod> AlphaModGuard<T> {
+impl<T: ColorModF32> AlphaModF32Guard<T> {
     pub fn new(obj: T, am: f32) -> Self {
         let old = obj.alpha_mod_f32();
 
@@ -81,18 +106,18 @@ impl<T: ColorMod> AlphaModGuard<T> {
     }
 }
 
-impl<T: ColorMod> Drop for AlphaModGuard<T> {
+impl<T: ColorModF32> Drop for AlphaModF32Guard<T> {
     fn drop(&mut self) {
         self.obj.set_alpha_mod_f32(self.old);
     }
 }
 
-pub struct RgbModGuard<T: ColorMod> {
+pub struct RgbModF32Guard<T: ColorModF32> {
     obj: T,
     old: RgbF32,
 }
 
-impl<T: ColorMod> RgbModGuard<T> {
+impl<T: ColorModF32> RgbModF32Guard<T> {
     pub fn new(obj: T, am: RgbF32) -> Self {
         let old = obj.rgb_mod_f32();
 
@@ -106,18 +131,18 @@ impl<T: ColorMod> RgbModGuard<T> {
     }
 }
 
-impl<T: ColorMod> Drop for RgbModGuard<T> {
+impl<T: ColorModF32> Drop for RgbModF32Guard<T> {
     fn drop(&mut self) {
         self.obj.set_rgb_mod_f32(self.old);
     }
 }
 
-pub struct ColorModGuard<T: ColorMod> {
+pub struct ColorModF32Guard<T: ColorModF32> {
     obj: T,
     old: RgbaF32,
 }
 
-impl<T: ColorMod> ColorModGuard<T> {
+impl<T: ColorModF32> ColorModF32Guard<T> {
     pub fn new(obj: T, am: RgbaF32) -> Self {
         let old = obj.color_mod_f32();
 
@@ -131,33 +156,83 @@ impl<T: ColorMod> ColorModGuard<T> {
     }
 }
 
-impl<T: ColorMod> Drop for ColorModGuard<T> {
+impl<T: ColorModF32> Drop for ColorModF32Guard<T> {
     fn drop(&mut self) {
         self.obj.set_color_mod_f32(self.old);
     }
 }
 
-pub struct BlendModeGuard<T: BlendMode> {
-    rnd: T,
-    old: SDL_BlendMode,
+pub struct AlphaModU8Guard<T: ColorModU8> {
+    obj: T,
+    old: u8,
 }
 
-impl<T: BlendMode> BlendModeGuard<T> {
-    pub fn new(rnd: T, bm: SDL_BlendMode) -> Self {
-        let old = rnd.blend_mode();
+impl<T: ColorModU8> AlphaModU8Guard<T> {
+    pub fn new(obj: T, am: u8) -> Self {
+        let old = obj.alpha_mod_u8();
 
-        let _ = rnd.set_blend_mode(bm);
+        let _ = obj.set_alpha_mod_u8(am);
 
-        Self { rnd, old }
+        Self { obj, old }
     }
 
-    pub fn set(&self, bm: SDL_BlendMode) {
-        let _ = self.rnd.set_blend_mode(bm);
+    pub fn set(&self, am: u8) {
+        let _ = self.obj.set_alpha_mod_u8(am);
     }
 }
 
-impl<T: BlendMode> Drop for BlendModeGuard<T> {
+impl<T: ColorModU8> Drop for AlphaModU8Guard<T> {
     fn drop(&mut self) {
-        self.rnd.set_blend_mode(self.old);
+        self.obj.set_alpha_mod_u8(self.old);
+    }
+}
+
+pub struct RgbModU8Guard<T: ColorModU8> {
+    obj: T,
+    old: RgbU8,
+}
+
+impl<T: ColorModU8> RgbModU8Guard<T> {
+    pub fn new(obj: T, am: RgbU8) -> Self {
+        let old = obj.rgb_mod_u8();
+
+        let _ = obj.set_rgb_mod_u8(am);
+
+        Self { obj, old }
+    }
+
+    pub fn set(&self, am: RgbU8) {
+        let _ = self.obj.set_rgb_mod_u8(am);
+    }
+}
+
+impl<T: ColorModU8> Drop for RgbModU8Guard<T> {
+    fn drop(&mut self) {
+        self.obj.set_rgb_mod_u8(self.old);
+    }
+}
+
+pub struct ColorModU8Guard<T: ColorModU8> {
+    obj: T,
+    old: RgbaU8,
+}
+
+impl<T: ColorModU8> ColorModU8Guard<T> {
+    pub fn new(obj: T, am: RgbaU8) -> Self {
+        let old = obj.color_mod_u8();
+
+        let _ = obj.set_color_mod_u8(am);
+
+        Self { obj, old }
+    }
+
+    pub fn set(&self, am: RgbaU8) {
+        let _ = self.obj.set_color_mod_u8(am);
+    }
+}
+
+impl<T: ColorModU8> Drop for ColorModU8Guard<T> {
+    fn drop(&mut self) {
+        self.obj.set_color_mod_u8(self.old);
     }
 }

@@ -28,6 +28,26 @@ impl<T: OpacityBounds> Rgb<T> {
     pub const WHITE: Self = Self::new(T::MAX_OPACITY, T::MAX_OPACITY, T::MAX_OPACITY);
 }
 
+impl From<RgbU8> for RgbF32 {
+    fn from(value: RgbU8) -> Self {
+        Self::new(
+            value.r as f32 / 255.0,
+            value.g as f32 / 255.0,
+            value.b as f32 / 255.0,
+        )
+    }
+}
+
+impl From<RgbF32> for RgbU8 {
+    fn from(value: RgbF32) -> Self {
+        Self::new(
+            (value.r * 255.0) as _,
+            (value.g * 255.0) as _,
+            (value.b * 255.0) as _,
+        )
+    }
+}
+
 /// Wrapper around `SDL_Color`. Can be transmuted.
 #[repr(C)]
 #[derive(Clone, Copy)]

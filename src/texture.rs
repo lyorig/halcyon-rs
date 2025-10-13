@@ -42,7 +42,7 @@ use crate::{
     renderer::RendererRef,
     resource,
     surface::SurfaceRef,
-    traits::{BlendMode, ColorMod},
+    traits::{BlendMode, ColorModF32, ColorModU8},
 };
 
 resource!(Texture);
@@ -118,7 +118,7 @@ impl BlendMode for TextureRef {
     }
 }
 
-impl ColorMod for TextureRef {
+impl ColorModU8 for TextureRef {
     #[doc(alias = "SDL_GetTextureColorMod")]
     fn rgb_mod_u8(&self) -> RgbU8 {
         let mut ret = MaybeUninit::<RgbU8>::uninit();
@@ -161,7 +161,9 @@ impl ColorMod for TextureRef {
             SDL_SetTextureAlphaMod(self.handle.as_ptr(), am);
         }
     }
+}
 
+impl ColorModF32 for TextureRef {
     #[doc(alias = "SDL_GetTextureColorModFloat")]
     fn rgb_mod_f32(&self) -> RgbF32 {
         let mut ret = MaybeUninit::<RgbF32>::uninit();

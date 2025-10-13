@@ -7,15 +7,7 @@ pub trait BlendMode {
     fn set_blend_mode(&self, bm: SDL_BlendMode);
 }
 
-pub trait DrawColor {
-    fn draw_color_f32(&self) -> RgbaF32;
-    fn draw_color_u8(&self) -> RgbaU8;
-
-    fn set_draw_color_f32(&self, dc: RgbaF32);
-    fn set_draw_color_u8(&self, dc: RgbaU8);
-}
-
-pub trait ColorMod {
+pub trait ColorModU8 {
     fn rgb_mod_u8(&self) -> RgbU8;
     fn alpha_mod_u8(&self) -> u8;
 
@@ -30,7 +22,9 @@ pub trait ColorMod {
         self.set_rgb_mod_u8(col.rgb);
         self.set_alpha_mod_u8(col.a);
     }
+}
 
+pub trait ColorModF32 {
     fn rgb_mod_f32(&self) -> RgbF32;
     fn alpha_mod_f32(&self) -> f32;
 

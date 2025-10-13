@@ -61,11 +61,11 @@
 use std::mem::MaybeUninit;
 
 use crate::{
-    color::{RgbU8, Rgba, RgbaF32, RgbaU8},
+    color::{RgbU8, RgbaF32, RgbaU8},
     defs::SdlResult,
     rect::{PointI32, RectI32},
     resource,
-    traits::BlendMode,
+    traits::{BlendMode, ColorModU8},
     util::{opt2ptr, to_result},
 };
 
@@ -92,36 +92,6 @@ impl SurfaceRef {
             SDL_GetSurfaceBlendMode(self.handle.as_ptr(), ret.as_mut_ptr());
             ret.assume_init()
         }
-    }
-
-    #[doc(alias = "SDL_GetSurfaceColorMod")]
-    pub fn rgb_mod_u8(&self) -> RgbU8 {
-        let mut ret = MaybeUninit::<RgbU8>::uninit();
-        let ptr = ret.as_mut_ptr();
-
-        unsafe {
-            SDL_GetSurfaceColorMod(
-                self.handle.as_ptr(),
-                &raw mut (*ptr).r,
-                &raw mut (*ptr).g,
-                &raw mut (*ptr).b,
-            );
-            ret.assume_init()
-        }
-    }
-
-    #[doc(alias = "SDL_GetSurfaceAlphaMod")]
-    pub fn alpha_mod_u8(&self) -> u8 {
-        let mut ret = MaybeUninit::uninit();
-
-        unsafe {
-            SDL_GetSurfaceAlphaMod(self.handle.as_ptr(), ret.as_mut_ptr());
-            ret.assume_init()
-        }
-    }
-
-    pub fn color_mod_u8(&self) -> RgbaU8 {
-        Rgba::new(self.rgb_mod_u8(), self.alpha_mod_u8())
     }
 
     #[doc(alias = "SDL_FillSurfaceRect")]
@@ -213,22 +183,6 @@ impl SurfaceRef {
     #[doc(alias = "SDL_SetSurfaceBlendMode")]
     pub fn set_blend_mode(&self, bm: SDL_BlendMode) -> SdlResult {
         to_result(unsafe { SDL_SetSurfaceBlendMode(self.handle.as_ptr(), bm) })
-    }
-
-    #[doc(alias = "SDL_SetSurfaceColorMod")]
-    pub fn set_rgb_mod(&self, rgb: RgbU8) -> SdlResult {
-        to_result(unsafe { SDL_SetSurfaceColorMod(self.handle.as_ptr(), rgb.r, rgb.g, rgb.b) })
-    }
-
-    #[doc(alias = "SDL_SetSurfaceAlphaMod")]
-    pub fn set_alpha_mod(&self, alpha: u8) -> SdlResult {
-        to_result(unsafe { SDL_SetSurfaceAlphaMod(self.handle.as_ptr(), alpha) })
-    }
-
-    /// Convenience function that calls `Surface::set_rgb_mod()` and `Surface::set_alpha_mod()`.
-    pub fn set_color_mod(&self, rgba: RgbaU8) -> SdlResult {
-        self.set_rgb_mod(rgba.rgb)?;
-        self.set_alpha_mod(rgba.a)
     }
 
     #[doc(alias = "SDL_BlitSurface")]
@@ -348,6 +302,44 @@ impl BlendMode for SurfaceRef {
         unsafe {
             SDL_SetSurfaceBlendMode(self.handle.as_ptr(), bm);
         }
+    }
+}
+
+impl ColorModU8 for SurfaceRef {
+    #[doc(alias = "SDL_GetSurfaceColorMod")]
+    fn rgb_mod_u8(&self) -> RgbU8 {
+        let mut ret = MaybeUninit::<RgbU8>::uninit();
+        let ptr = ret.as_mut_ptr();
+
+        unsafe {
+            SDL_GetSurfaceColorMod(
+                self.handle.as_ptr(),
+                &raw mut (*ptr).r,
+                &raw mut (*ptr).g,
+                &raw mut (*ptr).b,
+            );
+            ret.assume_init()
+        }
+    }
+
+    #[doc(alias = "SDL_GetSurfaceAlphaMod")]
+    fn alpha_mod_u8(&self) -> u8 {
+        let mut ret = MaybeUninit::uninit();
+
+        unsafe {
+            SDL_GetSurfaceAlphaMod(self.handle.as_ptr(), ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+
+    #[doc(alias = "SDL_SetSurfaceColorMod")]
+    fn set_rgb_mod_u8(&self, rm: RgbU8) {
+        unsafe { SDL_SetSurfaceColorMod(self.handle.as_ptr(), rm.r, rm.g, rm.b) };
+    }
+
+    #[doc(alias = "SDL_SetSurfaceAlphaMod")]
+    fn set_alpha_mod_u8(&self, am: u8) {
+        unsafe { SDL_SetSurfaceAlphaMod(self.handle.as_ptr(), am) };
     }
 }
 
