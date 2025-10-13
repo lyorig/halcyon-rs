@@ -59,6 +59,10 @@ impl<T: OpacityBounds> Rgba<T> {
         Self { rgb, a }
     }
 
+    pub const fn opaque(rgb: Rgb<T>) -> Self {
+        Self::new(rgb, T::MAX_OPACITY)
+    }
+
     pub const fn rgb(r: T, g: T, b: T) -> Self {
         Self::rgba(r, g, b, T::MAX_OPACITY)
     }
