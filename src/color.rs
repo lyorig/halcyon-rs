@@ -71,12 +71,12 @@ impl<T: OpacityBounds> Rgba<T> {
         Self::new(Rgb::new(r, g, b), a)
     }
 
-    pub const BLACK: Self = Self::new(Rgb::BLACK, T::MAX_OPACITY);
-    pub const RED: Self = Self::new(Rgb::RED, T::MAX_OPACITY);
-    pub const GREEN: Self = Self::new(Rgb::GREEN, T::MAX_OPACITY);
-    pub const BLUE: Self = Self::new(Rgb::BLUE, T::MAX_OPACITY);
-    pub const CYAN: Self = Self::new(Rgb::CYAN, T::MAX_OPACITY);
-    pub const WHITE: Self = Self::new(Rgb::WHITE, T::MAX_OPACITY);
+    pub const BLACK: Self = Self::opaque(Rgb::BLACK);
+    pub const RED: Self = Self::opaque(Rgb::RED);
+    pub const GREEN: Self = Self::opaque(Rgb::GREEN);
+    pub const BLUE: Self = Self::opaque(Rgb::BLUE);
+    pub const CYAN: Self = Self::opaque(Rgb::CYAN);
+    pub const WHITE: Self = Self::opaque(Rgb::WHITE);
 
     pub const TRANSPARENT: Self = Self::new(Rgb::BLACK, T::MIN_OPACITY);
 }
