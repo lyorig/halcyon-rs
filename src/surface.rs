@@ -65,6 +65,7 @@ use crate::{
     defs::SdlResult,
     rect::{PointI32, RectI32},
     resource,
+    traits::BlendMode,
     util::{opt2ptr, to_result},
 };
 
@@ -94,7 +95,7 @@ impl SurfaceRef {
     }
 
     #[doc(alias = "SDL_GetSurfaceColorMod")]
-    pub fn rgb_mod(&self) -> RgbU8 {
+    pub fn rgb_mod_u8(&self) -> RgbU8 {
         let mut ret = MaybeUninit::<RgbU8>::uninit();
         let ptr = ret.as_mut_ptr();
 
@@ -110,7 +111,7 @@ impl SurfaceRef {
     }
 
     #[doc(alias = "SDL_GetSurfaceAlphaMod")]
-    pub fn alpha_mod(&self) -> u8 {
+    pub fn alpha_mod_u8(&self) -> u8 {
         let mut ret = MaybeUninit::uninit();
 
         unsafe {
@@ -119,8 +120,8 @@ impl SurfaceRef {
         }
     }
 
-    pub fn color_mod(&self) -> RgbaU8 {
-        Rgba::new(self.rgb_mod(), self.alpha_mod())
+    pub fn color_mod_u8(&self) -> RgbaU8 {
+        Rgba::new(self.rgb_mod_u8(), self.alpha_mod_u8())
     }
 
     #[doc(alias = "SDL_FillSurfaceRect")]
@@ -331,6 +332,22 @@ impl SurfaceRef {
                 opt2ptr(dst),
             )
         })
+    }
+}
+
+impl BlendMode for SurfaceRef {
+    fn blend_mode(&self) -> SDL_BlendMode {
+        let mut ret = MaybeUninit::uninit();
+        unsafe {
+            SDL_GetSurfaceBlendMode(self.handle.as_ptr(), ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+
+    fn set_blend_mode(&self, bm: SDL_BlendMode) {
+        unsafe {
+            SDL_SetSurfaceBlendMode(self.handle.as_ptr(), bm);
+        }
     }
 }
 

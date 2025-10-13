@@ -36,12 +36,13 @@ use sdl3_sys::{
 };
 
 use crate::{
-    color::{RgbF32, RgbU8, Rgba, RgbaF32, RgbaU8},
+    color::{RgbF32, RgbU8},
     defs::SdlResult,
     rect::{PointF32, PointI32},
     renderer::RendererRef,
     resource,
     surface::SurfaceRef,
+    traits::{BlendMode, ColorMod},
 };
 
 resource!(Texture);
@@ -57,78 +58,6 @@ impl TextureRef {
             SDL_GetTextureSize(self.handle.as_ptr(), &raw mut (*ptr).x, &raw mut (*ptr).y);
             ret.assume_init()
         }
-    }
-
-    #[doc(alias = "SDL_GetTextureColorMod")]
-    pub fn rgb_mod_u8(&self) -> RgbU8 {
-        let mut ret = MaybeUninit::<RgbU8>::uninit();
-        let ptr = ret.as_mut_ptr();
-
-        // SAFETY: This function only reads struct fields.
-        unsafe {
-            SDL_GetTextureColorMod(
-                self.handle.as_ptr(),
-                &raw mut (*ptr).r,
-                &raw mut (*ptr).g,
-                &raw mut (*ptr).b,
-            );
-
-            ret.assume_init()
-        }
-    }
-
-    #[doc(alias = "SDL_GetTextureColorModFloat")]
-    pub fn rgb_mod_f32(&self) -> RgbF32 {
-        let mut ret = MaybeUninit::<RgbF32>::uninit();
-        let ptr = ret.as_mut_ptr();
-
-        // SAFETY: This function only reads struct fields.
-        unsafe {
-            SDL_GetTextureColorModFloat(
-                self.handle.as_ptr(),
-                &raw mut (*ptr).r,
-                &raw mut (*ptr).g,
-                &raw mut (*ptr).b,
-            );
-
-            ret.assume_init()
-        }
-    }
-
-    #[doc(alias = "SDL_GetTextureAlphaMod")]
-    pub fn alpha_mod_u8(&self) -> u8 {
-        let mut ret = MaybeUninit::<u8>::uninit();
-
-        // SAFETY: This function only reads struct fields.
-        unsafe {
-            SDL_GetTextureAlphaMod(self.handle.as_ptr(), ret.as_mut_ptr());
-            ret.assume_init()
-        }
-    }
-
-    #[doc(alias = "SDL_GetTextureAlphaModFloat")]
-    pub fn alpha_mod_f32(&self) -> f32 {
-        let mut ret = MaybeUninit::<f32>::uninit();
-
-        // SAFETY: This function only reads struct fields.
-        unsafe {
-            SDL_GetTextureAlphaModFloat(self.handle.as_ptr(), ret.as_mut_ptr());
-            ret.assume_init()
-        }
-    }
-
-    /// Convenience function for `self.rgb_mod()` and `self.alpha_mod()`.
-    /// SDL, for some reason, provides these two functions separately instead of
-    /// providing a unified function using `SDL_Color`.
-    pub fn color_mod(&mut self) -> RgbaU8 {
-        Rgba::new(self.rgb_mod_u8(), self.alpha_mod_u8())
-    }
-
-    /// Convenience function for `self.rgb_mod_float()` and `self.alpha_mod_float()`.
-    /// SDL, for some reason, provides these two functions separately instead of
-    /// providing a unified function using `SDL_Color`.
-    pub fn color_mod_float(&mut self) -> RgbaF32 {
-        Rgba::new(self.rgb_mod_f32(), self.alpha_mod_f32())
     }
 
     #[doc(alias = "SDL_GetTextureBlendMode")]
@@ -158,50 +87,6 @@ impl TextureRef {
         RendererRef::from_ptr(unsafe { SDL_GetRendererFromTexture(self.handle.as_ptr()) })
     }
 
-    #[doc(alias = "SDL_SetTextureColorMod")]
-    pub fn set_rgb_mod_u8(&mut self, rgb: RgbU8) {
-        unsafe {
-            SDL_SetTextureColorMod(self.handle.as_ptr(), rgb.r, rgb.g, rgb.b);
-        }
-    }
-
-    #[doc(alias = "SDL_SetTextureColorModFloat")]
-    pub fn set_rgb_mod_f32(&mut self, rgb: RgbF32) {
-        unsafe {
-            SDL_SetTextureColorModFloat(self.handle.as_ptr(), rgb.r, rgb.g, rgb.b);
-        }
-    }
-
-    #[doc(alias = "SDL_SetTextureAlphaMod")]
-    pub fn set_alpha_mod_u8(&mut self, alpha: u8) {
-        unsafe {
-            SDL_SetTextureAlphaMod(self.handle.as_ptr(), alpha);
-        }
-    }
-
-    #[doc(alias = "SDL_SetTextureAlphaModFloat")]
-    pub fn set_alpha_mod_f32(&mut self, alpha: f32) {
-        unsafe {
-            SDL_SetTextureAlphaModFloat(self.handle.as_ptr(), alpha);
-        }
-    }
-
-    /// Convenience function for `self.set_rgb_mod()` and `self.set_alpha_mod()`.
-    /// SDL, for some reason, provides these two functions separately instead of
-    /// providing a unified function using `SDL_Color`.
-    pub fn set_color_mod_u8(&mut self, color: RgbaU8) {
-        self.set_rgb_mod_u8(color.rgb);
-        self.set_alpha_mod_u8(color.a);
-    }
-
-    /// Convenience function for `self.set_rgb_mod_float()` and `self.set_alpha_mod_float()`.
-    /// SDL, for some reason, provides these two functions separately instead of
-    /// providing a unified function using `SDL_Color`.
-    pub fn set_color_mod_f32(&mut self, rgba: RgbaF32) {
-        self.set_rgb_mod_f32(rgba.rgb);
-        self.set_alpha_mod_f32(rgba.a);
-    }
-
     #[doc(alias = "SDL_SetTextureBlendMode")]
     pub fn set_blend_mode(&mut self, bm: SDL_BlendMode) {
         unsafe {
@@ -213,6 +98,110 @@ impl TextureRef {
     pub fn set_scale_mode(&mut self, sm: SDL_ScaleMode) {
         unsafe {
             SDL_SetTextureScaleMode(self.handle.as_ptr(), sm);
+        }
+    }
+}
+
+impl BlendMode for TextureRef {
+    fn blend_mode(&self) -> SDL_BlendMode {
+        let mut ret = MaybeUninit::uninit();
+        unsafe {
+            SDL_GetTextureBlendMode(self.handle.as_ptr(), ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+
+    fn set_blend_mode(&self, bm: SDL_BlendMode) {
+        unsafe {
+            SDL_SetTextureBlendMode(self.handle.as_ptr(), bm);
+        }
+    }
+}
+
+impl ColorMod for TextureRef {
+    #[doc(alias = "SDL_GetTextureColorMod")]
+    fn rgb_mod_u8(&self) -> RgbU8 {
+        let mut ret = MaybeUninit::<RgbU8>::uninit();
+        let ptr = ret.as_mut_ptr();
+
+        // SAFETY: This function only reads struct fields.
+        unsafe {
+            SDL_GetTextureColorMod(
+                self.handle.as_ptr(),
+                &raw mut (*ptr).r,
+                &raw mut (*ptr).g,
+                &raw mut (*ptr).b,
+            );
+
+            ret.assume_init()
+        }
+    }
+
+    #[doc(alias = "SDL_GetTextureAlphaMod")]
+    fn alpha_mod_u8(&self) -> u8 {
+        let mut ret = MaybeUninit::<u8>::uninit();
+
+        // SAFETY: This function only reads struct fields.
+        unsafe {
+            SDL_GetTextureAlphaMod(self.handle.as_ptr(), ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+
+    #[doc(alias = "SDL_SetTextureColorMod")]
+    fn set_rgb_mod_u8(&self, rm: RgbU8) {
+        unsafe {
+            SDL_SetTextureColorMod(self.handle.as_ptr(), rm.r, rm.g, rm.b);
+        }
+    }
+
+    #[doc(alias = "SDL_SetTextureAlphaMod")]
+    fn set_alpha_mod_u8(&self, am: u8) {
+        unsafe {
+            SDL_SetTextureAlphaMod(self.handle.as_ptr(), am);
+        }
+    }
+
+    #[doc(alias = "SDL_GetTextureColorModFloat")]
+    fn rgb_mod_f32(&self) -> RgbF32 {
+        let mut ret = MaybeUninit::<RgbF32>::uninit();
+        let ptr = ret.as_mut_ptr();
+
+        // SAFETY: This function only reads struct fields.
+        unsafe {
+            SDL_GetTextureColorModFloat(
+                self.handle.as_ptr(),
+                &raw mut (*ptr).r,
+                &raw mut (*ptr).g,
+                &raw mut (*ptr).b,
+            );
+
+            ret.assume_init()
+        }
+    }
+
+    #[doc(alias = "SDL_GetTextureAlphaModFloat")]
+    fn alpha_mod_f32(&self) -> f32 {
+        let mut ret = MaybeUninit::<f32>::uninit();
+
+        // SAFETY: This function only reads struct fields.
+        unsafe {
+            SDL_GetTextureAlphaModFloat(self.handle.as_ptr(), ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+
+    #[doc(alias = "SDL_SetTextureColorModFloat")]
+    fn set_rgb_mod_f32(&self, rm: RgbF32) {
+        unsafe {
+            SDL_SetTextureColorModFloat(self.handle.as_ptr(), rm.r, rm.g, rm.b);
+        }
+    }
+
+    #[doc(alias = "SDL_SetTextureAlphaModFloat")]
+    fn set_alpha_mod_f32(&self, am: f32) {
+        unsafe {
+            SDL_SetTextureAlphaModFloat(self.handle.as_ptr(), am);
         }
     }
 }

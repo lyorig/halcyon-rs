@@ -87,6 +87,7 @@ use crate::{
     resource,
     surface::{Surface, SurfaceRef},
     texture::TextureRef,
+    traits::BlendMode,
     util::{opt2ptr, to_result},
     window::WindowRef,
 };
@@ -255,15 +256,6 @@ impl RendererRef {
                 &raw mut (*ptr).a,
             );
 
-            ret.assume_init()
-        }
-    }
-
-    #[doc(alias = "SDL_GetRenderDrawBlendMode")]
-    pub fn blend_mode(&self) -> SDL_BlendMode {
-        let mut ret = MaybeUninit::uninit();
-        unsafe {
-            SDL_GetRenderDrawBlendMode(self.handle.as_ptr(), ret.as_mut_ptr());
             ret.assume_init()
         }
     }
@@ -500,9 +492,18 @@ impl RendererRef {
             );
         }
     }
+}
 
-    #[doc(alias = "SDL_SetRenderDrawBlendMode")]
-    pub fn set_blend_mode(&self, bm: SDL_BlendMode) {
+impl BlendMode for RendererRef {
+    fn blend_mode(&self) -> SDL_BlendMode {
+        let mut ret = MaybeUninit::uninit();
+        unsafe {
+            SDL_GetRenderDrawBlendMode(self.handle.as_ptr(), ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+
+    fn set_blend_mode(&self, bm: SDL_BlendMode) {
         unsafe {
             SDL_SetRenderDrawBlendMode(self.handle.as_ptr(), bm);
         }

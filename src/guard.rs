@@ -1,6 +1,11 @@
 use sdl3_sys::blendmode::SDL_BlendMode;
 
-use crate::{color::RgbaF32, renderer::RendererRef, texture::TextureRef};
+use crate::{
+    color::{RgbF32, RgbaF32},
+    renderer::RendererRef,
+    texture::TextureRef,
+    traits::{BlendMode, ColorMod},
+};
 
 pub struct DrawColorGuard {
     rnd: RendererRef,
@@ -57,14 +62,88 @@ impl Drop for RenderTargetGuard {
     }
 }
 
-pub struct BlendModeGuard {
-    rnd: RendererRef,
+pub struct AlphaModGuard<T: ColorMod> {
+    obj: T,
+    old: f32,
+}
+
+impl<T: ColorMod> AlphaModGuard<T> {
+    pub fn new(obj: T, am: f32) -> Self {
+        let old = obj.alpha_mod_f32();
+
+        let _ = obj.set_alpha_mod_f32(am);
+
+        Self { obj, old }
+    }
+
+    pub fn set(&self, am: f32) {
+        let _ = self.obj.set_alpha_mod_f32(am);
+    }
+}
+
+impl<T: ColorMod> Drop for AlphaModGuard<T> {
+    fn drop(&mut self) {
+        self.obj.set_alpha_mod_f32(self.old);
+    }
+}
+
+pub struct RgbModGuard<T: ColorMod> {
+    obj: T,
+    old: RgbF32,
+}
+
+impl<T: ColorMod> RgbModGuard<T> {
+    pub fn new(obj: T, am: RgbF32) -> Self {
+        let old = obj.rgb_mod_f32();
+
+        let _ = obj.set_rgb_mod_f32(am);
+
+        Self { obj, old }
+    }
+
+    pub fn set(&self, am: RgbF32) {
+        let _ = self.obj.set_rgb_mod_f32(am);
+    }
+}
+
+impl<T: ColorMod> Drop for RgbModGuard<T> {
+    fn drop(&mut self) {
+        self.obj.set_rgb_mod_f32(self.old);
+    }
+}
+
+pub struct ColorModGuard<T: ColorMod> {
+    obj: T,
+    old: RgbaF32,
+}
+
+impl<T: ColorMod> ColorModGuard<T> {
+    pub fn new(obj: T, am: RgbaF32) -> Self {
+        let old = obj.color_mod_f32();
+
+        let _ = obj.set_color_mod_f32(am);
+
+        Self { obj, old }
+    }
+
+    pub fn set(&self, am: RgbaF32) {
+        let _ = self.obj.set_color_mod_f32(am);
+    }
+}
+
+impl<T: ColorMod> Drop for ColorModGuard<T> {
+    fn drop(&mut self) {
+        self.obj.set_color_mod_f32(self.old);
+    }
+}
+
+pub struct BlendModeGuard<T: BlendMode> {
+    rnd: T,
     old: SDL_BlendMode,
 }
 
-impl BlendModeGuard {
-    pub fn new(rnd: impl Into<RendererRef>, bm: SDL_BlendMode) -> Self {
-        let rnd: RendererRef = rnd.into();
+impl<T: BlendMode> BlendModeGuard<T> {
+    pub fn new(rnd: T, bm: SDL_BlendMode) -> Self {
         let old = rnd.blend_mode();
 
         let _ = rnd.set_blend_mode(bm);
@@ -77,7 +156,7 @@ impl BlendModeGuard {
     }
 }
 
-impl Drop for BlendModeGuard {
+impl<T: BlendMode> Drop for BlendModeGuard<T> {
     fn drop(&mut self) {
         self.rnd.set_blend_mode(self.old);
     }

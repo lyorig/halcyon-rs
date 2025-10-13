@@ -19,6 +19,7 @@ pub mod sdl_string;
 pub mod subsystem;
 pub mod surface;
 pub mod texture;
+pub mod traits;
 pub mod ttf;
 pub mod util;
 pub mod window;
