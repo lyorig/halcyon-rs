@@ -129,9 +129,9 @@ use crate::{
     color::RgbaU8,
     defs::SdlResult,
     error::get,
-    rect::PointI32,
+    rect::{PointF32, PointI32},
     resource,
-    surface::Surface,
+    surface::{Surface, SurfaceRef},
     util::{c_ptr_to_str, to_result},
 };
 
@@ -341,7 +341,7 @@ impl<'a> FontRef {
 
 impl Font {
     #[doc(alias = "TTF_OpenFont")]
-    pub fn new(_ctx: &TtfContext, file: &CStr, point_size: f32) -> SdlResult<Self> {
+    pub fn new(file: &CStr, point_size: f32) -> SdlResult<Self> {
         Self::from_ptr(unsafe { TTF_OpenFont(file.as_ptr(), point_size) })
     }
 }
@@ -394,6 +394,21 @@ impl TextRef {
     #[doc(alias = "TTF_UpdateText")]
     pub fn update(&self) -> SdlResult {
         to_result(unsafe { TTF_UpdateText(self.handle.as_ptr()) })
+    }
+
+    pub fn draw_to_surface(&self, surf: impl Into<SurfaceRef>, pos: PointI32) -> SdlResult {
+        to_result(unsafe {
+            TTF_DrawSurfaceText(
+                self.handle.as_ptr(),
+                pos.x,
+                pos.y,
+                surf.into().handle.as_ptr(),
+            )
+        })
+    }
+
+    pub fn draw_to_renderer(&self, pos: PointF32) -> SdlResult {
+        to_result(unsafe { TTF_DrawRendererText(self.handle.as_ptr(), pos.x, pos.y) })
     }
 }
 
