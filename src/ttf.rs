@@ -121,7 +121,7 @@
 //! - [x] TTF_Version
 //! - [x] TTF_WasInit
 
-use std::{ffi::CStr, mem::MaybeUninit};
+use std::{ffi::CStr, marker::PhantomData, mem::MaybeUninit};
 
 use sdl3_ttf_sys::ttf::*;
 
@@ -166,11 +166,63 @@ impl Drop for TtfContext {
     }
 }
 
-resource!(Font, TTF, Close);
+#[derive(Clone, Copy)]
+pub struct FontRef {
+    pub(crate) handle: std::ptr::NonNull<TTF_Font>,
+}
+
+impl FontRef {
+    pub(crate) fn from_ptr(handle: *mut TTF_Font) -> Option<Self> {
+        std::ptr::NonNull::new(handle).map(|handle| Self { handle })
+    }
+}
+
+pub struct Font<'a> {
+    inner: FontRef,
+    marker: PhantomData<&'a TtfContext>,
+}
+
+impl Font<'_> {
+    pub(crate) fn from_ptr<'a>(handle: *mut TTF_Font) -> crate::defs::SdlResult<Font<'a>> {
+        match std::ptr::NonNull::new(handle) {
+            Some(handle) => Ok(Font::<'a> {
+                inner: FontRef { handle },
+                marker: PhantomData,
+            }),
+            None => Err(crate::error::get()),
+        }
+    }
+}
+
+impl std::ops::Deref for Font<'_> {
+    type Target = FontRef;
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl std::ops::DerefMut for Font<'_> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
+
+impl From<&Font<'_>> for FontRef {
+    fn from(value: &Font) -> Self {
+        value.inner
+    }
+}
+
+impl Drop for Font<'_> {
+    #[doc(alias = "TTF_DestroyFont")]
+    fn drop(&mut self) {
+        unsafe { TTF_CloseFont(self.inner.handle.as_ptr()) }
+    }
+}
 
 impl<'a> FontRef {
     #[doc(alias = "TTF_CopyFont")]
-    pub fn try_clone(&self) -> SdlResult<Font> {
+    pub fn try_clone(&self) -> SdlResult<Font<'a>> {
         Font::from_ptr(unsafe { TTF_CopyFont(self.handle.as_ptr()) })
     }
 
@@ -339,9 +391,9 @@ impl<'a> FontRef {
     }
 }
 
-impl Font {
+impl Font<'_> {
     #[doc(alias = "TTF_OpenFont")]
-    pub fn new(file: &CStr, point_size: f32) -> SdlResult<Self> {
+    pub fn new<'a>(_ctx: &'a TtfContext, file: &CStr, point_size: f32) -> SdlResult<Font<'a>> {
         Self::from_ptr(unsafe { TTF_OpenFont(file.as_ptr(), point_size) })
     }
 }
