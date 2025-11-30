@@ -400,6 +400,14 @@ impl Font<'_> {
     pub fn new<'a>(_ctx: &'a TtfContext, file: &CStr, point_size: f32) -> SdlResult<Font<'a>> {
         Self::from_ptr(unsafe { TTF_OpenFont(file.as_ptr(), point_size) })
     }
+
+    /// Like `Font::new()`, except you don't need to provide a `TtfContext`.
+    /// Use when you don't want to figure out lifetimes, and are absolutely sure
+    /// that a `TtfContext` will exist for the entire lifetime of the returned `Font`.
+    #[doc(alias = "TTF_OpenFont")]
+    pub unsafe fn new_unchecked(file: &CStr, point_size: f32) -> SdlResult<Font<'_>> {
+        Self::from_ptr(unsafe { TTF_OpenFont(file.as_ptr(), point_size) })
+    }
 }
 
 resource!(Text, TTF);
