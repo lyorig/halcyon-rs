@@ -157,6 +157,10 @@ impl TtfContext {
     pub fn version() -> i32 {
         unsafe { TTF_Version() }
     }
+
+    pub fn try_clone(&self) -> SdlResult<Self> {
+        Self::new()
+    }
 }
 
 impl Drop for TtfContext {
