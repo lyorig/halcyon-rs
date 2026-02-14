@@ -64,16 +64,16 @@ pub fn mod_state() -> SDL_Keymod {
 }
 
 #[doc(alias = "SDL_StartTextInput")]
-pub fn text_input_start(wnd: impl Into<WindowRef>) -> SdlResult {
-    to_result(unsafe { SDL_StartTextInput(wnd.into().handle.as_ptr()) })
+pub fn text_input_start(wnd: WindowRef) -> SdlResult {
+    to_result(unsafe { SDL_StartTextInput(wnd.handle.as_ptr()) })
 }
 
 #[doc(alias = "SDL_StopTextInput")]
-pub fn text_input_stop(wnd: impl Into<WindowRef>) -> SdlResult {
-    to_result(unsafe { SDL_StopTextInput(wnd.into().handle.as_ptr()) })
+pub fn text_input_stop(wnd: WindowRef) -> SdlResult {
+    to_result(unsafe { SDL_StopTextInput(wnd.handle.as_ptr()) })
 }
 
 #[doc(alias = "SDL_TextInputActive")]
-pub fn text_input_active(wnd: impl Into<WindowRef>) -> bool {
-    unsafe { SDL_TextInputActive(wnd.into().handle.as_ptr()) }
+pub fn text_input_active(wnd: WindowRef) -> bool {
+    unsafe { SDL_TextInputActive(wnd.handle.as_ptr()) }
 }

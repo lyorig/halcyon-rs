@@ -38,8 +38,7 @@ pub struct DrawColorGuard {
 }
 
 impl DrawColorGuard {
-    pub fn new(rnd: impl Into<RendererRef>, color: RgbaF32) -> Self {
-        let rnd: RendererRef = rnd.into();
+    pub fn new(rnd: RendererRef, color: RgbaF32) -> Self {
         let old = rnd.draw_color_f32();
 
         rnd.set_draw_color_f32(color);
@@ -64,8 +63,7 @@ pub struct RenderTargetGuard {
 }
 
 impl RenderTargetGuard {
-    pub fn new(rnd: impl Into<RendererRef>, target: impl Into<TextureRef>) -> Self {
-        let rnd: RendererRef = rnd.into();
+    pub fn new(rnd: RendererRef, target: TextureRef) -> Self {
         let old = rnd.target();
 
         let _ = rnd.set_target(target);
@@ -73,7 +71,7 @@ impl RenderTargetGuard {
         Self { rnd, old }
     }
 
-    pub fn set(&self, target: impl Into<TextureRef>) {
+    pub fn set(&self, target: TextureRef) {
         let _ = self.rnd.set_target(target);
     }
 }

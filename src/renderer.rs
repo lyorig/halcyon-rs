@@ -97,7 +97,7 @@ pub struct RendererBuilder {
 }
 
 impl RendererBuilder {
-    pub fn new<'w>(wnd: impl Into<WindowRef>) -> Self {
+    pub fn new<'w>(wnd: WindowRef) -> Self {
         let mut ret = Self {
             inner: Properties::new(),
         };
@@ -115,19 +115,19 @@ impl RendererBuilder {
     }
 
     /// Private and only used in `RendererBuilder::new()`.
-    fn window(&mut self, value: impl Into<WindowRef>) -> &mut Self {
+    fn window(&mut self, value: WindowRef) -> &mut Self {
         let _ = self.inner.set_pointer(
             SDL_PROP_RENDERER_CREATE_WINDOW_POINTER,
-            value.into().handle.as_ptr() as *mut c_void,
+            value.handle.as_ptr() as *mut c_void,
         );
 
         self
     }
 
-    pub fn surface<'surf>(&mut self, value: impl Into<SurfaceRef>) -> &mut Self {
+    pub fn surface<'surf>(&mut self, value: SurfaceRef) -> &mut Self {
         let _ = self.inner.set_pointer(
             SDL_PROP_RENDERER_CREATE_SURFACE_POINTER,
-            value.into().handle.as_ptr() as *mut c_void,
+            value.handle.as_ptr() as *mut c_void,
         );
 
         self
@@ -290,16 +290,11 @@ impl RendererRef {
     /// This function is a direct wrapper of SDL's `SDL_RenderTexture()`;
     /// see `DrawBuilder` for a neater way to draw to a renderer.
     #[doc(alias = "SDL_RenderTexture")]
-    pub fn draw(
-        &self,
-        tex: impl Into<TextureRef>,
-        src: Option<&RectF32>,
-        dst: Option<&RectF32>,
-    ) -> SdlResult {
+    pub fn draw(&self, tex: TextureRef, src: Option<&RectF32>, dst: Option<&RectF32>) -> SdlResult {
         to_result(unsafe {
             SDL_RenderTexture(
                 self.handle.as_ptr(),
-                tex.into().handle.as_ptr(),
+                tex.handle.as_ptr(),
                 opt2ptr(src),
                 opt2ptr(dst),
             )
@@ -309,7 +304,7 @@ impl RendererRef {
     #[doc(alias = "SDL_RenderTextureAffine")]
     pub fn draw_affine(
         &self,
-        tex: impl Into<TextureRef>,
+        tex: TextureRef,
         src: Option<&RectF32>,
         origin: Option<&PointF32>,
         right: Option<&PointF32>,
@@ -318,7 +313,7 @@ impl RendererRef {
         to_result(unsafe {
             SDL_RenderTextureAffine(
                 self.handle.as_ptr(),
-                tex.into().handle.as_ptr(),
+                tex.handle.as_ptr(),
                 opt2ptr(src),
                 opt2ptr(origin),
                 opt2ptr(right),
@@ -330,7 +325,7 @@ impl RendererRef {
     #[doc(alias = "SDL_RenderTextureTiled")]
     pub fn draw_tiled(
         &self,
-        tex: impl Into<TextureRef>,
+        tex: TextureRef,
         src: Option<&RectF32>,
         scale: f32,
         dst: Option<&RectF32>,
@@ -338,7 +333,7 @@ impl RendererRef {
         to_result(unsafe {
             SDL_RenderTextureTiled(
                 self.handle.as_ptr(),
-                tex.into().handle.as_ptr(),
+                tex.handle.as_ptr(),
                 opt2ptr(src),
                 scale,
                 opt2ptr(dst),
@@ -349,7 +344,7 @@ impl RendererRef {
     #[doc(alias = "SDL_RenderTexture9Grid")]
     pub fn draw_9grid(
         &self,
-        tex: impl Into<TextureRef>,
+        tex: TextureRef,
         src: Option<&RectF32>,
         width_left: f32,
         width_right: f32,
@@ -361,7 +356,7 @@ impl RendererRef {
         to_result(unsafe {
             SDL_RenderTexture9Grid(
                 self.handle.as_ptr(),
-                tex.into().handle.as_ptr(),
+                tex.handle.as_ptr(),
                 opt2ptr(src),
                 width_left,
                 width_right,
@@ -448,8 +443,8 @@ impl RendererRef {
     }
 
     #[doc(alias = "SDL_SetRenderTarget")]
-    pub fn set_target(&self, tgt: impl Into<TextureRef>) -> SdlResult {
-        to_result(unsafe { SDL_SetRenderTarget(self.handle.as_ptr(), tgt.into().handle.as_ptr()) })
+    pub fn set_target(&self, tgt: TextureRef) -> SdlResult {
+        to_result(unsafe { SDL_SetRenderTarget(self.handle.as_ptr(), tgt.handle.as_ptr()) })
     }
 
     #[doc(alias = "SDL_SetRenderTarget")]
@@ -515,10 +510,10 @@ impl Renderer {
     const VSYNC_ADAPTIVE: i32 = SDL_RENDERER_VSYNC_ADAPTIVE;
 
     #[doc(alias = "SDL_CreateRenderer")]
-    pub fn new(wnd: impl Into<WindowRef>, name: Option<&CStr>) -> SdlResult<Renderer> {
+    pub fn new(wnd: WindowRef, name: Option<&CStr>) -> SdlResult<Renderer> {
         Self::from_ptr(unsafe {
             SDL_CreateRenderer(
-                wnd.into().handle.as_ptr(),
+                wnd.handle.as_ptr(),
                 name.map_or(std::ptr::null(), |n| n.as_ptr()),
             )
         })
@@ -541,10 +536,10 @@ pub struct DrawBuilder<'a> {
 }
 
 impl<'a> DrawBuilder<'a> {
-    pub fn new(rnd: impl Into<RendererRef>, tex: impl Into<TextureRef>) -> Self {
+    pub fn new(rnd: RendererRef, tex: TextureRef) -> Self {
         Self {
-            renderer: rnd.into(),
-            texture: tex.into(),
+            renderer: rnd,
+            texture: tex,
             src: None,
             dst: None,
         }

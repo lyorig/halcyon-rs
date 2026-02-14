@@ -211,23 +211,20 @@ impl ColorModF32 for TextureRef {
 impl Texture {
     #[doc(alias = "SDL_CreateTexture")]
     pub fn new(
-        rnd: impl Into<RendererRef>,
+        rnd: RendererRef,
         fmt: SDL_PixelFormat,
         access: SDL_TextureAccess,
         size: PointI32,
     ) -> SdlResult<Texture> {
         Self::from_ptr(unsafe {
-            SDL_CreateTexture(rnd.into().handle.as_ptr(), fmt, access, size.x, size.y)
+            SDL_CreateTexture(rnd.handle.as_ptr(), fmt, access, size.x, size.y)
         })
     }
 
     #[doc(alias = "SDL_CreateTextureFromSurface")]
-    pub fn from_surface(
-        rnd: impl Into<RendererRef>,
-        surf: impl Into<SurfaceRef>,
-    ) -> SdlResult<Texture> {
+    pub fn from_surface(rnd: RendererRef, surf: SurfaceRef) -> SdlResult<Texture> {
         Self::from_ptr(unsafe {
-            SDL_CreateTextureFromSurface(rnd.into().handle.as_ptr(), surf.into().handle.as_ptr())
+            SDL_CreateTextureFromSurface(rnd.handle.as_ptr(), surf.handle.as_ptr())
         })
     }
 }

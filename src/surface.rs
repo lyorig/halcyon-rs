@@ -164,7 +164,7 @@ impl SurfaceRef {
 
     pub fn stretch(
         &self,
-        target: impl Into<SurfaceRef>,
+        target: SurfaceRef,
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
         scale_mode: SDL_ScaleMode,
@@ -173,7 +173,7 @@ impl SurfaceRef {
             SDL_StretchSurface(
                 self.handle.as_ptr(),
                 opt2ptr(src),
-                target.into().handle.as_ptr(),
+                target.handle.as_ptr(),
                 opt2ptr(dst),
                 scale_mode,
             )
@@ -188,7 +188,7 @@ impl SurfaceRef {
     #[doc(alias = "SDL_BlitSurface")]
     pub fn blit(
         &self,
-        target: impl Into<SurfaceRef>,
+        target: SurfaceRef,
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
     ) -> SdlResult {
@@ -196,7 +196,7 @@ impl SurfaceRef {
             SDL_BlitSurface(
                 self.handle.as_ptr(),
                 opt2ptr(src),
-                target.into().handle.as_ptr(),
+                target.handle.as_ptr(),
                 opt2ptr(dst),
             )
         })
@@ -205,7 +205,7 @@ impl SurfaceRef {
     #[doc(alias = "SDL_BlitSurface9Grid")]
     pub fn blit_9grid(
         &self,
-        target: impl Into<SurfaceRef>,
+        target: SurfaceRef,
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
         left_width: i32,
@@ -225,7 +225,7 @@ impl SurfaceRef {
                 bottom_height,
                 scale,
                 scale_mode,
-                target.into().handle.as_ptr(),
+                target.handle.as_ptr(),
                 opt2ptr(dst),
             )
         })
@@ -234,7 +234,7 @@ impl SurfaceRef {
     #[doc(alias = "SDL_BlitSurfaceScaled")]
     pub fn blit_scaled(
         &self,
-        target: impl Into<SurfaceRef>,
+        target: SurfaceRef,
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
         scale_mode: SDL_ScaleMode,
@@ -243,7 +243,7 @@ impl SurfaceRef {
             SDL_BlitSurfaceScaled(
                 self.handle.as_ptr(),
                 opt2ptr(src),
-                target.into().handle.as_ptr(),
+                target.handle.as_ptr(),
                 opt2ptr(dst),
                 scale_mode,
             )
@@ -253,7 +253,7 @@ impl SurfaceRef {
     #[doc(alias = "SDL_BlitSurfaceTiled")]
     pub fn blit_tiled(
         &self,
-        target: impl Into<SurfaceRef>,
+        target: SurfaceRef,
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
     ) -> SdlResult {
@@ -261,7 +261,7 @@ impl SurfaceRef {
             SDL_BlitSurfaceTiled(
                 self.handle.as_ptr(),
                 opt2ptr(src),
-                target.into().handle.as_ptr(),
+                target.handle.as_ptr(),
                 opt2ptr(dst),
             )
         })
@@ -270,7 +270,7 @@ impl SurfaceRef {
     #[doc(alias = "SDL_BlitSurfaceTiledWithScale")]
     pub fn blit_tiled_scaled(
         &self,
-        target: impl Into<SurfaceRef>,
+        target: SurfaceRef,
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
         scale: f32,
@@ -282,7 +282,7 @@ impl SurfaceRef {
                 opt2ptr(src),
                 scale,
                 scale_mode,
-                target.into().handle.as_ptr(),
+                target.handle.as_ptr(),
                 opt2ptr(dst),
             )
         })

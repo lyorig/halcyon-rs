@@ -460,14 +460,9 @@ impl TextRef {
         to_result(unsafe { TTF_UpdateText(self.handle.as_ptr()) })
     }
 
-    pub fn draw_to_surface(&self, surf: impl Into<SurfaceRef>, pos: PointI32) -> SdlResult {
+    pub fn draw_to_surface(&self, surf: SurfaceRef, pos: PointI32) -> SdlResult {
         to_result(unsafe {
-            TTF_DrawSurfaceText(
-                self.handle.as_ptr(),
-                pos.x,
-                pos.y,
-                surf.into().handle.as_ptr(),
-            )
+            TTF_DrawSurfaceText(self.handle.as_ptr(), pos.x, pos.y, surf.handle.as_ptr())
         })
     }
 
@@ -478,11 +473,11 @@ impl TextRef {
 
 impl Text {
     #[doc(alias = "TTF_CreateText")]
-    pub fn new(font: impl Into<FontRef>, text: &str) -> SdlResult<Self> {
+    pub fn new(font: FontRef, text: &str) -> SdlResult<Self> {
         Self::from_ptr(unsafe {
             TTF_CreateText(
                 std::ptr::null_mut(),
-                font.into().handle.as_ptr(),
+                font.handle.as_ptr(),
                 text.as_ptr().cast(),
                 text.len(),
             )
