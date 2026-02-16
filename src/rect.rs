@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, ops::Mul};
 
 /// Wrapper around `SDL_(F)Point`, can be transmuted.
 #[repr(C)]
@@ -26,6 +26,14 @@ impl From<PointF32> for PointI32 {
 impl<T: Copy> Point<T> {
     pub const fn new(x: T, y: T) -> Self {
         Self { x, y }
+    }
+}
+
+impl<T: Copy + Mul<Output = T>> Mul<T> for Point<T> {
+    type Output = Point<T>;
+
+    fn mul(self, rhs: T) -> Self::Output {
+        Point::new(self.x * rhs, self.y * rhs)
     }
 }
 
