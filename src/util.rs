@@ -16,33 +16,37 @@ macro_rules! resource {
     ($owned:ident, $library:ident, $dtor: ident) => {
         paste::paste! {
             #[derive(Clone, Copy)]
-            pub struct [<$owned Ref>] {
+            pub struct [<$owned Handle>] {
                 pub(crate) handle: std::ptr::NonNull<[<$library _ $owned>]>,
             }
 
-            impl [<$owned Ref>] {
+            impl [<$owned Handle>] {
                 pub(crate) fn from_ptr(handle: *mut [<$library _ $owned>]) -> Option<Self> {
                     std::ptr::NonNull::new(handle).map(|handle| Self { handle })
                 }
             }
 
             pub struct $owned {
-                inner: [<$owned Ref>],
+                inner: [<$owned Handle>],
             }
 
             impl $owned {
                 pub(crate) fn from_ptr(handle: *mut [<$library _ $owned>]) -> crate::defs::SdlResult<Self> {
                     match std::ptr::NonNull::new(handle) {
                         Some(handle) => Ok(Self {
-                            inner: [<$owned Ref>] { handle },
+                            inner: [<$owned Handle>] { handle },
                         }),
                         None => Err(crate::error::get()),
                     }
                 }
+
+                pub fn as_ref(&self) -> [<$owned Ref>]<'_> {
+                    [<$owned Ref>] { inner: self.inner, _data: std::marker::PhantomData }
+                }
             }
 
             impl std::ops::Deref for $owned {
-                type Target = [<$owned Ref>];
+                type Target = [<$owned Handle>];
                 fn deref(&self) -> &Self::Target {
                     &self.inner
                 }
@@ -54,16 +58,30 @@ macro_rules! resource {
                 }
             }
 
-            impl From<&$owned> for [<$owned Ref>] {
-                fn from(value: &$owned) -> Self {
-                    value.inner
-                }
-            }
-
             impl Drop for $owned {
                 #[doc(alias = $library "_Destroy" $owned)]
                 fn drop(&mut self) {
                     unsafe { [<$library _ $dtor $owned>](self.inner.handle.as_ptr()) }
+                }
+            }
+
+            #[derive(Clone, Copy)]
+            pub struct [<$owned Ref>]<'a> {
+                inner: [<$owned Handle>],
+                _data: std::marker::PhantomData<&'a $owned>,
+            }
+
+            impl [<$owned Ref>]<'_> {
+                pub unsafe fn from_handle(handle: [<$owned Handle>]) -> Self {
+                    Self {inner: handle, _data: std::marker::PhantomData}
+                }
+            }
+
+            impl<'a> std::ops::Deref for [<$owned Ref>]<'a> {
+                type Target = [<$owned Handle>];
+
+                fn deref(&self) -> &Self::Target {
+                    &self.inner
                 }
             }
         }

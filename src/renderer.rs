@@ -86,10 +86,10 @@ use crate::{
     rect::{PointF32, PointI32, RectF32, RectI32},
     resource,
     surface::{Surface, SurfaceRef},
-    texture::TextureRef,
+    texture::{TextureHandle, TextureRef},
     traits::BlendMode,
     util::{opt2ptr, to_result},
-    window::WindowRef,
+    window::{WindowHandle, WindowRef},
 };
 
 pub struct RendererBuilder {
@@ -163,7 +163,7 @@ impl RendererBuilder {
 
 resource!(Renderer);
 
-impl RendererRef {
+impl RendererHandle {
     #[doc(alias = "SDL_GetRendererName")]
     pub fn name(&self) -> &str {
         unsafe {
@@ -174,17 +174,24 @@ impl RendererRef {
         }
     }
 
-    /// This function doesn't return an `Option`, as all renderers should have
+    /// This function doesn't return an [`Option`], as all renderers should have
     /// an associated window. If that's somehow violated, the program will panic.
+    ///
+    /// SAFETY: A raw handle is returned. Its methods must only be called within
+    /// the actual pointed-to object's lifetime. Consult the SDL function's docs
+    /// for more specific info.
     #[doc(alias = "SDL_GetRenderWindow")]
-    pub fn window(&self) -> WindowRef {
-        WindowRef::from_ptr(unsafe { SDL_GetRenderWindow(self.handle.as_ptr()) })
+    pub unsafe fn window(&self) -> WindowHandle {
+        WindowHandle::from_ptr(unsafe { SDL_GetRenderWindow(self.handle.as_ptr()) })
             .expect("Renderer has no associated window")
     }
 
+    /// SAFETY: A raw handle is returned. Its methods must only be called within
+    /// the actual pointed-to object's lifetime. Consult the SDL function's docs
+    /// for more specific info.
     #[doc(alias = "SDL_GetRenderTarget")]
-    pub fn target(&self) -> Option<TextureRef> {
-        TextureRef::from_ptr(unsafe { SDL_GetRenderTarget(self.handle.as_ptr()) })
+    pub unsafe fn target(&self) -> Option<TextureHandle> {
+        TextureHandle::from_ptr(unsafe { SDL_GetRenderTarget(self.handle.as_ptr()) })
     }
 
     #[doc(alias = "SDL_GetRenderVSync")]
@@ -489,7 +496,7 @@ impl RendererRef {
     }
 }
 
-impl BlendMode for RendererRef {
+impl BlendMode for RendererHandle {
     fn blend_mode(&self) -> SDL_BlendMode {
         let mut ret = MaybeUninit::uninit();
         unsafe {
@@ -526,17 +533,17 @@ impl Renderer {
 }
 
 /// A builder-like struct intended an an alternative
-/// to `Renderer::draw()`.
-pub struct DrawBuilder<'a> {
-    renderer: RendererRef,
+/// to `RendererHandle::draw()`.
+pub struct DrawBuilder<'rnd, 'tex, 'rct> {
+    renderer: RendererRef<'rnd>,
 
-    texture: TextureRef,
-    src: Option<&'a RectF32>,
-    dst: Option<&'a RectF32>,
+    texture: TextureRef<'tex>,
+    src: Option<&'rct RectF32>,
+    dst: Option<&'rct RectF32>,
 }
 
-impl<'a> DrawBuilder<'a> {
-    pub fn new(rnd: RendererRef, tex: TextureRef) -> Self {
+impl<'rnd, 'tex, 'rct> DrawBuilder<'rnd, 'tex, 'rct> {
+    pub fn new(rnd: RendererRef<'rnd>, tex: TextureRef<'tex>) -> Self {
         Self {
             renderer: rnd,
             texture: tex,
@@ -545,12 +552,12 @@ impl<'a> DrawBuilder<'a> {
         }
     }
 
-    pub fn from(&mut self, src: &'a RectF32) -> &mut Self {
+    pub fn from(&mut self, src: &'rct RectF32) -> &mut Self {
         self.src = Some(src);
         self
     }
 
-    pub fn to(&mut self, dst: &'a RectF32) -> &mut Self {
+    pub fn to(&mut self, dst: &'rct RectF32) -> &mut Self {
         self.dst = Some(dst);
         self
     }

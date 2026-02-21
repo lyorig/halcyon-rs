@@ -3,7 +3,7 @@ use sdl3_sys::blendmode::SDL_BlendMode;
 use crate::{
     color::{RgbF32, RgbU8, RgbaF32, RgbaU8},
     renderer::RendererRef,
-    texture::TextureRef,
+    texture::{TextureHandle, TextureRef},
     traits::{BlendMode, ColorModF32, ColorModU8},
 };
 
@@ -32,13 +32,13 @@ impl<T: BlendMode> Drop for BlendModeGuard<T> {
     }
 }
 
-pub struct DrawColorGuard {
-    rnd: RendererRef,
+pub struct DrawColorGuard<'rnd> {
+    rnd: RendererRef<'rnd>,
     old: RgbaF32,
 }
 
-impl DrawColorGuard {
-    pub fn new(rnd: RendererRef, color: RgbaF32) -> Self {
+impl<'rnd> DrawColorGuard<'rnd> {
+    pub fn new(rnd: RendererRef<'rnd>, color: RgbaF32) -> Self {
         let old = rnd.draw_color_f32();
 
         rnd.set_draw_color_f32(color);
@@ -51,20 +51,20 @@ impl DrawColorGuard {
     }
 }
 
-impl Drop for DrawColorGuard {
+impl Drop for DrawColorGuard<'_> {
     fn drop(&mut self) {
         self.rnd.set_draw_color_f32(self.old);
     }
 }
 
-pub struct RenderTargetGuard {
-    rnd: RendererRef,
-    old: Option<TextureRef>,
+pub struct RenderTargetGuard<'rnd> {
+    rnd: RendererRef<'rnd>,
+    old: Option<TextureHandle>,
 }
 
-impl RenderTargetGuard {
-    pub fn new(rnd: RendererRef, target: TextureRef) -> Self {
-        let old = rnd.target();
+impl<'rnd> RenderTargetGuard<'rnd> {
+    pub fn new(rnd: RendererRef<'rnd>, target: TextureRef<'_>) -> Self {
+        let old = unsafe { rnd.target() };
 
         let _ = rnd.set_target(target);
 
@@ -76,10 +76,10 @@ impl RenderTargetGuard {
     }
 }
 
-impl Drop for RenderTargetGuard {
+impl Drop for RenderTargetGuard<'_> {
     fn drop(&mut self) {
         let _ = match self.old {
-            Some(tgt) => self.rnd.set_target(tgt),
+            Some(tgt) => self.rnd.set_target(unsafe { TextureRef::from_handle(tgt) }),
             None => self.rnd.reset_target(),
         };
     }

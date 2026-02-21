@@ -412,7 +412,7 @@ impl Font<'_> {
 
 resource!(Text, TTF);
 
-impl TextRef {
+impl TextHandle {
     #[doc(alias = "TTF_GetTextSize")]
     pub fn size(&self) -> PointI32 {
         let mut ret = MaybeUninit::<PointI32>::uninit();

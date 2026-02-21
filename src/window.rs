@@ -107,7 +107,7 @@ use crate::{
     display::DisplayHandle,
     properties::Properties,
     rect::PointI32,
-    renderer::{Renderer, RendererRef},
+    renderer::{Renderer, RendererHandle},
     resource,
     subsystem::Video,
     util::to_result,
@@ -351,7 +351,7 @@ impl WindowBuilder {
 
 resource!(Window);
 
-impl WindowRef {
+impl WindowHandle {
     #[doc(alias = "SDL_SyncWindow")]
     pub fn sync(&self) -> SdlResult {
         to_result(unsafe { SDL_SyncWindow(self.handle.as_ptr()) })
@@ -396,8 +396,8 @@ impl WindowRef {
     }
 
     #[doc(alias = "SDL_GetRenderer")]
-    pub fn renderer(&self) -> Option<RendererRef> {
-        RendererRef::from_ptr(unsafe { SDL_GetRenderer(self.handle.as_ptr()) })
+    pub fn renderer(&self) -> Option<RendererHandle> {
+        RendererHandle::from_ptr(unsafe { SDL_GetRenderer(self.handle.as_ptr()) })
     }
 
     #[doc(alias = "SDL_GetDisplayForWindow")]
@@ -443,8 +443,8 @@ impl Window {
     }
 
     #[doc(alias = "SDL_GetWindowFromID")]
-    pub fn from_id(id: NonZero<SDL_WindowID>) -> Option<WindowRef> {
-        NonNull::new(unsafe { SDL_GetWindowFromID(id.get()) }).map(|handle| WindowRef { handle })
+    pub fn from_id(id: NonZero<SDL_WindowID>) -> Option<WindowHandle> {
+        NonNull::new(unsafe { SDL_GetWindowFromID(id.get()) }).map(|handle| WindowHandle { handle })
     }
 
     /// Returns this window's unique ID.

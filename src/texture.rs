@@ -39,7 +39,7 @@ use crate::{
     color::{RgbF32, RgbU8},
     defs::SdlResult,
     rect::{PointF32, PointI32},
-    renderer::RendererRef,
+    renderer::{RendererHandle, RendererRef},
     resource,
     surface::SurfaceRef,
     traits::{BlendMode, ColorModF32, ColorModU8},
@@ -47,7 +47,7 @@ use crate::{
 
 resource!(Texture);
 
-impl TextureRef {
+impl TextureHandle {
     #[doc(alias = "SDL_GetTextureSize")]
     pub fn size(&self) -> PointF32 {
         let mut ret = MaybeUninit::<PointF32>::uninit();
@@ -83,8 +83,8 @@ impl TextureRef {
     }
 
     #[doc(alias = "SDL_GetRendererFromTexture")]
-    pub fn renderer(&self) -> Option<RendererRef> {
-        RendererRef::from_ptr(unsafe { SDL_GetRendererFromTexture(self.handle.as_ptr()) })
+    pub fn renderer(&self) -> Option<RendererHandle> {
+        RendererHandle::from_ptr(unsafe { SDL_GetRendererFromTexture(self.handle.as_ptr()) })
     }
 
     #[doc(alias = "SDL_SetTextureBlendMode")]
@@ -102,7 +102,7 @@ impl TextureRef {
     }
 }
 
-impl BlendMode for TextureRef {
+impl BlendMode for TextureHandle {
     fn blend_mode(&self) -> SDL_BlendMode {
         let mut ret = MaybeUninit::uninit();
         unsafe {
@@ -118,7 +118,7 @@ impl BlendMode for TextureRef {
     }
 }
 
-impl ColorModU8 for TextureRef {
+impl ColorModU8 for TextureHandle {
     #[doc(alias = "SDL_GetTextureColorMod")]
     fn rgb_mod_u8(&self) -> RgbU8 {
         let mut ret = MaybeUninit::<RgbU8>::uninit();
@@ -163,7 +163,7 @@ impl ColorModU8 for TextureRef {
     }
 }
 
-impl ColorModF32 for TextureRef {
+impl ColorModF32 for TextureHandle {
     #[doc(alias = "SDL_GetTextureColorModFloat")]
     fn rgb_mod_f32(&self) -> RgbF32 {
         let mut ret = MaybeUninit::<RgbF32>::uninit();
