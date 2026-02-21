@@ -16,13 +16,13 @@ impl<T: BlendMode> BlendModeGuard<T> {
     pub fn new(rnd: T, bm: SDL_BlendMode) -> Self {
         let old = rnd.blend_mode();
 
-        let _ = rnd.set_blend_mode(bm);
+        rnd.set_blend_mode(bm);
 
         Self { rnd, old }
     }
 
     pub fn set(&self, bm: SDL_BlendMode) {
-        let _ = self.rnd.set_blend_mode(bm);
+        self.rnd.set_blend_mode(bm);
     }
 }
 
