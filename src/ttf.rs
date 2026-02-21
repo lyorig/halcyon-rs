@@ -412,7 +412,7 @@ impl Font<'_> {
 
 resource!(Text, TTF);
 
-impl TextRef {
+impl TextRef<'_> {
     #[doc(alias = "TTF_GetTextSize")]
     pub fn size(&self) -> PointI32 {
         let mut ret = MaybeUninit::<PointI32>::uninit();
@@ -471,7 +471,7 @@ impl TextRef {
     }
 }
 
-impl Text {
+impl Text<'_> {
     #[doc(alias = "TTF_CreateText")]
     pub fn new(font: FontRef, text: &str) -> SdlResult<Self> {
         Self::from_ptr(unsafe {

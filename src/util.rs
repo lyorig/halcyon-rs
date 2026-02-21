@@ -16,51 +16,52 @@ macro_rules! resource {
     ($owned:ident, $library:ident, $dtor: ident) => {
         paste::paste! {
             #[derive(Clone, Copy)]
-            pub struct [<$owned Ref>] {
+            pub struct [<$owned Ref>]<'a> {
                 pub(crate) handle: std::ptr::NonNull<[<$library _ $owned>]>,
+                _data: std::marker::PhantomData<&'a ()>
             }
 
-            impl [<$owned Ref>] {
-                pub(crate) fn from_ptr(handle: *mut [<$library _ $owned>]) -> Option<Self> {
-                    std::ptr::NonNull::new(handle).map(|handle| Self { handle })
+            impl [<$owned Ref>]<'_> {
+                pub(crate) fn from_ptr<'a>(handle: *mut [<$library _ $owned>]) -> Option<[<$owned Ref>]<'a>> {
+                    std::ptr::NonNull::new(handle).map(|handle| [<$owned Ref>] { handle, _data: std::marker::PhantomData })
                 }
             }
 
-            pub struct $owned {
-                inner: [<$owned Ref>],
+            pub struct $owned<'a> {
+                inner: [<$owned Ref>]<'a>,
             }
 
-            impl $owned {
+            impl $owned<'_> {
                 pub(crate) fn from_ptr(handle: *mut [<$library _ $owned>]) -> crate::defs::SdlResult<Self> {
                     match std::ptr::NonNull::new(handle) {
                         Some(handle) => Ok(Self {
-                            inner: [<$owned Ref>] { handle },
+                            inner: [<$owned Ref>] { handle, _data: std::marker::PhantomData },
                         }),
                         None => Err(crate::error::get()),
                     }
                 }
             }
 
-            impl std::ops::Deref for $owned {
-                type Target = [<$owned Ref>];
+            impl<'a> std::ops::Deref for $owned<'a> {
+                type Target = [<$owned Ref>]<'a>;
                 fn deref(&self) -> &Self::Target {
                     &self.inner
                 }
             }
 
-            impl std::ops::DerefMut for $owned {
+            impl std::ops::DerefMut for $owned<'_> {
                 fn deref_mut(&mut self) -> &mut Self::Target {
                     &mut self.inner
                 }
             }
 
-            impl From<&$owned> for [<$owned Ref>] {
-                fn from(value: &$owned) -> Self {
+            impl<'a> From<&$owned<'a>> for [<$owned Ref>]<'a> {
+                fn from(value: &$owned<'a>) -> Self {
                     value.inner
                 }
             }
 
-            impl Drop for $owned {
+            impl Drop for $owned<'_> {
                 #[doc(alias = $library "_Destroy" $owned)]
                 fn drop(&mut self) {
                     unsafe { [<$library _ $dtor $owned>](self.inner.handle.as_ptr()) }

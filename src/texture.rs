@@ -47,7 +47,7 @@ use crate::{
 
 resource!(Texture);
 
-impl TextureRef {
+impl TextureRef<'_> {
     #[doc(alias = "SDL_GetTextureSize")]
     pub fn size(&self) -> PointF32 {
         let mut ret = MaybeUninit::<PointF32>::uninit();
@@ -102,7 +102,7 @@ impl TextureRef {
     }
 }
 
-impl BlendMode for TextureRef {
+impl BlendMode for TextureRef<'_> {
     fn blend_mode(&self) -> SDL_BlendMode {
         let mut ret = MaybeUninit::uninit();
         unsafe {
@@ -118,7 +118,7 @@ impl BlendMode for TextureRef {
     }
 }
 
-impl ColorModU8 for TextureRef {
+impl ColorModU8 for TextureRef<'_> {
     #[doc(alias = "SDL_GetTextureColorMod")]
     fn rgb_mod_u8(&self) -> RgbU8 {
         let mut ret = MaybeUninit::<RgbU8>::uninit();
@@ -163,7 +163,7 @@ impl ColorModU8 for TextureRef {
     }
 }
 
-impl ColorModF32 for TextureRef {
+impl ColorModF32 for TextureRef<'_> {
     #[doc(alias = "SDL_GetTextureColorModFloat")]
     fn rgb_mod_f32(&self) -> RgbF32 {
         let mut ret = MaybeUninit::<RgbF32>::uninit();
@@ -208,10 +208,10 @@ impl ColorModF32 for TextureRef {
     }
 }
 
-impl Texture {
+impl<'a> Texture<'a> {
     #[doc(alias = "SDL_CreateTexture")]
     pub fn new(
-        rnd: RendererRef,
+        rnd: RendererRef<'a>,
         fmt: SDL_PixelFormat,
         access: SDL_TextureAccess,
         size: PointI32,
@@ -222,7 +222,7 @@ impl Texture {
     }
 
     #[doc(alias = "SDL_CreateTextureFromSurface")]
-    pub fn from_surface(rnd: RendererRef, surf: SurfaceRef) -> SdlResult<Texture> {
+    pub fn from_surface(rnd: RendererRef<'a>, surf: SurfaceRef) -> SdlResult<Texture<'a>> {
         Self::from_ptr(unsafe {
             SDL_CreateTextureFromSurface(rnd.handle.as_ptr(), surf.handle.as_ptr())
         })

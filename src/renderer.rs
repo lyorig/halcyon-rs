@@ -97,13 +97,10 @@ pub struct RendererBuilder {
 }
 
 impl RendererBuilder {
-    pub fn new<'w>(wnd: WindowRef) -> Self {
-        let mut ret = Self {
+    pub fn new() -> Self {
+        Self {
             inner: Properties::new(),
-        };
-
-        ret.window(wnd);
-        ret
+        }
     }
 
     pub fn name(&mut self, value: &CStr) -> &mut Self {
@@ -156,34 +153,40 @@ impl RendererBuilder {
     /// you're creating this with needs one, proving the subsystem has been
     /// initialized.
     #[doc(alias = "SDL_CreateRendererWithProperties")]
-    pub fn build(&self) -> SdlResult<Renderer> {
+    pub fn build<'a>(&self, _wnd: WindowRef<'a>) -> SdlResult<Renderer<'a>> {
         Renderer::from_ptr(unsafe { SDL_CreateRendererWithProperties(self.inner.id()) })
     }
 }
 
 resource!(Renderer);
 
-impl RendererRef {
+impl RendererRef<'_> {
     #[doc(alias = "SDL_GetRendererName")]
     pub fn name(&self) -> &str {
         unsafe {
-            // SAFETY: Renderer name strings are stored in a static array.
+            // SAFETY: Renderer name strings are stored in a static array,
+            // and are all valid UTF-8.
             std::str::from_utf8_unchecked(
                 CStr::from_ptr(SDL_GetRendererName(self.handle.as_ptr())).to_bytes(),
             )
         }
     }
 
-    /// This function doesn't return an `Option`, as all renderers should have
+    /// This function doesn't return an [`Option`], as all renderers should have
     /// an associated window. If that's somehow violated, the program will panic.
+    ///
+    /// SAFETY: No guarantees are made about the actual lifetime of
+    /// the returned reference.
     #[doc(alias = "SDL_GetRenderWindow")]
-    pub fn window(&self) -> WindowRef {
+    pub unsafe fn window(&self) -> WindowRef<'static> {
         WindowRef::from_ptr(unsafe { SDL_GetRenderWindow(self.handle.as_ptr()) })
             .expect("Renderer has no associated window")
     }
 
+    /// SAFETY: The returned reference has a `'static` lifetime.
+    /// No guarantees are made about the actual lifetime.
     #[doc(alias = "SDL_GetRenderTarget")]
-    pub fn target(&self) -> Option<TextureRef> {
+    pub unsafe fn target(&self) -> Option<TextureRef<'static>> {
         TextureRef::from_ptr(unsafe { SDL_GetRenderTarget(self.handle.as_ptr()) })
     }
 
@@ -489,7 +492,7 @@ impl RendererRef {
     }
 }
 
-impl BlendMode for RendererRef {
+impl BlendMode for RendererRef<'_> {
     fn blend_mode(&self) -> SDL_BlendMode {
         let mut ret = MaybeUninit::uninit();
         unsafe {
@@ -505,13 +508,13 @@ impl BlendMode for RendererRef {
     }
 }
 
-impl Renderer {
+impl Renderer<'_> {
     const VSYNC_DISABLED: i32 = SDL_RENDERER_VSYNC_DISABLED;
     const VSYNC_ADAPTIVE: i32 = SDL_RENDERER_VSYNC_ADAPTIVE;
 
     #[doc(alias = "SDL_CreateRenderer")]
-    pub fn new(wnd: WindowRef, name: Option<&CStr>) -> SdlResult<Renderer> {
-        Self::from_ptr(unsafe {
+    pub fn new<'a>(wnd: WindowRef<'a>, name: Option<&CStr>) -> SdlResult<Renderer<'a>> {
+        Renderer::from_ptr(unsafe {
             SDL_CreateRenderer(
                 wnd.handle.as_ptr(),
                 name.map_or(std::ptr::null(), |n| n.as_ptr()),
@@ -528,15 +531,15 @@ impl Renderer {
 /// A builder-like struct intended an an alternative
 /// to `Renderer::draw()`.
 pub struct DrawBuilder<'a> {
-    renderer: RendererRef,
+    renderer: RendererRef<'a>,
 
-    texture: TextureRef,
+    texture: TextureRef<'a>,
     src: Option<&'a RectF32>,
     dst: Option<&'a RectF32>,
 }
 
 impl<'a> DrawBuilder<'a> {
-    pub fn new(rnd: RendererRef, tex: TextureRef) -> Self {
+    pub fn new(rnd: RendererRef<'a>, tex: TextureRef<'a>) -> Self {
         Self {
             renderer: rnd,
             texture: tex,

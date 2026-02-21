@@ -119,6 +119,7 @@ use sdl3_sys::{
 };
 use std::{
     ffi::{CStr, c_char, c_void},
+    marker::PhantomData,
     mem::MaybeUninit,
     num::NonZero,
     ptr::NonNull,
@@ -344,14 +345,14 @@ impl WindowBuilder {
     /// you've initialized it. SDL would've probably errored if you hadn't
     /// anyway, but it's a zero-cost way to prevent cross-platform bugs.
     #[doc(alias = "SDL_CreateWindowWithProperties")]
-    pub fn build(&self, _subsystem: &Video) -> SdlResult<Window> {
+    pub fn build<'a>(&self, _subsystem: &'a Video) -> SdlResult<Window<'a>> {
         Window::from_ptr(unsafe { SDL_CreateWindowWithProperties(self.inner.id()) })
     }
 }
 
 resource!(Window);
 
-impl WindowRef {
+impl WindowRef<'_> {
     #[doc(alias = "SDL_SyncWindow")]
     pub fn sync(&self) -> SdlResult {
         to_result(unsafe { SDL_SyncWindow(self.handle.as_ptr()) })
@@ -409,7 +410,7 @@ impl WindowRef {
     }
 }
 
-impl Window {
+impl Window<'_> {
     pub const POS_CENTERED: i32 = SDL_WINDOWPOS_CENTERED;
     pub const POS_UNDEFINED: i32 = SDL_WINDOWPOS_UNDEFINED;
 
@@ -442,9 +443,14 @@ impl Window {
         }
     }
 
+    /// SAFETY: This function returns a `'static` lifetime. No guarantees are
+    /// made about how long the returned window reference is valid for.
     #[doc(alias = "SDL_GetWindowFromID")]
-    pub fn from_id(id: NonZero<SDL_WindowID>) -> Option<WindowRef> {
-        NonNull::new(unsafe { SDL_GetWindowFromID(id.get()) }).map(|handle| WindowRef { handle })
+    pub unsafe fn from_id(id: NonZero<SDL_WindowID>) -> Option<WindowRef<'static>> {
+        NonNull::new(unsafe { SDL_GetWindowFromID(id.get()) }).map(|handle| WindowRef {
+            handle,
+            _data: PhantomData,
+        })
     }
 
     /// Returns this window's unique ID.
