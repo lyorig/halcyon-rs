@@ -32,13 +32,13 @@ impl<T: BlendMode> Drop for BlendModeGuard<T> {
     }
 }
 
-pub struct DrawColorGuard<'a> {
-    rnd: RendererRef<'a>,
+pub struct DrawColorGuard {
+    rnd: RendererRef,
     old: RgbaF32,
 }
 
-impl<'a> DrawColorGuard<'a> {
-    pub fn new(rnd: RendererRef<'a>, color: RgbaF32) -> Self {
+impl DrawColorGuard {
+    pub fn new(rnd: RendererRef, color: RgbaF32) -> Self {
         let old = rnd.draw_color_f32();
 
         rnd.set_draw_color_f32(color);
@@ -51,20 +51,20 @@ impl<'a> DrawColorGuard<'a> {
     }
 }
 
-impl Drop for DrawColorGuard<'_> {
+impl Drop for DrawColorGuard {
     fn drop(&mut self) {
         self.rnd.set_draw_color_f32(self.old);
     }
 }
 
-pub struct RenderTargetGuard<'a> {
-    rnd: RendererRef<'a>,
-    old: Option<TextureRef<'a>>,
+pub struct RenderTargetGuard {
+    rnd: RendererRef,
+    old: Option<TextureRef>,
 }
 
-impl<'a> RenderTargetGuard<'a> {
-    pub fn new(rnd: RendererRef<'a>, target: TextureRef) -> Self {
-        let old = unsafe { rnd.target() };
+impl RenderTargetGuard {
+    pub fn new(rnd: RendererRef, target: TextureRef) -> Self {
+        let old = rnd.target();
 
         let _ = rnd.set_target(target);
 
@@ -76,7 +76,7 @@ impl<'a> RenderTargetGuard<'a> {
     }
 }
 
-impl Drop for RenderTargetGuard<'_> {
+impl Drop for RenderTargetGuard {
     fn drop(&mut self) {
         let _ = match self.old {
             Some(tgt) => self.rnd.set_target(tgt),

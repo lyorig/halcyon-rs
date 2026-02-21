@@ -23,7 +23,7 @@ unsafe fn run() -> SdlResult {
 
     wnd.sync()?;
 
-    let rnd = RendererBuilder::new().vsync(1).build(*wnd)?;
+    let rnd = RendererBuilder::new(*wnd).vsync(1).build()?;
     rnd.clear()?;
 
     println!(

@@ -73,7 +73,7 @@ use sdl3_sys::{blendmode::SDL_BlendMode, pixels::SDL_PixelFormat, surface::*};
 
 resource!(Surface);
 
-impl SurfaceRef<'_> {
+impl SurfaceRef {
     pub fn size(&self) -> PointI32 {
         let ligma = unsafe { self.handle.as_ref() };
         PointI32::new(ligma.w, ligma.h)
@@ -289,7 +289,7 @@ impl SurfaceRef<'_> {
     }
 }
 
-impl BlendMode for SurfaceRef<'_> {
+impl BlendMode for SurfaceRef {
     fn blend_mode(&self) -> SDL_BlendMode {
         let mut ret = MaybeUninit::uninit();
         unsafe {
@@ -305,7 +305,7 @@ impl BlendMode for SurfaceRef<'_> {
     }
 }
 
-impl ColorModU8 for SurfaceRef<'_> {
+impl ColorModU8 for SurfaceRef {
     #[doc(alias = "SDL_GetSurfaceColorMod")]
     fn rgb_mod_u8(&self) -> RgbU8 {
         let mut ret = MaybeUninit::<RgbU8>::uninit();
@@ -343,7 +343,7 @@ impl ColorModU8 for SurfaceRef<'_> {
     }
 }
 
-impl Surface<'_> {
+impl Surface {
     #[doc(alias = "SDL_CreateSurface")]
     pub fn from_size_and_format(size: PointI32, format: SDL_PixelFormat) -> SdlResult<Self> {
         Self::from_ptr(unsafe { SDL_CreateSurface(size.x, size.y, format) })
