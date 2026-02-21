@@ -1,4 +1,7 @@
-use std::{ffi::c_char, ptr::NonNull};
+use std::{
+    ffi::{CStr, c_char},
+    ptr::NonNull,
+};
 
 use sdl3_sys::error::{SDL_GetError, SDL_SetError};
 
@@ -44,8 +47,8 @@ pub fn get_owned() -> String {
 /// Not sure why you'd ever need this, but it's provided regardless
 /// for completeness' sake.
 #[doc(alias = "SDL_SetError")]
-pub fn set(err: &str) {
+pub fn set(err: &CStr) {
     unsafe {
-        SDL_SetError(err.as_ptr().cast());
+        SDL_SetError(err.as_ptr());
     }
 }
