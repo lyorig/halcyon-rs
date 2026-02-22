@@ -27,7 +27,7 @@ macro_rules! resource {
             }
 
             pub struct $owned {
-                inner: [<$owned Handle>],
+                pub(crate) inner: [<$owned Handle>],
             }
 
             impl $owned {
@@ -67,7 +67,7 @@ macro_rules! resource {
 
             #[derive(Clone, Copy)]
             pub struct [<$owned Ref>]<'a> {
-                inner: [<$owned Handle>],
+                pub(crate) inner: [<$owned Handle>],
                 _data: std::marker::PhantomData<&'a $owned>,
             }
 

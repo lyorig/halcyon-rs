@@ -449,21 +449,42 @@ impl RendererHandle {
         })
     }
 
+    /// For use with [`RendererHandle::xchg_target()`]. Otherwise, prefer using
+    /// [`RendererHandle::set_target()`] or [`RendererHandle::reset_target()`].
+    #[doc(alias = "SDL_SetRenderTarget")]
+    pub unsafe fn set_target_opt(&self, tgt: Option<TextureHandle>) -> SdlResult {
+        to_result(unsafe {
+            SDL_SetRenderTarget(
+                self.handle.as_ptr(),
+                match tgt {
+                    Some(h) => h.handle.as_ptr(),
+                    None => std::ptr::null_mut(),
+                },
+            )
+        })
+    }
+
     #[doc(alias = "SDL_SetRenderTarget")]
     pub fn set_target(&self, tgt: TextureRef) -> SdlResult {
-        to_result(unsafe { SDL_SetRenderTarget(self.handle.as_ptr(), tgt.handle.as_ptr()) })
+        unsafe { self.set_target_opt(Some(tgt.inner)) }
     }
 
     #[doc(alias = "SDL_SetRenderTarget")]
     pub fn reset_target(&self) -> SdlResult {
-        to_result(unsafe { SDL_SetRenderTarget(self.handle.as_ptr(), std::ptr::null_mut()) })
+        unsafe { self.set_target_opt(None) }
+    }
+
+    pub unsafe fn xchg_target(&self, tgt: TextureRef) -> SdlResult<Option<TextureHandle>> {
+        let old = unsafe { self.target() };
+        let _ = self.set_target(tgt)?;
+        Ok(old)
     }
 
     /// Quoting documentation for `SDL_SetRenderVSync()`:
     /// Not every value is supported by every driver, so you should check
     /// the return value to see whether the requested setting is supported.
     ///
-    /// Can be used with `Renderer::VSYNC_ADAPTIVE` and `Renderer::VSYNC_DISABLED`.
+    /// Can be used with [`Renderer::VSYNC_ADAPTIVE`] and [`Renderer::VSYNC_DISABLED`].
     #[doc(alias = "SDL_SetRenderVSync")]
     pub fn set_vsync(&self, val: i32) -> bool {
         unsafe { SDL_SetRenderVSync(self.handle.as_ptr(), val) }
