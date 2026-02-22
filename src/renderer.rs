@@ -494,6 +494,18 @@ impl RendererHandle {
             );
         }
     }
+
+    pub fn xchg_draw_color_u8(&self, col: RgbaU8) -> RgbaU8 {
+        let old = self.draw_color_u8();
+        self.set_draw_color_u8(col);
+        old
+    }
+
+    pub fn xchg_draw_color_f32(&self, col: RgbaF32) -> RgbaF32 {
+        let old = self.draw_color_f32();
+        self.set_draw_color_f32(col);
+        old
+    }
 }
 
 impl BlendMode for RendererHandle {
