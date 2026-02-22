@@ -31,12 +31,12 @@ macro_rules! resource {
             }
 
             impl $owned {
-                pub(crate) fn from_ptr(handle: *mut [<$library _ $owned>]) -> crate::defs::SdlResult<Self> {
+                pub(crate) fn from_ptr(handle: *mut [<$library _ $owned>]) -> $crate::defs::SdlResult<Self> {
                     match std::ptr::NonNull::new(handle) {
                         Some(handle) => Ok(Self {
                             inner: [<$owned Handle>] { handle },
                         }),
-                        None => Err(crate::error::get()),
+                        None => Err($crate::error::get()),
                     }
                 }
 
@@ -72,6 +72,9 @@ macro_rules! resource {
             }
 
             impl [<$owned Ref>]<'_> {
+                /// # Safety
+                /// Ensure the object the handle points to is valid for as long as
+                /// the returned reference is used.
                 pub unsafe fn from_handle(handle: [<$owned Handle>]) -> Self {
                     Self {inner: handle, _data: std::marker::PhantomData}
                 }
@@ -88,8 +91,16 @@ macro_rules! resource {
     };
 }
 
-/// Converts a Halcyon `Option` to an SDL pointer.
+/// Converts an [`Option`] to a pointer.
 /// This is a convenience function that also casts the resulting pointer.
+///
+/// # Output
+/// `None` => `std::ptr::null()`
+/// `Some(&T)` => `*const T as *const Dst`
+///
+/// # Safety
+/// This is only meant for interfacing with C libraries.
+/// All the usual pointer lifetime pitfalls apply.
 pub unsafe fn opt2ptr<T, Dst>(opt: Option<&T>) -> *const Dst {
     opt.map_or(std::ptr::null(), |s| s as *const T as *const Dst)
 }
@@ -99,13 +110,15 @@ pub fn to_result(result: bool) -> SdlResult {
 }
 
 /// Convert a `NonNull<c_char>` (commonly used in FFI) to a `&str`.
+///
+/// # Safety
 /// This function is VERY unsafe, a non-exhaustive list of assumptions:
 /// - `ptr` points to a valid null-terminated C string
 /// - the string pointed to by `ptr` is valid UTF-8
 ///
 /// The returned slice's lifetime is `'static`, which is EVEN MORE unsound
 /// and I recommend only using it as a one-off temporary value, i.e. to
-/// construct a `String`, or for printing (unless you know for sure that the
+/// construct a [`String`], or for printing (unless you know for sure that the
 /// foreign string won't change its location and/or size).
 pub unsafe fn c_ptr_to_str(ptr: *const c_char) -> &'static str {
     unsafe { std::str::from_utf8_unchecked(CStr::from_ptr(ptr).to_bytes()) }

@@ -17,7 +17,7 @@ pub trait ColorModU8 {
     fn rgb_mod_u8(&self) -> RgbU8;
     fn alpha_mod_u8(&self) -> u8;
     fn color_mod_u8(&self) -> RgbaU8 {
-        RgbaU8::new(self.rgb_mod_u8(), self.alpha_mod_u8())
+        self.rgb_mod_u8().with_alpha(self.alpha_mod_u8())
     }
 
     fn set_rgb_mod_u8(&self, rm: RgbU8);
@@ -53,7 +53,7 @@ pub trait ColorModF32 {
     fn rgb_mod_f32(&self) -> RgbF32;
     fn alpha_mod_f32(&self) -> f32;
     fn color_mod_f32(&self) -> RgbaF32 {
-        RgbaF32::new(self.rgb_mod_f32(), self.alpha_mod_f32())
+        self.rgb_mod_f32().with_alpha(self.alpha_mod_f32())
     }
 
     fn set_rgb_mod_f32(&self, rm: RgbF32);

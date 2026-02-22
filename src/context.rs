@@ -6,14 +6,15 @@ use sdl3_sys::platform::SDL_GetPlatform;
 
 use crate::util::c_ptr_to_str;
 
-/// A zero-sized type that only exists to call `SDL_Quit()`.
+/// A zero-sized type that only exists to call [`SDL_Quit()`].
 /// As such, think of it as a guard that creates a scope for
 /// the initialization of subsystems, ensuring they're properly
 /// quit once it goes out of scope.
 pub struct Context;
 
 impl Context {
-    /// SAFETY: Only call this on the main thread.
+    /// # Safety
+    /// Only call this on the main thread.
     pub unsafe fn new() -> Self {
         Self {}
     }

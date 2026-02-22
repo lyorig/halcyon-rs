@@ -32,3 +32,9 @@ impl ResourceLoader {
             .into_boxed_c_str()
     }
 }
+
+impl Default for ResourceLoader {
+    fn default() -> Self {
+        Self::new()
+    }
+}

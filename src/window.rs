@@ -349,6 +349,12 @@ impl WindowBuilder {
     }
 }
 
+impl Default for WindowBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 resource!(Window);
 
 impl WindowHandle {

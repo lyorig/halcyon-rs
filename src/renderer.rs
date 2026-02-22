@@ -97,7 +97,7 @@ pub struct RendererBuilder {
 }
 
 impl RendererBuilder {
-    pub fn new<'w>(wnd: WindowRef) -> Self {
+    pub fn new(wnd: WindowRef) -> Self {
         let mut ret = Self {
             inner: Properties::new(),
         };
@@ -124,7 +124,7 @@ impl RendererBuilder {
         self
     }
 
-    pub fn surface<'surf>(&mut self, value: SurfaceRef) -> &mut Self {
+    pub fn surface(&mut self, value: SurfaceRef) -> &mut Self {
         let _ = self.inner.set_pointer(
             SDL_PROP_RENDERER_CREATE_SURFACE_POINTER,
             value.handle.as_ptr() as *mut c_void,
@@ -177,7 +177,8 @@ impl RendererHandle {
     /// This function doesn't return an [`Option`], as all renderers should have
     /// an associated window. If that's somehow violated, the program will panic.
     ///
-    /// SAFETY: A raw handle is returned. Its methods must only be called within
+    /// # Safety
+    /// A raw handle is returned. Its methods must only be called within
     /// the actual pointed-to object's lifetime. Consult the SDL function's docs
     /// for more specific info.
     #[doc(alias = "SDL_GetRenderWindow")]
@@ -186,7 +187,8 @@ impl RendererHandle {
             .expect("Renderer has no associated window")
     }
 
-    /// SAFETY: A raw handle is returned. Its methods must only be called within
+    /// # Safety
+    /// A raw handle is returned. Its methods must only be called within
     /// the actual pointed-to object's lifetime. Consult the SDL function's docs
     /// for more specific info.
     #[doc(alias = "SDL_GetRenderTarget")]
@@ -353,10 +355,7 @@ impl RendererHandle {
         &self,
         tex: TextureRef,
         src: Option<&RectF32>,
-        width_left: f32,
-        width_right: f32,
-        width_top: f32,
-        width_bottom: f32,
+        (width_left, width_right, width_top, width_bottom): (f32, f32, f32, f32),
         scale: f32,
         dst: Option<&RectF32>,
     ) -> SdlResult {
@@ -451,6 +450,10 @@ impl RendererHandle {
 
     /// For use with [`RendererHandle::xchg_target()`]. Otherwise, prefer using
     /// [`RendererHandle::set_target()`] or [`RendererHandle::reset_target()`].
+    ///
+    /// # Safety
+    /// If the parameter is `Some(tex)`, ensure `tex` lives for as long as it's
+    /// used as the target texture.
     #[doc(alias = "SDL_SetRenderTarget")]
     pub unsafe fn set_target_opt(&self, tgt: Option<TextureHandle>) -> SdlResult {
         to_result(unsafe {
@@ -474,9 +477,11 @@ impl RendererHandle {
         unsafe { self.set_target_opt(None) }
     }
 
+    /// # Safety
+    /// Ensure `tgt` lives for as long as it's used as the target texture.
     pub unsafe fn xchg_target(&self, tgt: TextureRef) -> SdlResult<Option<TextureHandle>> {
         let old = unsafe { self.target() };
-        let _ = self.set_target(tgt)?;
+        self.set_target(tgt)?;
         Ok(old)
     }
 

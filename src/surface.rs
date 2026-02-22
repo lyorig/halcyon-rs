@@ -208,10 +208,7 @@ impl SurfaceHandle {
         target: SurfaceRef,
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
-        left_width: i32,
-        right_width: i32,
-        top_height: i32,
-        bottom_height: i32,
+        (left_width, right_width, top_height, bottom_height): (i32, i32, i32, i32),
         scale: f32,
         scale_mode: SDL_ScaleMode,
     ) -> SdlResult {

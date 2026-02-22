@@ -354,17 +354,23 @@ impl EventIter {
     }
 }
 
+impl Default for EventIter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Iterator for EventIter {
     type Item = Event;
 
-    /// Incredibly cursed function that maps an `SDL_Event` to our own `Event`
+    /// Incredibly cursed function that maps an [`SDL_Event`] to our own [`Event`]
     /// at minimum cost.
     ///
     /// I haven't found a true zero-cost wrapper so far; while Rust has a solution
     /// for wrapping C tagged unions via `#[repr(C, Int)]`, SDL does things in a
-    /// different way -- `SDL_Event` isn't a (tag, union) struct, but just an union
+    /// different way -- [`SDL_Event`] isn't a (tag, union) struct, but just an union
     /// where the tag is the first field in all members. The next best solution is
-    /// accepting there's gonna be a duplicate tag and performing a dual `memcpy` for
+    /// accepting there's gonna be a duplicate tag and performing a dual memcpy for
     /// both the enum tag and the rest of the event structure.
     #[doc(alias = "SDL_PollEvent")]
     fn next(&mut self) -> Option<Self::Item> {
@@ -372,7 +378,7 @@ impl Iterator for EventIter {
         if unsafe { SDL_PollEvent(current.as_mut_ptr()) } {
             let mut ret = MaybeUninit::<Event>::uninit();
 
-            // NOTE: Probably not the correct way to get the offset.
+            // HACK: Probably not the correct way to get the offset.
             // Works on my machine, though, so... womp womp.
             const DISCRIMINANT_OFFSET: usize = align_of::<Event>();
 

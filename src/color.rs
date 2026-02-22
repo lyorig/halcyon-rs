@@ -1,6 +1,6 @@
 use sdl3_sys::pixels::SDL_Color;
 
-/// "Sub-struct" of `Rgba`, because some SDL functions only use
+/// "Sub-struct" of [`Rgba`], because some SDL functions only use
 /// the RGB components and don't require the alpha.
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
@@ -26,6 +26,17 @@ impl<T: OpacityBounds> Rgb<T> {
     pub const BLUE: Self = Self::new(T::MIN_OPACITY, T::MIN_OPACITY, T::MAX_OPACITY);
     pub const CYAN: Self = Self::new(T::MIN_OPACITY, T::MAX_OPACITY, T::MAX_OPACITY);
     pub const WHITE: Self = Self::new(T::MAX_OPACITY, T::MAX_OPACITY, T::MAX_OPACITY);
+
+    pub const fn to_rgba(&self) -> Rgba<T> {
+        Rgba {
+            rgb: *self,
+            a: T::MAX_OPACITY,
+        }
+    }
+
+    pub const fn with_alpha(&self, a: T) -> Rgba<T> {
+        Rgba { rgb: *self, a }
+    }
 }
 
 impl From<RgbU8> for RgbF32 {
@@ -48,7 +59,7 @@ impl From<RgbF32> for RgbU8 {
     }
 }
 
-/// Wrapper around `SDL_Color`. Can be transmuted.
+/// Wrapper around [`SDL_Color`]. Can be transmuted.
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct Rgba<T> {
@@ -59,7 +70,7 @@ pub struct Rgba<T> {
 pub type RgbaU8 = Rgba<u8>;
 pub type RgbaF32 = Rgba<f32>;
 
-pub trait OpacityBounds {
+pub trait OpacityBounds: Copy {
     const MIN_OPACITY: Self;
     const MAX_OPACITY: Self;
 }
@@ -75,45 +86,40 @@ impl OpacityBounds for f32 {
 }
 
 impl<T: OpacityBounds> Rgba<T> {
-    pub const fn new(rgb: Rgb<T>, a: T) -> Self {
-        Self { rgb, a }
-    }
-
-    pub const fn opaque(rgb: Rgb<T>) -> Self {
-        Self::new(rgb, T::MAX_OPACITY)
-    }
-
     pub const fn rgb(r: T, g: T, b: T) -> Self {
-        Self::rgba(r, g, b, T::MAX_OPACITY)
+        Self::new(r, g, b, T::MAX_OPACITY)
     }
 
-    pub const fn rgba(r: T, g: T, b: T, a: T) -> Self {
-        Self::new(Rgb::new(r, g, b), a)
+    pub const fn new(r: T, g: T, b: T, a: T) -> Self {
+        Self {
+            rgb: Rgb::new(r, g, b),
+            a,
+        }
     }
 
-    pub const BLACK: Self = Self::opaque(Rgb::BLACK);
-    pub const RED: Self = Self::opaque(Rgb::RED);
-    pub const GREEN: Self = Self::opaque(Rgb::GREEN);
-    pub const BLUE: Self = Self::opaque(Rgb::BLUE);
-    pub const CYAN: Self = Self::opaque(Rgb::CYAN);
-    pub const WHITE: Self = Self::opaque(Rgb::WHITE);
+    pub const BLACK: Self = Rgb::BLACK.to_rgba();
+    pub const RED: Self = Rgb::RED.to_rgba();
+    pub const GREEN: Self = Rgb::GREEN.to_rgba();
+    pub const BLUE: Self = Rgb::BLUE.to_rgba();
+    pub const CYAN: Self = Rgb::CYAN.to_rgba();
+    pub const WHITE: Self = Rgb::WHITE.to_rgba();
 
-    pub const TRANSPARENT: Self = Self::new(Rgb::BLACK, T::MIN_OPACITY);
+    pub const TRANSPARENT: Self = Rgb::BLACK.with_alpha(T::MIN_OPACITY);
 }
 
 impl RgbaU8 {
-    /// Create an `RgbaU8` from a hex (0xRRGGBB) representation.
+    /// Create an [`RgbaU8`] from a hex (0xRRGGBB) representation.
     /// This forwards the extracted red, green, and blue components
-    /// to `RgbaU8::rgb()`.
+    /// to [`RgbaU8::rgb()`].
     pub const fn rgb_hex(val: u32) -> Self {
         Self::rgb((val >> 16) as u8, (val >> 8) as u8, val as u8)
     }
 
-    /// Create an `RgbaU8` from a hex (0xRRGGBBAA) representation.
+    /// Create an [`RgbaU8`] from a hex (0xRRGGBBAA) representation.
     /// This forwards the extracted red, green, blue, and alpha components
-    /// to `RgbaU8::rgba()`.
+    /// to [`RgbaU8::new()`].
     pub const fn rgba_hex(val: u32) -> Self {
-        Self::rgba(
+        Self::new(
             (val >> 24) as u8,
             (val >> 16) as u8,
             (val >> 8) as u8,
@@ -124,10 +130,7 @@ impl RgbaU8 {
 
 impl<T: OpacityBounds> From<Rgb<T>> for Rgba<T> {
     fn from(value: Rgb<T>) -> Self {
-        Self {
-            rgb: value,
-            a: T::MAX_OPACITY,
-        }
+        value.to_rgba()
     }
 }
 
