@@ -10,33 +10,71 @@ pub trait BlendMode {
 pub trait ColorModU8 {
     fn rgb_mod_u8(&self) -> RgbU8;
     fn alpha_mod_u8(&self) -> u8;
-
     fn color_mod_u8(&self) -> RgbaU8 {
         RgbaU8::new(self.rgb_mod_u8(), self.alpha_mod_u8())
     }
 
     fn set_rgb_mod_u8(&self, rm: RgbU8);
     fn set_alpha_mod_u8(&self, am: u8);
-
     fn set_color_mod_u8(&self, col: RgbaU8) {
         self.set_rgb_mod_u8(col.rgb);
         self.set_alpha_mod_u8(col.a);
+    }
+
+    /// Sets the RGB mod, returning the old one.
+    fn xchg_rgb_mod_u8(&self, rm: RgbU8) -> RgbU8 {
+        let old = self.rgb_mod_u8();
+        self.set_rgb_mod_u8(rm);
+        old
+    }
+
+    /// Sets the alpha mod, returning the old one.
+    fn xchg_alpha_mod_u8(&self, am: u8) -> u8 {
+        let old = self.alpha_mod_u8();
+        self.set_alpha_mod_u8(am);
+        old
+    }
+
+    /// Sets the color mod, returning the old one.
+    fn xchg_color_mod_u8(&self, col: RgbaU8) -> RgbaU8 {
+        let old = self.color_mod_u8();
+        self.set_color_mod_u8(col);
+        old
     }
 }
 
 pub trait ColorModF32 {
     fn rgb_mod_f32(&self) -> RgbF32;
     fn alpha_mod_f32(&self) -> f32;
-
     fn color_mod_f32(&self) -> RgbaF32 {
         RgbaF32::new(self.rgb_mod_f32(), self.alpha_mod_f32())
     }
 
     fn set_rgb_mod_f32(&self, rm: RgbF32);
     fn set_alpha_mod_f32(&self, am: f32);
-
     fn set_color_mod_f32(&self, col: RgbaF32) {
         self.set_rgb_mod_f32(col.rgb);
         self.set_alpha_mod_f32(col.a);
+    }
+
+    /// Sets the RGB mod, returning the old one.
+    fn xchg_rgb_mod_f32(&self, rm: RgbF32) -> RgbF32 {
+        let old = self.rgb_mod_f32();
+        self.set_rgb_mod_f32(rm);
+        old
+    }
+
+    /// Sets the alpha mod, returning the old one.
+    fn xchg_alpha_mod_f32(&self, am: f32) -> f32 {
+        let old = self.alpha_mod_f32();
+        self.set_alpha_mod_f32(am);
+        old
+    }
+
+    /// Sets the color mod, returning the old one.
+    fn xchg_color_mod_f32(&self, col: RgbaF32) -> RgbaF32 {
+        let old = self.color_mod_f32();
+        self.set_color_mod_f32(col);
+        old
     }
 }
