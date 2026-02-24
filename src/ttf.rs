@@ -121,14 +121,14 @@
 //! - [x] TTF_Version
 //! - [x] TTF_WasInit
 
-use std::{ffi::CStr, marker::PhantomData, mem::MaybeUninit};
+use std::{ffi::CStr, mem::MaybeUninit};
 
 use sdl3_ttf_sys::ttf::*;
 
 use crate::{
     color::RgbaU8,
     defs::SdlResult,
-    error::get,
+    error,
     rect::{PointF32, PointI32},
     resource,
     surface::{Surface, SurfaceRef},
@@ -144,13 +144,18 @@ impl TtfContext {
         if unsafe { TTF_Init() } {
             Ok(Self {})
         } else {
-            Err(get())
+            Err(error::get())
         }
     }
 
     #[doc(alias = "TTF_WasInit")]
-    pub fn is_initialized() -> bool {
-        unsafe { TTF_WasInit() != 0 }
+    pub fn is_init() -> bool {
+        Self::num_init() != 0
+    }
+
+    #[doc(alias = "TTF_WasInit")]
+    pub fn num_init() -> i32 {
+        unsafe { TTF_WasInit() }
     }
 
     #[doc(alias = "TTF_Version")]
@@ -170,63 +175,11 @@ impl Drop for TtfContext {
     }
 }
 
-#[derive(Clone, Copy)]
-pub struct FontRef {
-    pub(crate) handle: std::ptr::NonNull<TTF_Font>,
-}
+resource!(Font, TTF, Close);
 
-impl FontRef {
-    pub(crate) fn from_ptr(handle: *mut TTF_Font) -> Option<Self> {
-        std::ptr::NonNull::new(handle).map(|handle| Self { handle })
-    }
-}
-
-pub struct Font<'a> {
-    inner: FontRef,
-    marker: PhantomData<&'a TtfContext>,
-}
-
-impl Font<'_> {
-    pub(crate) fn from_ptr<'a>(handle: *mut TTF_Font) -> crate::defs::SdlResult<Font<'a>> {
-        match std::ptr::NonNull::new(handle) {
-            Some(handle) => Ok(Font::<'a> {
-                inner: FontRef { handle },
-                marker: PhantomData,
-            }),
-            None => Err(crate::error::get()),
-        }
-    }
-}
-
-impl std::ops::Deref for Font<'_> {
-    type Target = FontRef;
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-impl std::ops::DerefMut for Font<'_> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.inner
-    }
-}
-
-impl From<&Font<'_>> for FontRef {
-    fn from(value: &Font) -> Self {
-        value.inner
-    }
-}
-
-impl Drop for Font<'_> {
-    #[doc(alias = "TTF_DestroyFont")]
-    fn drop(&mut self) {
-        unsafe { TTF_CloseFont(self.inner.handle.as_ptr()) }
-    }
-}
-
-impl<'a> FontRef {
+impl FontHandle {
     #[doc(alias = "TTF_CopyFont")]
-    pub fn try_clone(&self) -> SdlResult<Font<'a>> {
+    pub fn try_clone(&self) -> SdlResult<Font> {
         Font::from_ptr(unsafe { TTF_CopyFont(self.handle.as_ptr()) })
     }
 
@@ -385,7 +338,7 @@ impl<'a> FontRef {
     }
 
     #[doc(alias = "TTF_GetFontFamilyName")]
-    pub fn family(&self) -> &'a str {
+    pub fn family(&self) -> &'_ str {
         unsafe { c_ptr_to_str(TTF_GetFontFamilyName(self.handle.as_ptr())) }
     }
 
@@ -395,18 +348,14 @@ impl<'a> FontRef {
     }
 }
 
-impl Font<'_> {
-    #[doc(alias = "TTF_OpenFont")]
-    pub fn new<'a>(_ctx: &'a TtfContext, file: &CStr, point_size: f32) -> SdlResult<Font<'a>> {
-        Self::from_ptr(unsafe { TTF_OpenFont(file.as_ptr(), point_size) })
-    }
-
-    /// Like [`Font::new()`], except you don't need to provide a [`TtfContext`].
-    ///
+impl Font {
     /// # Safety
-    /// Ensure a context will exist for the entire lifetime of the returned font.
+    /// Ensure a [`TtfContext`] will exist for the entire lifetime of the returned font.
+    /// That includes the point at which it's dropped. A segfault will probably
+    /// happen otherwise.
+    /// (**Tip:** you can check whether TTF is initialized via [`TtfContext::is_init()`]).
     #[doc(alias = "TTF_OpenFont")]
-    pub unsafe fn new_unchecked(file: &CStr, point_size: f32) -> SdlResult<Self> {
+    pub unsafe fn new(file: &CStr, point_size: f32) -> SdlResult<Self> {
         Self::from_ptr(unsafe { TTF_OpenFont(file.as_ptr(), point_size) })
     }
 }
@@ -474,7 +423,7 @@ impl TextHandle {
 
 impl Text {
     #[doc(alias = "TTF_CreateText")]
-    pub fn new(font: FontRef, text: &str) -> SdlResult<Self> {
+    pub fn new(font: FontHandle, text: &str) -> SdlResult<Self> {
         Self::from_ptr(unsafe {
             TTF_CreateText(
                 std::ptr::null_mut(),
