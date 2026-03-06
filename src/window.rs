@@ -164,101 +164,71 @@ impl WindowBuilder {
     }
 
     pub fn always_on_top(&mut self, value: bool) -> &mut Self {
-        let _ = self
-            .inner
-            .set_bool(SDL_PROP_WINDOW_CREATE_ALWAYS_ON_TOP_BOOLEAN, value);
-        self
+        self.set_bool(SDL_PROP_WINDOW_CREATE_ALWAYS_ON_TOP_BOOLEAN, value)
     }
 
     pub fn borderless(&mut self, value: bool) -> &mut Self {
-        let _ = self
-            .inner
-            .set_bool(SDL_PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN, value);
-        self
+        self.set_bool(SDL_PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN, value)
     }
 
     pub fn constrain_popup(&mut self, value: bool) -> &mut Self {
-        let _ = self
-            .inner
-            .set_bool(SDL_PROP_WINDOW_CREATE_CONSTRAIN_POPUP_BOOLEAN, value);
-        self
+        self.set_bool(SDL_PROP_WINDOW_CREATE_CONSTRAIN_POPUP_BOOLEAN, value)
     }
 
-    // TODO: External graphics context
+    pub fn ext_gfx_context(&mut self, value: bool) -> &mut Self {
+        self.set_bool(
+            SDL_PROP_WINDOW_CREATE_EXTERNAL_GRAPHICS_CONTEXT_BOOLEAN,
+            value,
+        )
+    }
 
     pub fn focusable(&mut self, value: bool) -> &mut Self {
-        let _ = self
-            .inner
-            .set_bool(SDL_PROP_WINDOW_CREATE_FOCUSABLE_BOOLEAN, value);
-        self
+        self.set_bool(SDL_PROP_WINDOW_CREATE_FOCUSABLE_BOOLEAN, value)
     }
 
     pub fn fullscreen(&mut self, value: bool) -> &mut Self {
-        let _ = self
-            .inner
-            .set_bool(SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, value);
-        self
+        self.set_bool(SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, value)
     }
 
     pub fn height(&mut self, value: i64) -> &mut Self {
-        let _ = self
-            .inner
-            .set_number(SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, value);
-        self
+        self.set_number(SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, value)
     }
 
     pub fn hidden(&mut self, value: bool) -> &mut Self {
-        let _ = self
-            .inner
-            .set_bool(SDL_PROP_WINDOW_CREATE_HIDDEN_BOOLEAN, value);
-        self
+        self.set_bool(SDL_PROP_WINDOW_CREATE_HIDDEN_BOOLEAN, value)
     }
 
     pub fn high_pixel_density(&mut self, value: bool) -> &mut Self {
-        let _ = self
-            .inner
-            .set_bool(SDL_PROP_WINDOW_CREATE_HIGH_PIXEL_DENSITY_BOOLEAN, value);
-        self
+        self.set_bool(SDL_PROP_WINDOW_CREATE_HIGH_PIXEL_DENSITY_BOOLEAN, value)
     }
 
     pub fn maximized(&mut self, value: bool) -> &mut Self {
-        let _ = self
-            .inner
-            .set_bool(SDL_PROP_WINDOW_CREATE_MAXIMIZED_BOOLEAN, value);
-        self
+        self.set_bool(SDL_PROP_WINDOW_CREATE_MAXIMIZED_BOOLEAN, value)
     }
 
     pub fn menu(&mut self, value: bool) -> &mut Self {
-        let _ = self
-            .inner
-            .set_bool(SDL_PROP_WINDOW_CREATE_MENU_BOOLEAN, value);
-        self
+        self.set_bool(SDL_PROP_WINDOW_CREATE_MENU_BOOLEAN, value)
     }
 
-    // TODO: Metal
+    pub fn metal(&mut self, value: bool) -> &mut Self {
+        self.set_bool(SDL_PROP_WINDOW_CREATE_METAL_BOOLEAN, value)
+    }
 
     pub fn minimized(&mut self, value: bool) -> &mut Self {
-        let _ = self
-            .inner
-            .set_bool(SDL_PROP_WINDOW_CREATE_MINIMIZED_BOOLEAN, value);
-        self
+        self.set_bool(SDL_PROP_WINDOW_CREATE_MINIMIZED_BOOLEAN, value)
     }
 
     pub fn modal(&mut self, value: bool) -> &mut Self {
-        let _ = self
-            .inner
-            .set_bool(SDL_PROP_WINDOW_CREATE_MODAL_BOOLEAN, value);
-        self
+        self.set_bool(SDL_PROP_WINDOW_CREATE_MODAL_BOOLEAN, value)
     }
 
     pub fn mouse_grabbed(&mut self, value: bool) -> &mut Self {
-        let _ = self
-            .inner
-            .set_bool(SDL_PROP_WINDOW_CREATE_MOUSE_GRABBED_BOOLEAN, value);
-        self
+        self.set_bool(SDL_PROP_WINDOW_CREATE_MOUSE_GRABBED_BOOLEAN, value)
     }
 
-    // TODO: OpenGL
+    pub fn opengl(&mut self, value: bool) -> &mut Self {
+        self.set_bool(SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, value)
+    }
 
     pub fn parent(&mut self, value: WindowRef) -> &mut Self {
         let _ = self.inner.set_pointer(
@@ -269,10 +239,7 @@ impl WindowBuilder {
     }
 
     pub fn resizable(&mut self, value: bool) -> &mut Self {
-        let _ = self
-            .inner
-            .set_bool(SDL_PROP_WINDOW_CREATE_RESIZABLE_BOOLEAN, value);
-        self
+        self.set_bool(SDL_PROP_WINDOW_CREATE_RESIZABLE_BOOLEAN, value)
     }
 
     pub fn title(&mut self, value: &CStr) -> &mut Self {
@@ -283,47 +250,31 @@ impl WindowBuilder {
     }
 
     pub fn transparent(&mut self, value: bool) -> &mut Self {
-        let _ = self
-            .inner
-            .set_bool(SDL_PROP_WINDOW_CREATE_TRANSPARENT_BOOLEAN, value);
-        self
+        self.set_bool(SDL_PROP_WINDOW_CREATE_TRANSPARENT_BOOLEAN, value)
     }
 
     pub fn tooltip(&mut self, value: bool) -> &mut Self {
-        let _ = self
-            .inner
-            .set_bool(SDL_PROP_WINDOW_CREATE_TOOLTIP_BOOLEAN, value);
-        self
+        self.set_bool(SDL_PROP_WINDOW_CREATE_TOOLTIP_BOOLEAN, value)
     }
 
     pub fn utility(&mut self, value: bool) -> &mut Self {
-        let _ = self
-            .inner
-            .set_bool(SDL_PROP_WINDOW_CREATE_UTILITY_BOOLEAN, value);
-        self
+        self.set_bool(SDL_PROP_WINDOW_CREATE_UTILITY_BOOLEAN, value)
     }
 
-    // TODO: Vulkan
+    pub fn vulkan(&mut self, value: bool) -> &mut Self {
+        self.set_bool(SDL_PROP_WINDOW_CREATE_VULKAN_BOOLEAN, value)
+    }
 
     pub fn width(&mut self, value: i64) -> &mut Self {
-        let _ = self
-            .inner
-            .set_number(SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, value);
-        self
+        self.set_number(SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, value)
     }
 
     pub fn x(&mut self, value: i64) -> &mut Self {
-        let _ = self
-            .inner
-            .set_number(SDL_PROP_WINDOW_CREATE_X_NUMBER, value);
-        self
+        self.set_number(SDL_PROP_WINDOW_CREATE_X_NUMBER, value)
     }
 
     pub fn y(&mut self, value: i64) -> &mut Self {
-        let _ = self
-            .inner
-            .set_number(SDL_PROP_WINDOW_CREATE_Y_NUMBER, value);
-        self
+        self.set_number(SDL_PROP_WINDOW_CREATE_Y_NUMBER, value)
     }
 
     /// Utility method that calls `self.width()` and `self.height()`.
@@ -346,6 +297,16 @@ impl WindowBuilder {
     #[doc(alias = "SDL_CreateWindowWithProperties")]
     pub fn build(&self, _subsystem: &Video) -> SdlResult<Window> {
         Window::from_ptr(unsafe { SDL_CreateWindowWithProperties(self.inner.id()) })
+    }
+
+    fn set_bool(&mut self, key: *const c_char, value: bool) -> &mut Self {
+        let _ = self.inner.set_bool(key, value);
+        self
+    }
+
+    fn set_number(&mut self, key: *const c_char, value: i64) -> &mut Self {
+        let _ = self.inner.set_number(key, value);
+        self
     }
 }
 
