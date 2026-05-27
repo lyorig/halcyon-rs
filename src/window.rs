@@ -391,10 +391,9 @@ impl WindowHandle {
     }
 
     #[doc(alias = "SDL_GetDisplayForWindow")]
-    pub fn display(&self) -> DisplayHandle {
-        let raw = unsafe { SDL_GetDisplayForWindow(self.handle.as_ptr()) }.0;
-        let id = NonZero::new(raw).expect("Window isn't on any display");
-        DisplayHandle { id }
+    pub fn display(&self) -> SdlResult<DisplayHandle> {
+        let raw = unsafe { SDL_GetDisplayForWindow(self.handle.as_ptr()) };
+        DisplayHandle::new(raw)
     }
 }
 

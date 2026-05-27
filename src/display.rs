@@ -19,7 +19,7 @@
 
 use crate::{
     defs::SdlResult,
-    error::get,
+    error,
     rect::{PointI32, RectI32},
     sdl_box::SdlBoxArr,
     util::c_ptr_to_str,
@@ -27,6 +27,20 @@ use crate::{
 
 use sdl3_sys::video::*;
 use std::{ffi::c_char, mem::MaybeUninit, num::NonZero, ptr::NonNull};
+
+#[derive(Clone, Copy, PartialEq)]
+pub struct DisplayId {
+    inner: NonZero<u32>,
+}
+
+impl DisplayId {
+    pub(crate) fn from_raw(raw: SDL_DisplayID) -> SdlResult<Self> {
+        match NonZero::new(raw.0) {
+            Some(inner) => Ok(Self { inner }),
+            None => Err(error::get()),
+        }
+    }
+}
 
 /// A handle to a display owned by SDL.
 ///
@@ -41,17 +55,13 @@ use std::{ffi::c_char, mem::MaybeUninit, num::NonZero, ptr::NonNull};
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
 pub struct DisplayHandle {
-    /// Can't use `SDL_DisplayID` because it's a newtype and doesn't
-    /// implement [`std::num::ZeroablePrimitive`].
-    pub(crate) id: NonZero<u32>,
+    pub(crate) inner: DisplayId,
 }
 
 impl DisplayHandle {
-    fn new(id: SDL_DisplayID) -> SdlResult<Self> {
-        match NonZero::new(id.0) {
-            Some(id) => Ok(Self { id }),
-            None => Err(get()),
-        }
+    pub(crate) fn new(id: SDL_DisplayID) -> SdlResult<Self> {
+        let inner = DisplayId::from_raw(id)?;
+        Ok(Self { inner })
     }
 
     #[doc(alias = "SDL_GetDisplays")]
@@ -74,21 +84,21 @@ impl DisplayHandle {
     }
 
     pub fn id(&self) -> SDL_DisplayID {
-        unsafe { std::mem::transmute(self.id) }
+        unsafe { std::mem::transmute(self.inner) }
     }
 
     /// The returned string is guaranteed to be valid UTF-8.
     #[doc(alias = "SDL_GetDisplayName")]
     pub fn name(&self) -> SdlResult<NonNull<c_char>> {
-        NonNull::new(unsafe { SDL_GetDisplayName(self.id()).cast_mut() }).ok_or_else(get)
+        NonNull::new(unsafe { SDL_GetDisplayName(self.id()).cast_mut() }).ok_or_else(error::get)
     }
 
-    /// Convenience function to return `DisplayHandle::name()` as an owned `String`.
+    /// Convenience function to return [`DisplayHandle::name()`] as an owned [`String`].
     #[doc(alias = "SDL_GetDisplayName")]
     pub fn name_owned(&self) -> SdlResult<String> {
         let ptr = unsafe { SDL_GetDisplayName(self.id()) };
         if ptr.is_null() {
-            Err(get())
+            Err(error::get())
         } else {
             Ok(unsafe { c_ptr_to_str(ptr).to_owned() })
         }
@@ -101,7 +111,7 @@ impl DisplayHandle {
             if SDL_GetDisplayBounds(self.id(), ret.as_mut_ptr()) {
                 Ok(std::mem::transmute_copy(ret.assume_init_ref()))
             } else {
-                Err(get())
+                Err(error::get())
             }
         }
     }
@@ -113,7 +123,7 @@ impl DisplayHandle {
             if SDL_GetDisplayUsableBounds(self.id(), ret.as_mut_ptr()) {
                 Ok(std::mem::transmute_copy(ret.assume_init_ref()))
             } else {
-                Err(get())
+                Err(error::get())
             }
         }
     }
@@ -122,7 +132,7 @@ impl DisplayHandle {
     pub fn mode_current(&self) -> SdlResult<NonNull<SDL_DisplayMode>> {
         let ptr = unsafe { SDL_GetCurrentDisplayMode(self.id()) };
         if ptr.is_null() {
-            Err(get())
+            Err(error::get())
         } else {
             Ok(NonNull::new(ptr.cast_mut()).unwrap())
         }
@@ -132,7 +142,7 @@ impl DisplayHandle {
     pub fn mode_desktop(&self) -> SdlResult<NonNull<SDL_DisplayMode>> {
         let ptr = unsafe { SDL_GetDesktopDisplayMode(self.id()) };
         if ptr.is_null() {
-            Err(get())
+            Err(error::get())
         } else {
             Ok(NonNull::new(ptr.cast_mut()).unwrap())
         }
@@ -153,7 +163,11 @@ impl DisplayHandle {
     #[doc(alias = "SDL_GetDisplayContentScale")]
     pub fn content_scale(&self) -> SdlResult<f32> {
         let ret = unsafe { SDL_GetDisplayContentScale(self.id()) };
-        if ret == 0. { Err(get()) } else { Ok(ret) }
+        if ret == 0. {
+            Err(error::get())
+        } else {
+            Ok(ret)
+        }
     }
 
     #[doc(alias = "SDL_GetCurrentDisplayOrientation")]
@@ -186,7 +200,7 @@ impl DisplayHandle {
             ) {
                 Ok(ret.assume_init())
             } else {
-                Err(get())
+                Err(error::get())
             }
         }
     }
