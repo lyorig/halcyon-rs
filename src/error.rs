@@ -19,10 +19,8 @@ use crate::util::c_ptr_to_str;
 /// length may change arbitrarily. Be wary with structs that cache it.
 #[doc(alias = "SDL_GetError")]
 pub fn get() -> NonNull<c_char> {
-    unsafe {
-        NonNull::new(SDL_GetError().cast_mut())
-            .expect("SDL_GetError() should never return a null pointer")
-    }
+    NonNull::new(SDL_GetError().cast_mut())
+        .expect("SDL_GetError() should never return a null pointer")
 }
 
 /// Returns [`crate::error::get()`] as a `&'static str`, which isn't really

@@ -160,7 +160,7 @@ impl TtfContext {
 
     #[doc(alias = "TTF_Version")]
     pub fn version() -> i32 {
-        unsafe { TTF_Version() }
+        TTF_Version()
     }
 
     pub fn try_clone(&self) -> SdlResult<Self> {

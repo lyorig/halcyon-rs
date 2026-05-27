@@ -17,7 +17,7 @@ pub struct Subsystem<'ctx, const TYPE: u32> {
 impl<'a, const N: u32> Subsystem<'a, N> {
     #[doc(alias = "SDL_Init")]
     pub fn new(_: &'a Context) -> SdlResult<Self> {
-        let res = unsafe { SDL_Init(N) };
+        let res = unsafe { SDL_Init(SDL_InitFlags(N)) };
         if res {
             Ok(Self {
                 marker: PhantomData,
@@ -28,4 +28,4 @@ impl<'a, const N: u32> Subsystem<'a, N> {
     }
 }
 
-pub type Video<'a> = Subsystem<'a, SDL_INIT_VIDEO>;
+pub type Video<'a> = Subsystem<'a, { SDL_INIT_VIDEO.0 }>;

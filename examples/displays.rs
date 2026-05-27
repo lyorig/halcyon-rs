@@ -20,7 +20,7 @@ fn outer() -> SdlResult {
     let p = DisplayHandle::primary()?;
     println!(
         "Primary display has ID {} and name \"{}\"",
-        p.id(),
+        p.id().0,
         unsafe { c_ptr_to_str(p.name()?.as_ptr()) }
     );
 

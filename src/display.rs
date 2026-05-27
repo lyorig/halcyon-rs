@@ -41,10 +41,19 @@ use std::{ffi::c_char, mem::MaybeUninit, num::NonZero, ptr::NonNull};
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
 pub struct DisplayHandle {
-    pub(crate) id: NonZero<SDL_DisplayID>,
+    /// Can't use `SDL_DisplayID` because it's a newtype and doesn't
+    /// implement [`std::num::ZeroablePrimitive`].
+    pub(crate) id: NonZero<u32>,
 }
 
 impl DisplayHandle {
+    fn new(id: SDL_DisplayID) -> SdlResult<Self> {
+        match NonZero::new(id.0) {
+            Some(id) => Ok(Self { id }),
+            None => Err(get()),
+        }
+    }
+
     #[doc(alias = "SDL_GetDisplays")]
     pub fn all() -> SdlResult<SdlBoxArr<Self>> {
         let mut count = MaybeUninit::uninit();
@@ -53,40 +62,31 @@ impl DisplayHandle {
 
     #[doc(alias = "SDL_GetPrimaryDisplay")]
     pub fn primary() -> SdlResult<Self> {
-        match NonZero::new(unsafe { SDL_GetPrimaryDisplay() }) {
-            Some(id) => Ok(Self { id }),
-            None => Err(get()),
-        }
+        Self::new(unsafe { SDL_GetPrimaryDisplay() })
     }
 
     pub fn for_point(point: PointI32) -> SdlResult<Self> {
-        match NonZero::new(unsafe { SDL_GetDisplayForPoint((&raw const point).cast()) }) {
-            Some(id) => Ok(Self { id }),
-            None => Err(get()),
-        }
+        Self::new(unsafe { SDL_GetDisplayForPoint((&raw const point).cast()) })
     }
 
     pub fn for_rect(rect: RectI32) -> SdlResult<Self> {
-        match NonZero::new(unsafe { SDL_GetDisplayForRect((&raw const rect).cast()) }) {
-            Some(id) => Ok(Self { id }),
-            None => Err(get()),
-        }
+        Self::new(unsafe { SDL_GetDisplayForRect((&raw const rect).cast()) })
     }
 
-    pub fn id(&self) -> NonZero<SDL_DisplayID> {
-        self.id
+    pub fn id(&self) -> SDL_DisplayID {
+        unsafe { std::mem::transmute(self.id) }
     }
 
     /// The returned string is guaranteed to be valid UTF-8.
     #[doc(alias = "SDL_GetDisplayName")]
     pub fn name(&self) -> SdlResult<NonNull<c_char>> {
-        NonNull::new(unsafe { SDL_GetDisplayName(self.id.get()).cast_mut() }).ok_or_else(get)
+        NonNull::new(unsafe { SDL_GetDisplayName(self.id()).cast_mut() }).ok_or_else(get)
     }
 
     /// Convenience function to return `DisplayHandle::name()` as an owned `String`.
     #[doc(alias = "SDL_GetDisplayName")]
     pub fn name_owned(&self) -> SdlResult<String> {
-        let ptr = unsafe { SDL_GetDisplayName(self.id.get()) };
+        let ptr = unsafe { SDL_GetDisplayName(self.id()) };
         if ptr.is_null() {
             Err(get())
         } else {
@@ -98,7 +98,7 @@ impl DisplayHandle {
     pub fn bounds(&self) -> SdlResult<RectI32> {
         let mut ret = MaybeUninit::uninit();
         unsafe {
-            if SDL_GetDisplayBounds(self.id.get(), ret.as_mut_ptr()) {
+            if SDL_GetDisplayBounds(self.id(), ret.as_mut_ptr()) {
                 Ok(std::mem::transmute_copy(ret.assume_init_ref()))
             } else {
                 Err(get())
@@ -110,7 +110,7 @@ impl DisplayHandle {
     pub fn bounds_usable(&self) -> SdlResult<RectI32> {
         let mut ret = MaybeUninit::uninit();
         unsafe {
-            if SDL_GetDisplayUsableBounds(self.id.get(), ret.as_mut_ptr()) {
+            if SDL_GetDisplayUsableBounds(self.id(), ret.as_mut_ptr()) {
                 Ok(std::mem::transmute_copy(ret.assume_init_ref()))
             } else {
                 Err(get())
@@ -120,7 +120,7 @@ impl DisplayHandle {
 
     #[doc(alias = "SDL_GetCurrentDisplayMode")]
     pub fn mode_current(&self) -> SdlResult<NonNull<SDL_DisplayMode>> {
-        let ptr = unsafe { SDL_GetCurrentDisplayMode(self.id.get()) };
+        let ptr = unsafe { SDL_GetCurrentDisplayMode(self.id()) };
         if ptr.is_null() {
             Err(get())
         } else {
@@ -130,7 +130,7 @@ impl DisplayHandle {
 
     #[doc(alias = "SDL_GetDesktopDisplayMode")]
     pub fn mode_desktop(&self) -> SdlResult<NonNull<SDL_DisplayMode>> {
-        let ptr = unsafe { SDL_GetDesktopDisplayMode(self.id.get()) };
+        let ptr = unsafe { SDL_GetDesktopDisplayMode(self.id()) };
         if ptr.is_null() {
             Err(get())
         } else {
@@ -144,7 +144,7 @@ impl DisplayHandle {
 
         unsafe {
             SdlBoxArr::from_ptr(
-                SDL_GetFullscreenDisplayModes(self.id.get(), count.as_mut_ptr()).cast(),
+                SDL_GetFullscreenDisplayModes(self.id(), count.as_mut_ptr()).cast(),
                 count,
             )
         }
@@ -152,18 +152,18 @@ impl DisplayHandle {
 
     #[doc(alias = "SDL_GetDisplayContentScale")]
     pub fn content_scale(&self) -> SdlResult<f32> {
-        let ret = unsafe { SDL_GetDisplayContentScale(self.id.get()) };
+        let ret = unsafe { SDL_GetDisplayContentScale(self.id()) };
         if ret == 0. { Err(get()) } else { Ok(ret) }
     }
 
     #[doc(alias = "SDL_GetCurrentDisplayOrientation")]
     pub fn orientation_current(&self) -> SDL_DisplayOrientation {
-        unsafe { SDL_GetCurrentDisplayOrientation(self.id.get()) }
+        unsafe { SDL_GetCurrentDisplayOrientation(self.id()) }
     }
 
     #[doc(alias = "SDL_GetNaturalDisplayOrientation")]
     pub fn orientation_natural(&self) -> SDL_DisplayOrientation {
-        unsafe { SDL_GetNaturalDisplayOrientation(self.id.get()) }
+        unsafe { SDL_GetNaturalDisplayOrientation(self.id()) }
     }
 
     #[doc(alias = "SDL_GetClosestFullscreenDisplayMode")]
@@ -177,7 +177,7 @@ impl DisplayHandle {
 
         unsafe {
             if SDL_GetClosestFullscreenDisplayMode(
-                self.id.get(),
+                self.id(),
                 size.x,
                 size.y,
                 refresh_rate,

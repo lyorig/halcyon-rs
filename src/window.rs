@@ -126,30 +126,30 @@ use std::{
 
 #[bitmask(u64)]
 pub enum WindowFlags {
-    Fullscreen = SDL_WINDOW_FULLSCREEN,
-    OpenGL = SDL_WINDOW_OPENGL,
-    Occluded = SDL_WINDOW_OCCLUDED,
-    Hidden = SDL_WINDOW_HIDDEN,
-    Borderless = SDL_WINDOW_BORDERLESS,
-    Resizable = SDL_WINDOW_RESIZABLE,
-    Minimized = SDL_WINDOW_MINIMIZED,
-    Maximized = SDL_WINDOW_MAXIMIZED,
-    MouseGrabbed = SDL_WINDOW_MOUSE_GRABBED,
-    InputFocus = SDL_WINDOW_INPUT_FOCUS,
-    MouseFocus = SDL_WINDOW_MOUSE_FOCUS,
-    External = SDL_WINDOW_EXTERNAL,
-    Modal = SDL_WINDOW_MODAL,
-    HighPixelDensity = SDL_WINDOW_HIGH_PIXEL_DENSITY,
-    MouseCapture = SDL_WINDOW_MOUSE_CAPTURE,
-    AlwaysOnTop = SDL_WINDOW_ALWAYS_ON_TOP,
-    Utility = SDL_WINDOW_UTILITY,
-    Tooltip = SDL_WINDOW_TOOLTIP,
-    PopupMenu = SDL_WINDOW_POPUP_MENU,
-    KeyboardGrabbed = SDL_WINDOW_KEYBOARD_GRABBED,
-    Vulkan = SDL_WINDOW_VULKAN,
-    Metal = SDL_WINDOW_METAL,
-    Transparent = SDL_WINDOW_TRANSPARENT,
-    NotFocusable = SDL_WINDOW_NOT_FOCUSABLE,
+    Fullscreen = SDL_WINDOW_FULLSCREEN.0,
+    OpenGL = SDL_WINDOW_OPENGL.0,
+    Occluded = SDL_WINDOW_OCCLUDED.0,
+    Hidden = SDL_WINDOW_HIDDEN.0,
+    Borderless = SDL_WINDOW_BORDERLESS.0,
+    Resizable = SDL_WINDOW_RESIZABLE.0,
+    Minimized = SDL_WINDOW_MINIMIZED.0,
+    Maximized = SDL_WINDOW_MAXIMIZED.0,
+    MouseGrabbed = SDL_WINDOW_MOUSE_GRABBED.0,
+    InputFocus = SDL_WINDOW_INPUT_FOCUS.0,
+    MouseFocus = SDL_WINDOW_MOUSE_FOCUS.0,
+    External = SDL_WINDOW_EXTERNAL.0,
+    Modal = SDL_WINDOW_MODAL.0,
+    HighPixelDensity = SDL_WINDOW_HIGH_PIXEL_DENSITY.0,
+    MouseCapture = SDL_WINDOW_MOUSE_CAPTURE.0,
+    AlwaysOnTop = SDL_WINDOW_ALWAYS_ON_TOP.0,
+    Utility = SDL_WINDOW_UTILITY.0,
+    Tooltip = SDL_WINDOW_TOOLTIP.0,
+    PopupMenu = SDL_WINDOW_POPUP_MENU.0,
+    KeyboardGrabbed = SDL_WINDOW_KEYBOARD_GRABBED.0,
+    Vulkan = SDL_WINDOW_VULKAN.0,
+    Metal = SDL_WINDOW_METAL.0,
+    Transparent = SDL_WINDOW_TRANSPARENT.0,
+    NotFocusable = SDL_WINDOW_NOT_FOCUSABLE.0,
 }
 
 pub struct WindowBuilder {
@@ -358,8 +358,8 @@ impl WindowHandle {
     }
 
     #[doc(alias = "SDL_GetWindowFlags")]
-    pub fn flags(&self) -> WindowFlags {
-        unsafe { SDL_GetWindowFlags(self.handle.as_ptr()) }.into()
+    pub fn flags(&self) -> SDL_WindowFlags {
+        unsafe { SDL_GetWindowFlags(self.handle.as_ptr()) }
     }
 
     #[doc(alias = "SDL_GetRenderer")]
@@ -369,10 +369,9 @@ impl WindowHandle {
 
     #[doc(alias = "SDL_GetDisplayForWindow")]
     pub fn display(&self) -> DisplayHandle {
-        DisplayHandle {
-            id: NonZero::new(unsafe { SDL_GetDisplayForWindow(self.handle.as_ptr()) })
-                .expect("Window isn't on any display"),
-        }
+        let raw = unsafe { SDL_GetDisplayForWindow(self.handle.as_ptr()) }.0;
+        let id = NonZero::new(raw).expect("Window isn't on any display");
+        DisplayHandle { id }
     }
 }
 
@@ -381,15 +380,15 @@ impl Window {
     pub const POS_UNDEFINED: i32 = SDL_WINDOWPOS_UNDEFINED;
 
     #[doc(alias = "SDL_CreateWindow")]
-    pub fn new(title: &CStr, size: PointI32, flags: WindowFlags) -> SdlResult<Self> {
-        Self::from_ptr(unsafe { SDL_CreateWindow(title.as_ptr(), size.x, size.y, flags.into()) })
+    pub fn new(title: &CStr, size: PointI32, flags: SDL_WindowFlags) -> SdlResult<Self> {
+        Self::from_ptr(unsafe { SDL_CreateWindow(title.as_ptr(), size.x, size.y, flags) })
     }
 
     #[doc(alias = "SDL_CreateWindowAndRenderer")]
     pub fn with_renderer(
         title: &CStr,
         size: PointI32,
-        flags: WindowFlags,
+        flags: SDL_WindowFlags,
     ) -> (SdlResult<Self>, SdlResult<Renderer>) {
         let mut ret = MaybeUninit::<(*mut SDL_Window, *mut SDL_Renderer)>::uninit();
         let ptr = ret.as_mut_ptr();
@@ -399,7 +398,7 @@ impl Window {
                 title.as_ptr(),
                 size.x,
                 size.y,
-                flags.into(),
+                flags,
                 &raw mut (*ptr).0,
                 &raw mut (*ptr).1,
             );
@@ -410,15 +409,14 @@ impl Window {
     }
 
     #[doc(alias = "SDL_GetWindowFromID")]
-    pub fn from_id(id: NonZero<SDL_WindowID>) -> Option<WindowHandle> {
-        NonNull::new(unsafe { SDL_GetWindowFromID(id.get()) }).map(|handle| WindowHandle { handle })
+    pub fn from_id(id: SDL_WindowID) -> Option<WindowHandle> {
+        NonNull::new(unsafe { SDL_GetWindowFromID(id) }).map(|handle| WindowHandle { handle })
     }
 
     /// Returns this window's unique ID.
-    /// An ID of 0 is invalid, so `NonZero` is returned instead.
-    #[doc(alias = "SDL_GetWindowID")]
-    pub fn id(&self) -> NonZero<SDL_WindowID> {
-        NonZero::new(unsafe { SDL_GetWindowID(self.inner.handle.as_ptr()) })
-            .expect("SDL_GetWindowID returned invalid (zero) ID")
+    /// An ID of 0 is invalid, so [`NonZero<u32>`] is returned instead.
+    pub fn id(&self) -> NonZero<u32> {
+        let id = unsafe { SDL_GetWindowID(self.inner.handle.as_ptr()) }.0;
+        NonZero::new(id).expect("SDL_GetWindowID returned invalid (zero) ID")
     }
 }
