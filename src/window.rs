@@ -105,6 +105,7 @@
 use crate::{
     defs::SdlResult,
     display::DisplayHandle,
+    error,
     properties::Properties,
     rect::PointI32,
     renderer::{Renderer, RendererHandle},
@@ -316,6 +317,28 @@ impl Default for WindowBuilder {
     }
 }
 
+pub struct WindowId {
+    inner: NonZero<u32>,
+}
+
+impl WindowId {
+    fn from_raw(raw: u32) -> SdlResult<Self> {
+        match NonZero::new(raw) {
+            Some(inner) => Ok(Self { inner }),
+            None => Err(error::get()),
+        }
+    }
+
+    unsafe fn from_raw_unchecked(raw: u32) -> Self {
+        let inner = unsafe { NonZero::new_unchecked(raw) };
+        Self { inner }
+    }
+
+    fn as_sdl(&self) -> SDL_WindowID {
+        SDL_WindowID(self.inner.get())
+    }
+}
+
 resource!(Window);
 
 impl WindowHandle {
@@ -409,14 +432,16 @@ impl Window {
     }
 
     #[doc(alias = "SDL_GetWindowFromID")]
-    pub fn from_id(id: SDL_WindowID) -> Option<WindowHandle> {
-        NonNull::new(unsafe { SDL_GetWindowFromID(id) }).map(|handle| WindowHandle { handle })
+    pub fn from_id(id: WindowId) -> Option<WindowHandle> {
+        NonNull::new(unsafe { SDL_GetWindowFromID(id.as_sdl()) })
+            .map(|handle| WindowHandle { handle })
     }
 
     /// Returns this window's unique ID.
-    /// An ID of 0 is invalid, so [`NonZero<u32>`] is returned instead.
-    pub fn id(&self) -> NonZero<u32> {
+    pub fn id(&self) -> WindowId {
         let id = unsafe { SDL_GetWindowID(self.inner.handle.as_ptr()) }.0;
-        NonZero::new(id).expect("SDL_GetWindowID returned invalid (zero) ID")
+
+        // SAFETY: Valid windows should always have an ID.
+        unsafe { WindowId::from_raw_unchecked(id) }
     }
 }
