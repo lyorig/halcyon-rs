@@ -111,6 +111,7 @@ use crate::{
     renderer::{Renderer, RendererHandle},
     resource,
     subsystem::Video,
+    traits::Ref,
     util::to_result,
 };
 use bitmask_enum::bitmask;
@@ -231,7 +232,7 @@ impl WindowBuilder {
         self.set_bool(SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, value)
     }
 
-    pub fn parent(&mut self, value: WindowRef) -> &mut Self {
+    pub fn parent(&mut self, value: Ref<Window>) -> &mut Self {
         let _ = self.inner.set_pointer(
             SDL_PROP_WINDOW_CREATE_PARENT_POINTER,
             value.handle.as_ptr() as *mut c_void,

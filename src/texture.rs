@@ -39,10 +39,10 @@ use crate::{
     color::{RgbF32, RgbU8},
     defs::SdlResult,
     rect::{PointF32, PointI32},
-    renderer::{RendererHandle, RendererRef},
+    renderer::{Renderer, RendererHandle},
     resource,
-    surface::SurfaceRef,
-    traits::{BlendMode, ColorModF32, ColorModU8},
+    surface::Surface,
+    traits::{BlendMode, ColorModF32, ColorModU8, Ref},
 };
 
 resource!(Texture);
@@ -211,7 +211,7 @@ impl ColorModF32 for TextureHandle {
 impl Texture {
     #[doc(alias = "SDL_CreateTexture")]
     pub fn new(
-        rnd: RendererRef,
+        rnd: Ref<Renderer>,
         fmt: SDL_PixelFormat,
         access: SDL_TextureAccess,
         size: PointI32,
@@ -222,7 +222,7 @@ impl Texture {
     }
 
     #[doc(alias = "SDL_CreateTextureFromSurface")]
-    pub fn from_surface(rnd: RendererRef, surf: SurfaceRef) -> SdlResult<Texture> {
+    pub fn from_surface(rnd: Ref<Renderer>, surf: Ref<Surface>) -> SdlResult<Texture> {
         Self::from_ptr(unsafe {
             SDL_CreateTextureFromSurface(rnd.handle.as_ptr(), surf.handle.as_ptr())
         })

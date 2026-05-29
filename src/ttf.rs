@@ -131,7 +131,8 @@ use crate::{
     error,
     rect::{PointF32, PointI32},
     resource,
-    surface::{Surface, SurfaceRef},
+    surface::Surface,
+    traits::Ref,
     util::{c_ptr_to_str, to_result},
 };
 
@@ -410,7 +411,7 @@ impl TextHandle {
         to_result(unsafe { TTF_UpdateText(self.handle.as_ptr()) })
     }
 
-    pub fn draw_to_surface(&self, surf: SurfaceRef, pos: PointI32) -> SdlResult {
+    pub fn draw_to_surface(&self, surf: Ref<Surface>, pos: PointI32) -> SdlResult {
         to_result(unsafe {
             TTF_DrawSurfaceText(self.handle.as_ptr(), pos.x, pos.y, surf.handle.as_ptr())
         })

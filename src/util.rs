@@ -39,10 +39,6 @@ macro_rules! resource {
                         None => Err($crate::error::get()),
                     }
                 }
-
-                pub fn as_ref(&self) -> [<$owned Ref>]<'_> {
-                    [<$owned Ref>] { inner: self.inner, _data: std::marker::PhantomData }
-                }
             }
 
             impl std::ops::Deref for $owned {
@@ -58,33 +54,18 @@ macro_rules! resource {
                 }
             }
 
+            impl $crate::traits::Resource for $owned {
+                type Handle = [<$owned Handle>];
+
+                unsafe fn as_handle(&self) -> Self::Handle {
+                    self.inner
+                }
+            }
+
             impl Drop for $owned {
                 #[doc(alias = $library "_Destroy" $owned)]
                 fn drop(&mut self) {
                     unsafe { [<$library _ $dtor $owned>](self.inner.handle.as_ptr()) }
-                }
-            }
-
-            #[derive(Clone, Copy)]
-            pub struct [<$owned Ref>]<'a> {
-                pub(crate) inner: [<$owned Handle>],
-                _data: std::marker::PhantomData<&'a $owned>,
-            }
-
-            impl [<$owned Ref>]<'_> {
-                /// # Safety
-                /// Ensure the object the handle points to is valid for as long as
-                /// the returned reference is used.
-                pub unsafe fn from_handle(handle: [<$owned Handle>]) -> Self {
-                    Self {inner: handle, _data: std::marker::PhantomData}
-                }
-            }
-
-            impl<'a> std::ops::Deref for [<$owned Ref>]<'a> {
-                type Target = [<$owned Handle>];
-
-                fn deref(&self) -> &Self::Target {
-                    &self.inner
                 }
             }
         }

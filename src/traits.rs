@@ -1,6 +1,48 @@
+use std::ops::Deref;
+
 use sdl3_sys::blendmode::SDL_BlendMode;
 
 use crate::color::{RgbF32, RgbU8, RgbaF32, RgbaU8};
+
+pub trait Resource: Sized {
+    type Handle: Copy;
+
+    /// Return the raw underlying handle of this object.
+    ///
+    /// # Safety
+    /// Handles are only valid as long as their owning objects.
+    /// Using them outside of said lifetime == use-after-free.
+    unsafe fn as_handle(&self) -> Self::Handle;
+
+    fn as_ref<'a>(&'a self) -> Ref<'a, Self> {
+        Ref {
+            handle: unsafe { self.as_handle() },
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+pub struct Ref<'a, T: Resource> {
+    handle: T::Handle,
+    _marker: std::marker::PhantomData<&'a T>,
+}
+
+impl<T: Resource> Clone for Ref<'_, T> {
+    fn clone(&self) -> Self {
+        Self {
+            handle: self.handle.clone(),
+            _marker: self._marker.clone(),
+        }
+    }
+}
+
+impl<T: Resource> Deref for Ref<'_, T> {
+    type Target = T::Handle;
+
+    fn deref(&self) -> &Self::Target {
+        &self.handle
+    }
+}
 
 pub trait BlendMode {
     fn blend_mode(&self) -> SDL_BlendMode;

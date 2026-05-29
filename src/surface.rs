@@ -65,7 +65,7 @@ use crate::{
     defs::SdlResult,
     rect::{PointI32, RectI32},
     resource,
-    traits::{BlendMode, ColorModU8},
+    traits::{BlendMode, ColorModU8, Ref},
     util::{opt2ptr, to_result},
 };
 
@@ -164,7 +164,7 @@ impl SurfaceHandle {
 
     pub fn stretch(
         &self,
-        target: SurfaceRef,
+        target: Ref<Surface>,
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
         scale_mode: SDL_ScaleMode,
@@ -188,7 +188,7 @@ impl SurfaceHandle {
     #[doc(alias = "SDL_BlitSurface")]
     pub fn blit(
         &self,
-        target: SurfaceRef,
+        target: Ref<Surface>,
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
     ) -> SdlResult {
@@ -205,7 +205,7 @@ impl SurfaceHandle {
     #[doc(alias = "SDL_BlitSurface9Grid")]
     pub fn blit_9grid(
         &self,
-        target: SurfaceRef,
+        target: Ref<Surface>,
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
         (left_width, right_width, top_height, bottom_height): (i32, i32, i32, i32),
@@ -231,7 +231,7 @@ impl SurfaceHandle {
     #[doc(alias = "SDL_BlitSurfaceScaled")]
     pub fn blit_scaled(
         &self,
-        target: SurfaceRef,
+        target: Ref<Surface>,
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
         scale_mode: SDL_ScaleMode,
@@ -250,7 +250,7 @@ impl SurfaceHandle {
     #[doc(alias = "SDL_BlitSurfaceTiled")]
     pub fn blit_tiled(
         &self,
-        target: SurfaceRef,
+        target: Ref<Surface>,
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
     ) -> SdlResult {
@@ -267,7 +267,7 @@ impl SurfaceHandle {
     #[doc(alias = "SDL_BlitSurfaceTiledWithScale")]
     pub fn blit_tiled_scaled(
         &self,
-        target: SurfaceRef,
+        target: Ref<Surface>,
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
         scale: f32,

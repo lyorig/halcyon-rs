@@ -6,6 +6,7 @@ use halcyon::{
     rect::{Point, Rect},
     renderer::RendererBuilder,
     subsystem::Video,
+    traits::Resource,
     util::c_ptr_to_str,
     window::{Window, WindowBuilder},
 };

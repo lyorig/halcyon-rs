@@ -23,13 +23,17 @@ pub fn get() -> NonNull<c_char> {
         .expect("SDL_GetError() should never return a null pointer")
 }
 
-/// Returns [`crate::error::get()`] as a `&'static str`, which isn't really
-/// sound, but hey, it's a convenience function, and the `unsafe`
-/// moniker should communicate that its usage is at your own risk.
+/// Returns [`crate::error::get()`] as a `&'static str`.
+///
+/// This is purely a convenience function whose purpose is to
+/// simplify printing the error string, or otherwise using it
+/// as a one-off value, and discarding it right after the call.
 ///
 /// # Safety
 /// The TL;DR is: only use the returned value before anything
-/// else has the chance to call [`SDL_SetError()`].
+/// else on the thread has the chance to call [`SDL_SetError()`].
+///
+/// For more info, consult the [SDL docs](https://wiki.libsdl.org/SDL3/SDL_GetError).
 #[doc(alias = "SDL_GetError")]
 pub unsafe fn get_str() -> &'static str {
     unsafe { c_ptr_to_str(get().as_ptr()) }
