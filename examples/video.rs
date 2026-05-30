@@ -51,9 +51,8 @@ unsafe fn run() -> SdlResult {
         rnd.clear()?;
 
         for event in EventIter::new() {
-            match event {
-                Event::Quit => break 'main,
-                _ => (),
+            if let Event::Quit = event {
+                break 'main;
             }
         }
     }

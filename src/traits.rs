@@ -29,12 +29,11 @@ pub struct Ref<'a, T: Resource> {
 
 impl<T: Resource> Clone for Ref<'_, T> {
     fn clone(&self) -> Self {
-        Self {
-            handle: self.handle.clone(),
-            _marker: self._marker.clone(),
-        }
+        *self
     }
 }
+
+impl<T: Resource> Copy for Ref<'_, T> {}
 
 impl<T: Resource> Deref for Ref<'_, T> {
     type Target = T::Handle;

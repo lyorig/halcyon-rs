@@ -606,6 +606,6 @@ impl<'rnd, 'tex, 'rct> DrawBuilder<'rnd, 'tex, 'rct> {
     }
 
     pub fn draw(&self) -> SdlResult {
-        self.renderer.draw(self.texture.clone(), self.src, self.dst)
+        self.renderer.draw(self.texture, self.src, self.dst)
     }
 }
