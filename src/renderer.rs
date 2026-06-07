@@ -107,7 +107,7 @@ impl RendererBuilder {
     }
 
     pub fn name(&mut self, value: &CStr) -> &mut Self {
-        let _ = self
+        _ = self
             .inner
             .set_string(SDL_PROP_RENDERER_CREATE_NAME_STRING, value);
 
@@ -116,7 +116,7 @@ impl RendererBuilder {
 
     /// Private and only used in `RendererBuilder::new()`.
     fn window(&mut self, value: Ref<Window>) -> &mut Self {
-        let _ = self.inner.set_pointer(
+        _ = self.inner.set_pointer(
             SDL_PROP_RENDERER_CREATE_WINDOW_POINTER,
             value.handle.as_ptr() as *mut c_void,
         );
@@ -125,7 +125,7 @@ impl RendererBuilder {
     }
 
     pub fn surface(&mut self, value: Ref<Surface>) -> &mut Self {
-        let _ = self.inner.set_pointer(
+        _ = self.inner.set_pointer(
             SDL_PROP_RENDERER_CREATE_SURFACE_POINTER,
             value.handle.as_ptr() as *mut c_void,
         );
@@ -134,7 +134,7 @@ impl RendererBuilder {
     }
 
     pub fn colorspace(&mut self, value: SDL_Colorspace) -> &mut Self {
-        let _ = self.inner.set_number(
+        _ = self.inner.set_number(
             SDL_PROP_RENDERER_CREATE_OUTPUT_COLORSPACE_NUMBER,
             value.0.into(),
         );
@@ -143,7 +143,7 @@ impl RendererBuilder {
     }
 
     pub fn vsync(&mut self, value: i64) -> &mut Self {
-        let _ = self
+        _ = self
             .inner
             .set_number(SDL_PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER, value);
 
