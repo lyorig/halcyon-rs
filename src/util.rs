@@ -36,7 +36,7 @@ macro_rules! resource {
                         Some(handle) => Ok(Self {
                             inner: [<$owned Handle>] { handle },
                         }),
-                        None => Err($crate::error::Error),
+                        None => Err($crate::error::Error::current()),
                     }
                 }
             }
@@ -87,7 +87,11 @@ pub unsafe fn opt2ptr<T, Dst>(opt: Option<&T>) -> *const Dst {
 }
 
 pub fn to_result(result: bool) -> SdlResult {
-    if result { Ok(()) } else { Err(Error) }
+    if result {
+        Ok(())
+    } else {
+        Err(Error::current())
+    }
 }
 
 /// Convert a `NonNull<c_char>` (commonly used in FFI) to a `&str`.

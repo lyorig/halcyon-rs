@@ -23,7 +23,7 @@ impl<'a, const N: u32> Subsystem<'a, N> {
                 marker: PhantomData,
             })
         } else {
-            Err(Error)
+            Err(Error::current())
         }
     }
 }

@@ -16,7 +16,7 @@ impl<T> SdlBox<T> {
     pub unsafe fn from_ptr(ptr: *mut T) -> SdlResult<Self> {
         match NonNull::new(ptr) {
             Some(handle) => Ok(Self { handle }),
-            None => Err(Error),
+            None => Err(Error::current()),
         }
     }
 }

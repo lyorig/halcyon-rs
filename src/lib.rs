@@ -12,6 +12,7 @@ pub mod error;
 pub mod event;
 pub mod gpu;
 pub mod keyboard;
+pub mod msgbox;
 pub mod rect;
 pub mod renderer;
 pub mod resource_loader;

@@ -326,7 +326,7 @@ impl WindowId {
     fn from_raw(raw: u32) -> SdlResult<Self> {
         match NonZero::new(raw) {
             Some(inner) => Ok(Self { inner }),
-            None => Err(Error),
+            None => Err(Error::current()),
         }
     }
 

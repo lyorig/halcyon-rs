@@ -145,7 +145,7 @@ impl TtfContext {
         if unsafe { TTF_Init() } {
             Ok(Self {})
         } else {
-            Err(Error)
+            Err(Error::current())
         }
     }
 
