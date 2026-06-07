@@ -1,6 +1,6 @@
 use std::ffi::{CStr, c_char};
 
-use crate::{defs::SdlResult, error};
+use crate::{defs::SdlResult, error::Error};
 
 /// Define a resource and implement shared traits and member functions.
 #[macro_export]
@@ -36,7 +36,7 @@ macro_rules! resource {
                         Some(handle) => Ok(Self {
                             inner: [<$owned Handle>] { handle },
                         }),
-                        None => Err($crate::error::get()),
+                        None => Err($crate::error::Error),
                     }
                 }
             }
@@ -87,7 +87,7 @@ pub unsafe fn opt2ptr<T, Dst>(opt: Option<&T>) -> *const Dst {
 }
 
 pub fn to_result(result: bool) -> SdlResult {
-    if result { Ok(()) } else { Err(error::get()) }
+    if result { Ok(()) } else { Err(Error) }
 }
 
 /// Convert a `NonNull<c_char>` (commonly used in FFI) to a `&str`.

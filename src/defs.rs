@@ -1,6 +1,5 @@
-use std::{ffi::c_char, ptr::NonNull};
+use crate::error::Error;
 
-/// Convenience type alias for `Result<T, NonNull<c_char>>`, where `T`
-/// is the success type, and `NonNull<c_char>` gets populated with `halcyon::error::get()`
-/// in case of failure.
-pub type SdlResult<T = ()> = Result<T, NonNull<c_char>>;
+/// Convenience type alias for [`Result<T, ()>`], where `T`
+/// is the success type. If it's [`Err`], call [`crate::error::get()`] for more information.
+pub type SdlResult<T = ()> = Result<T, Error>;

@@ -105,7 +105,7 @@
 use crate::{
     defs::SdlResult,
     display::DisplayHandle,
-    error,
+    error::Error,
     properties::Properties,
     rect::PointI32,
     renderer::{Renderer, RendererHandle},
@@ -326,7 +326,7 @@ impl WindowId {
     fn from_raw(raw: u32) -> SdlResult<Self> {
         match NonZero::new(raw) {
             Some(inner) => Ok(Self { inner }),
-            None => Err(error::get()),
+            None => Err(Error),
         }
     }
 

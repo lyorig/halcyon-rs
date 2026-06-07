@@ -10,6 +10,7 @@ pub mod defs;
 pub mod display;
 pub mod error;
 pub mod event;
+pub mod gpu;
 pub mod keyboard;
 pub mod rect;
 pub mod renderer;
@@ -25,21 +26,12 @@ pub mod window;
 
 #[cfg(test)]
 mod tests {
-    use sdl3_sys::stdinc::SDL_strcmp;
-
-    use crate::{context::Context, error, subsystem::Video};
+    use crate::{context::Context, subsystem::Video};
 
     #[test]
     fn context() {
+        // FIXME: This fails due to the test harness executing on a separate thread.
         let ctx = unsafe { Context::new() };
         let _vid = Video::new(&ctx).expect("Should be able to initialize video subsystem");
-    }
-
-    #[test]
-    fn error() {
-        assert_eq!(
-            unsafe { SDL_strcmp(error::get().as_ptr(), c"".as_ptr()) },
-            0
-        );
     }
 }

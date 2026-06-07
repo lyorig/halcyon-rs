@@ -7,7 +7,6 @@ use halcyon::{
     renderer::RendererBuilder,
     subsystem::Video,
     traits::Resource,
-    util::c_ptr_to_str,
     window::{Window, WindowBuilder},
 };
 
@@ -62,6 +61,6 @@ unsafe fn run() -> SdlResult {
 
 fn main() {
     if let Err(e) = unsafe { run() } {
-        println!("An error occurred: {}", unsafe { c_ptr_to_str(e.as_ptr()) });
+        println!("An error occurred: {}", e);
     }
 }

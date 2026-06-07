@@ -37,8 +37,6 @@ fn outer() -> SdlResult {
 
 fn main() {
     if let Err(e) = outer() {
-        println!("Something went wrong: {}", unsafe {
-            c_ptr_to_str(e.as_ptr())
-        });
+        println!("Something went wrong: {}", e);
     }
 }
