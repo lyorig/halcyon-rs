@@ -2,33 +2,39 @@ use std::ffi::{CStr, CString};
 
 use sdl3_sys::error::SDL_GetError;
 
+#[derive(Debug)]
 pub struct Error {
-    error: CString,
+    error: String,
 }
 
 impl Error {
     pub(crate) fn current() -> Self {
-        let ptr = SDL_GetError();
-        let cstr = unsafe { CStr::from_ptr(ptr) };
-        let error = cstr.to_owned();
+        // SAFETY: SDL's error strings are UTF-8.
+        let cstr = unsafe { CStr::from_ptr(SDL_GetError()) };
+        let str = unsafe { std::str::from_utf8_unchecked(cstr.to_bytes()) };
+        let error = str.to_owned();
 
         Self { error }
     }
 
-    pub fn as_cstr(&self) -> &CStr {
-        &self.error
+    pub fn as_str(&self) -> &str {
+        self.error.as_str()
+    }
+
+    /// Consume the [`Error`], turning it into a [`CString`].
+    /// This is useful when interfacing with C APIs which
+    /// expect nul-terminated strings.
+    pub fn into_cstring(self) -> CString {
+        // SAFETY: The stored SDL string contains no nul bytes.
+        let vec = self.error.into_bytes();
+        unsafe { CString::from_vec_unchecked(vec) }
     }
 }
 
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let cow = self.error.to_string_lossy();
-        f.write_str(&cow)
+        f.write_str(&self.error)
     }
 }
 
-impl std::fmt::Debug for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(self, f)
-    }
-}
+impl std::error::Error for Error {}
