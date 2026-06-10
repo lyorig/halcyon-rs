@@ -396,6 +396,15 @@ impl WindowHandle {
         let raw = unsafe { SDL_GetDisplayForWindow(self.handle.as_ptr()) };
         DisplayHandle::new(raw)
     }
+
+    #[doc(alias = "SDL_SetWindowSize")]
+    pub fn set_size(&self, size: PointI32) -> SdlResult {
+        to_result(unsafe { SDL_SetWindowSize(self.handle.as_ptr(), size.x, size.y) })
+    }
+
+    pub fn show(&self) -> SdlResult {
+        to_result(unsafe { SDL_ShowWindow(self.handle.as_ptr()) })
+    }
 }
 
 impl Window {

@@ -4,7 +4,7 @@ use sdl3_sys::error::SDL_GetError;
 
 #[derive(Debug)]
 pub struct Error {
-    error: String,
+    reason: String,
 }
 
 impl Error {
@@ -12,13 +12,13 @@ impl Error {
         // SAFETY: SDL's error strings are UTF-8.
         let cstr = unsafe { CStr::from_ptr(SDL_GetError()) };
         let str = unsafe { std::str::from_utf8_unchecked(cstr.to_bytes()) };
-        let error = str.to_owned();
+        let reason = str.to_owned();
 
-        Self { error }
+        Self { reason }
     }
 
     pub fn as_str(&self) -> &str {
-        self.error.as_str()
+        self.reason.as_str()
     }
 
     /// Consume the [`Error`], turning it into a [`CString`].
@@ -26,14 +26,14 @@ impl Error {
     /// expect nul-terminated strings.
     pub fn into_cstring(self) -> CString {
         // SAFETY: The stored SDL string contains no nul bytes.
-        let vec = self.error.into_bytes();
+        let vec = self.reason.into_bytes();
         unsafe { CString::from_vec_unchecked(vec) }
     }
 }
 
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.error)
+        f.write_str(&self.reason)
     }
 }
 
