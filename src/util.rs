@@ -88,7 +88,7 @@ macro_rules! resource {
 /// This is a convenience function that also casts the resulting pointer.
 ///
 /// # Output
-/// `None` => `std::ptr::null()`
+/// [`None`] => [`std::ptr::null()`]
 /// `Some(&T)` => `*const T as *const Dst`
 ///
 /// # Safety
@@ -96,6 +96,20 @@ macro_rules! resource {
 /// All the usual pointer lifetime pitfalls apply.
 pub unsafe fn opt2ptr<T, Dst>(opt: Option<&T>) -> *const Dst {
     opt.map_or(std::ptr::null(), |s| s as *const T as *const Dst)
+}
+
+/// Converts an [`Option`] to a pointer (`mut` version).
+/// This is a convenience function that also casts the resulting pointer.
+///
+/// # Output
+/// [`None`] => [`std::ptr::null_mut()`]
+/// `Some(&T)` => `*const T as *const Dst`
+///
+/// # Safety
+/// This is only meant for interfacing with C libraries.
+/// All the usual pointer lifetime pitfalls apply.
+pub unsafe fn opt2ptr_mut<T, Dst>(opt: Option<&mut T>) -> *mut Dst {
+    opt.map_or(std::ptr::null_mut(), |s| s as *mut T as *mut Dst)
 }
 
 pub fn to_result(result: bool) -> SdlResult {

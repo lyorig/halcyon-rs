@@ -1,14 +1,8 @@
 use halcyon::{context::Context, defs::SdlResult, gpu::*, subsystem::Video, traits::Resource};
-use sdl3_sys::{
-    gpu::{SDL_GPUBufferCreateInfo, SDL_GPUBufferUsageFlags, SDL_GPUShaderFormat},
-    properties::SDL_PropertiesID,
-};
+use sdl3_sys::gpu::{SDL_GPUBufferUsageFlags, SDL_GPUShaderFormat};
 
-const BUFFER_CREATE_INFO: SDL_GPUBufferCreateInfo = SDL_GPUBufferCreateInfo {
-    usage: SDL_GPUBufferUsageFlags::COMPUTE_STORAGE_WRITE,
-    size: 4096,
-    props: SDL_PropertiesID::new(0),
-};
+const BUFFER_CREATE_INFO: BufferCreateInfo =
+    BufferCreateInfo::new(SDL_GPUBufferUsageFlags::COMPUTE_STORAGE_WRITE, 4096);
 
 fn foo() -> SdlResult {
     let ctx = unsafe { Context::new() };

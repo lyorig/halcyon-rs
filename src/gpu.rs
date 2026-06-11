@@ -2,10 +2,16 @@
 //! TODO: Somehow put `#[must_use]` onto structs whose drop methods
 //! are implemented separately (e.g. [`GPUBuffer`]).
 
-use sdl3_sys::gpu::*;
+use std::{ffi::CStr, mem::MaybeUninit, ptr::NonNull};
+
+use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
 use crate::{
-    defs::SdlResult, resource, resource_no_drop, traits::Ref, util::to_result, window::Window,
+    defs::SdlResult,
+    resource, resource_no_drop,
+    traits::Ref,
+    util::{opt2ptr_mut, to_result},
+    window::Window,
 };
 
 pub fn are_formats_supported(fmts: SDL_GPUShaderFormat) -> bool {
@@ -24,12 +30,33 @@ impl GPUDevice {
             SDL_ClaimWindowForGPUDevice(self.handle.as_ptr(), window.handle.as_ptr())
         })
     }
+
+    pub fn driver(&self) -> &str {
+        let raw = unsafe { SDL_GetGPUDeviceDriver(self.handle.as_ptr()) };
+        let cstr = unsafe { CStr::from_ptr(raw) };
+        unsafe { std::str::from_utf8_unchecked(cstr.to_bytes()) }
+    }
+}
+
+pub struct BufferCreateInfo {
+    inner: SDL_GPUBufferCreateInfo,
+}
+
+impl BufferCreateInfo {
+    pub const fn new(usage: SDL_GPUBufferUsageFlags, size: u32) -> Self {
+        let inner = SDL_GPUBufferCreateInfo {
+            usage,
+            size,
+            props: SDL_PropertiesID::new(0),
+        };
+        Self { inner }
+    }
 }
 
 resource_no_drop!(GPUBuffer);
 impl GPUBuffer {
-    pub fn new(device: Ref<GPUDevice>, create_info: &SDL_GPUBufferCreateInfo) -> SdlResult<Self> {
-        let handle = unsafe { SDL_CreateGPUBuffer(device.handle.as_ptr(), create_info) };
+    pub fn new(device: Ref<GPUDevice>, create_info: &BufferCreateInfo) -> SdlResult<Self> {
+        let handle = unsafe { SDL_CreateGPUBuffer(device.handle.as_ptr(), &create_info.inner) };
         Self::from_ptr(handle)
     }
 
@@ -100,22 +127,64 @@ impl GPUFence {
 
 resource_no_drop!(GPUCommandBuffer);
 impl GPUCommandBuffer {
+    #[doc(alias = "SDL_AcquireGPUCommandBuffer")]
     pub fn new(device: Ref<GPUDevice>) -> SdlResult<Self> {
         let handle = unsafe { SDL_AcquireGPUCommandBuffer(device.handle.as_ptr()) };
         Self::from_ptr(handle)
     }
 
+    #[doc(alias = "SDL_SubmitGPUCommandBuffer")]
     pub fn submit(&self) -> SdlResult {
         to_result(unsafe { SDL_SubmitGPUCommandBuffer(self.handle.as_ptr()) })
     }
 
+    #[doc(alias = "SDL_SubmitGPUCommandBufferAndAcquireFence")]
     pub fn submit_fence(&self) -> SdlResult<GPUFence> {
         let fence = unsafe { SDL_SubmitGPUCommandBufferAndAcquireFence(self.handle.as_ptr()) };
         GPUFence::from_ptr(fence)
     }
+
+    #[doc(alias = "SDL_WaitAndAcquireGPUSwapchainTexture")]
+    pub fn wait_for_swapchain_texture(
+        &self,
+        wnd: Ref<Window>,
+        (tex_x, tex_y): (Option<&mut u32>, Option<&mut u32>),
+    ) -> SdlResult<Option<GPUTexture>> {
+        let mut tex = MaybeUninit::uninit();
+        let res = unsafe {
+            SDL_WaitAndAcquireGPUSwapchainTexture(
+                self.handle.as_ptr(),
+                wnd.handle.as_ptr(),
+                tex.as_mut_ptr(),
+                opt2ptr_mut(tex_x),
+                opt2ptr_mut(tex_y),
+            )
+        };
+
+        fn m(ptr: *mut SDL_GPUTexture) -> Option<GPUTexture> {
+            let handle = NonNull::new(ptr)?;
+            let inner = GPUTextureHandle { handle };
+            Some(GPUTexture { inner })
+        }
+
+        to_result(res).map(|()| m(unsafe { tex.assume_init() }))
+    }
 }
 
 resource!(GPURenderPass, SDL, End);
+impl GPURenderPass {
+    pub fn new(cmdbuf: Ref<GPUCommandBuffer>, g: &[SDL_GPUColorTargetInfo]) -> SdlResult<Self> {
+        let handle = unsafe {
+            SDL_BeginGPURenderPass(
+                cmdbuf.handle.as_ptr(),
+                g.as_ptr(),
+                g.len() as _,
+                std::ptr::null(),
+            )
+        };
+        Self::from_ptr(handle)
+    }
+}
 
 resource!(GPUComputePass, SDL, End);
 impl GPUComputePass {
