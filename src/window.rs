@@ -110,7 +110,6 @@ use crate::{
     rect::PointI32,
     renderer::{Renderer, RendererHandle},
     resource,
-    subsystem::Video,
     traits::Ref,
     util::to_result,
 };
@@ -292,12 +291,8 @@ impl WindowBuilder {
     }
 
     /// Build the window.
-    ///
-    /// This requires a `Video` subsystem as a parameter to "prove"
-    /// you've initialized it. SDL would've probably errored if you hadn't
-    /// anyway, but it's a zero-cost way to prevent cross-platform bugs.
     #[doc(alias = "SDL_CreateWindowWithProperties")]
-    pub fn build(&self, _subsystem: &Video) -> SdlResult<Window> {
+    pub fn build(&self) -> SdlResult<Window> {
         Window::from_ptr(unsafe { SDL_CreateWindowWithProperties(self.inner.id()) })
     }
 
@@ -402,8 +397,19 @@ impl WindowHandle {
         to_result(unsafe { SDL_SetWindowSize(self.handle.as_ptr(), size.x, size.y) })
     }
 
+    #[doc(alias = "SDL_SetWindowPosition")]
+    pub fn set_pos(&self, pos: PointI32) -> SdlResult {
+        to_result(unsafe { SDL_SetWindowPosition(self.handle.as_ptr(), pos.x, pos.y) })
+    }
+
+    #[doc(alias = "SDL_ShowWindow")]
     pub fn show(&self) -> SdlResult {
         to_result(unsafe { SDL_ShowWindow(self.handle.as_ptr()) })
+    }
+
+    #[doc(alias = "SDL_HideWindow")]
+    pub fn hide(&self) -> SdlResult {
+        to_result(unsafe { SDL_HideWindow(self.handle.as_ptr()) })
     }
 }
 

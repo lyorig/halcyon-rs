@@ -2,18 +2,13 @@ use std::ffi::{CStr, c_char};
 
 use crate::{defs::SdlResult, error::Error};
 
-/// Define a resource and implement shared traits and member functions.
 #[macro_export]
-macro_rules! resource {
+macro_rules! resource_no_drop {
     ($owned:ident) => {
-        resource!($owned, SDL);
+        resource_no_drop!($owned, SDL);
     };
 
     ($owned:ident, $library:ident) => {
-        resource!($owned, $library, Destroy);
-    };
-
-    ($owned:ident, $library:ident, $dtor: ident) => {
         paste::paste! {
             #[derive(Clone, Copy)]
             pub struct [<$owned Handle>] {
@@ -61,7 +56,24 @@ macro_rules! resource {
                     self.inner
                 }
             }
+        }
+    }
+}
 
+/// Define a resource and implement shared traits and member functions.
+#[macro_export]
+macro_rules! resource {
+    ($owned:ident) => {
+        resource!($owned, SDL);
+    };
+
+    ($owned:ident, $library:ident) => {
+        resource!($owned, $library, Destroy);
+    };
+
+    ($owned:ident, $library:ident, $dtor: ident) => {
+        $crate::resource_no_drop!($owned, $library);
+        paste::paste! {
             impl Drop for $owned {
                 #[doc(alias = $library "_Destroy" $owned)]
                 fn drop(&mut self) {

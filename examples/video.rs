@@ -13,13 +13,13 @@ use halcyon::{
 /// SAFETY: Only call this on the main thread!
 unsafe fn run() -> SdlResult {
     let ctx = unsafe { Context::new() };
-    let vid = Video::new(&ctx).expect("Video creation failed");
+    let _vid = Video::new(&ctx).expect("Video creation failed");
 
     let wnd = WindowBuilder::new()
         .position(Point::new(Window::POS_CENTERED, Window::POS_CENTERED))
         .title(c"Halcyon Example")
         .size(Point::new(640, 480))
-        .build(&vid)?;
+        .build()?;
 
     wnd.sync()?;
 
