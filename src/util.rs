@@ -3,11 +3,7 @@ use std::ffi::{CStr, c_char};
 use crate::{defs::SdlResult, error::Error};
 
 #[macro_export]
-macro_rules! resource_no_drop {
-    ($owned:ident) => {
-        resource_no_drop!($owned, SDL);
-    };
-
+macro_rules! resource_impl {
     ($owned:ident, $library:ident) => {
         paste::paste! {
             #[derive(Clone, Copy)]
@@ -19,10 +15,6 @@ macro_rules! resource_no_drop {
                 pub(crate) fn from_ptr(handle: *mut [<$library _ $owned>]) -> Option<Self> {
                     std::ptr::NonNull::new(handle).map(|handle| Self { handle })
                 }
-            }
-
-            pub struct $owned {
-                pub(crate) inner: [<$owned Handle>],
             }
 
             impl $owned {
@@ -60,6 +52,25 @@ macro_rules! resource_no_drop {
     }
 }
 
+#[macro_export]
+macro_rules! resource_no_drop {
+    ($owned:ident) => {
+        resource_no_drop!($owned, SDL);
+    };
+
+    ($owned:ident, $library:ident) => {
+        paste::paste! {
+            #[must_use = "This struct has to be manually dropped via an associated `drop()` method."]
+            pub struct $owned {
+                pub(crate) inner: [<$owned Handle>],
+            }
+
+        }
+
+        $crate::resource_impl!($owned, $library);
+    };
+}
+
 /// Define a resource and implement shared traits and member functions.
 #[macro_export]
 macro_rules! resource {
@@ -72,7 +83,14 @@ macro_rules! resource {
     };
 
     ($owned:ident, $library:ident, $dtor: ident) => {
-        $crate::resource_no_drop!($owned, $library);
+        paste::paste! {
+            pub struct $owned {
+                pub(crate) inner: [<$owned Handle>],
+            }
+        }
+
+        $crate::resource_impl!($owned, $library);
+
         paste::paste! {
             impl Drop for $owned {
                 #[doc(alias = $library "_Destroy" $owned)]
@@ -127,10 +145,9 @@ pub fn to_result(result: bool) -> SdlResult {
 /// - `ptr` points to a valid null-terminated C string
 /// - the string pointed to by `ptr` is valid UTF-8
 ///
-/// The returned slice's lifetime is `'static`, which is EVEN MORE unsound
-/// and I recommend only using it as a one-off temporary value, i.e. to
+/// I recommend only using the returned value as a one-off temporary, i.e. to
 /// construct a [`String`], or for printing (unless you know for sure that the
 /// foreign string won't change its location and/or size).
-pub unsafe fn c_ptr_to_str(ptr: *const c_char) -> &'static str {
+pub unsafe fn c_ptr_to_str<'a>(ptr: *const c_char) -> &'a str {
     unsafe { std::str::from_utf8_unchecked(CStr::from_ptr(ptr).to_bytes()) }
 }

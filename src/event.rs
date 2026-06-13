@@ -346,6 +346,31 @@ pub enum Event {
     RenderDeviceLost(SDL_RenderEvent) = SDL_EVENT_RENDER_DEVICE_LOST.0,
 }
 
+impl From<SDL_Event> for Event {
+    fn from(current: SDL_Event) -> Self {
+        let mut ret = MaybeUninit::<Event>::uninit();
+
+        // HACK: Probably not the correct way to get the offset.
+        // Works on my machine, though, so... womp womp.
+        const DISCRIMINANT_OFFSET: usize = align_of::<Event>();
+
+        unsafe {
+            std::ptr::write(
+                ret.as_mut_ptr().cast::<Uint32>(),
+                *(&raw const current).cast(),
+            );
+
+            std::ptr::copy_nonoverlapping(
+                (&raw const current).cast::<u8>(),
+                ret.as_mut_ptr().cast::<u8>().add(DISCRIMINANT_OFFSET),
+                size_of::<Event>() - DISCRIMINANT_OFFSET,
+            )
+        };
+
+        unsafe { ret.assume_init() }
+    }
+}
+
 pub struct EventIter;
 
 impl EventIter {
@@ -376,26 +401,7 @@ impl Iterator for EventIter {
     fn next(&mut self) -> Option<Self::Item> {
         let mut current = MaybeUninit::<SDL_Event>::uninit();
         if unsafe { SDL_PollEvent(current.as_mut_ptr()) } {
-            let mut ret = MaybeUninit::<Event>::uninit();
-
-            // HACK: Probably not the correct way to get the offset.
-            // Works on my machine, though, so... womp womp.
-            const DISCRIMINANT_OFFSET: usize = align_of::<Event>();
-
-            unsafe {
-                std::ptr::write(
-                    ret.as_mut_ptr().cast::<Uint32>(),
-                    *current.as_ptr().cast::<_>(),
-                );
-
-                std::ptr::copy_nonoverlapping(
-                    current.as_ptr().cast::<u8>(),
-                    ret.as_mut_ptr().cast::<u8>().add(DISCRIMINANT_OFFSET),
-                    size_of::<Event>() - DISCRIMINANT_OFFSET,
-                )
-            };
-
-            Some(unsafe { ret.assume_init() })
+            Some(unsafe { current.assume_init() }.into())
         } else {
             None
         }

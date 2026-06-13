@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use sdl3_sys::init::*;
 
 use crate::{context::Context, defs::SdlResult, error::Error};
@@ -9,23 +7,18 @@ use crate::{context::Context, defs::SdlResult, error::Error};
 /// underlying subsystem upon being dropped;
 /// that's left up to the context being destroyed.
 /// For this reason, it cannot outlive the context.
-pub struct Subsystem<'ctx, const TYPE: u32> {
-    // Subsystems are tied to a context's lifetime.
-    marker: PhantomData<&'ctx Context>,
-}
+pub struct Subsystem<const TYPE: u32> {}
 
-impl<'a, const N: u32> Subsystem<'a, N> {
+impl<const N: u32> Subsystem<N> {
     #[doc(alias = "SDL_Init")]
-    pub fn new(_: &'a Context) -> SdlResult<Self> {
+    pub fn new(_: &Context) -> SdlResult<Self> {
         let res = unsafe { SDL_Init(SDL_InitFlags(N)) };
         if res {
-            Ok(Self {
-                marker: PhantomData,
-            })
+            Ok(Self {})
         } else {
             Err(Error::current())
         }
     }
 }
 
-pub type Video<'a> = Subsystem<'a, { SDL_INIT_VIDEO.0 }>;
+pub type Video = Subsystem<{ SDL_INIT_VIDEO.0 }>;
