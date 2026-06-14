@@ -3,8 +3,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::context::Context;
-
 /// An abstraction over `Context::base_path()` that provides
 /// utility methods for constructing `Path`s relative to the
 /// directory of the program that's running.
@@ -19,7 +17,7 @@ pub struct ResourceLoader {
 impl ResourceLoader {
     pub fn new() -> Self {
         Self {
-            root: Context::base_path(),
+            root: crate::base_path(),
         }
     }
 

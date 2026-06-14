@@ -1,5 +1,11 @@
 #![allow(dead_code)]
 
+use std::path::Path;
+
+use sdl3_sys::{filesystem::SDL_GetBasePath, platform::SDL_GetPlatform};
+
+use crate::util::c_ptr_to_str;
+
 mod properties;
 mod sdl_box;
 
@@ -25,6 +31,20 @@ pub mod traits;
 pub mod ttf;
 pub mod util;
 pub mod window;
+
+#[doc(alias = "SDL_GetPlatform")]
+pub fn platform() -> &'static str {
+    // SAFETY: All SDL3 platform strings are UTF-8,
+    // and they are stored statically.
+    unsafe { c_ptr_to_str(SDL_GetPlatform()) }
+}
+
+#[doc(alias = "SDL_GetBasePath")]
+pub fn base_path() -> &'static Path {
+    // SAFETY: The string returned by `SDL_GetBasePath()`
+    // is guaranteed to be valid UTF-8.
+    Path::new(unsafe { c_ptr_to_str(SDL_GetBasePath()) })
+}
 
 #[cfg(test)]
 mod tests {

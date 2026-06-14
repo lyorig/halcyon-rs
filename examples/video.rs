@@ -28,7 +28,7 @@ unsafe fn run() -> SdlResult {
 
     println!(
         "Platform = {}, renderer backend = {}",
-        Context::platform(),
+        halcyon::platform(),
         rnd.name()
     );
 
