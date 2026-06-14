@@ -142,6 +142,21 @@ use crate::{
     util::{c_ptr_to_str, to_result},
 };
 
+#[doc(alias = "TTF_WasInit")]
+pub fn num_init() -> i32 {
+    unsafe { TTF_WasInit() }
+}
+
+#[doc(alias = "TTF_WasInit")]
+pub fn is_init() -> bool {
+    num_init() != 0
+}
+
+#[doc(alias = "TTF_Version")]
+pub fn version() -> i32 {
+    TTF_Version()
+}
+
 /// Ensures SDL_ttf (de)initialization.
 pub struct Context;
 
@@ -153,21 +168,6 @@ impl Context {
         } else {
             Err(Error::current())
         }
-    }
-
-    #[doc(alias = "TTF_WasInit")]
-    pub fn is_init() -> bool {
-        Self::num_init() != 0
-    }
-
-    #[doc(alias = "TTF_WasInit")]
-    pub fn num_init() -> i32 {
-        unsafe { TTF_WasInit() }
-    }
-
-    #[doc(alias = "TTF_Version")]
-    pub fn version() -> i32 {
-        TTF_Version()
     }
 
     #[doc(alias = "TTF_OpenFont")]
