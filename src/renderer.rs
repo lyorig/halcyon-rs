@@ -152,7 +152,7 @@ impl RendererBuilder {
 
     /// Build the renderer.
     ///
-    /// This doesn't require a `Video` subsystem parameter, as the `Window`
+    /// This doesn't require a subsystem parameter, as the [`Window`]
     /// you're creating this with needs one, proving the subsystem has been
     /// initialized.
     #[doc(alias = "SDL_CreateRendererWithProperties")]
@@ -167,7 +167,7 @@ impl RendererHandle {
     #[doc(alias = "SDL_GetRendererName")]
     pub fn name(&self) -> &str {
         unsafe {
-            // SAFETY: Renderer name strings are stored in a static array.
+            // SAFETY: Renderer name strings are all UTF-8.
             std::str::from_utf8_unchecked(
                 CStr::from_ptr(SDL_GetRendererName(self.handle.as_ptr())).to_bytes(),
             )
@@ -296,8 +296,8 @@ impl RendererHandle {
         to_result(unsafe { SDL_FlushRenderer(self.handle.as_ptr()) })
     }
 
-    /// This function is a direct wrapper of SDL's `SDL_RenderTexture()`;
-    /// see `DrawBuilder` for a neater way to draw to a renderer.
+    /// This function is a direct wrapper of SDL's [`SDL_RenderTexture`];
+    /// see [`DrawBuilder`] for a neater way to draw to a renderer.
     #[doc(alias = "SDL_RenderTexture")]
     pub fn draw(
         &self,
@@ -453,8 +453,8 @@ impl RendererHandle {
         })
     }
 
-    /// For use with [`RendererHandle::xchg_target()`]. Otherwise, prefer using
-    /// [`RendererHandle::set_target()`] or [`RendererHandle::reset_target()`].
+    /// For use with [`RendererHandle::xchg_target`]. Otherwise, prefer using
+    /// [`RendererHandle::set_target`] or [`RendererHandle::reset_target`].
     ///
     /// # Safety
     /// If the parameter is `Some(tex)`, ensure `tex` lives for as long as it's
@@ -490,7 +490,7 @@ impl RendererHandle {
         Ok(old)
     }
 
-    /// Quoting documentation for `SDL_SetRenderVSync()`:
+    /// Quoting documentation for [`SDL_SetRenderVSync`]:
     /// Not every value is supported by every driver, so you should check
     /// the return value to see whether the requested setting is supported.
     ///
@@ -540,6 +540,7 @@ impl RendererHandle {
 }
 
 impl BlendMode for RendererHandle {
+    #[doc(alias = "SDL_GetRenderDrawBlendMode")]
     fn blend_mode(&self) -> SDL_BlendMode {
         let mut ret = MaybeUninit::uninit();
         unsafe {
@@ -548,6 +549,7 @@ impl BlendMode for RendererHandle {
         }
     }
 
+    #[doc(alias = "SDL_SetRenderDrawBlendMode")]
     fn set_blend_mode(&self, bm: SDL_BlendMode) {
         unsafe {
             SDL_SetRenderDrawBlendMode(self.handle.as_ptr(), bm);
@@ -564,7 +566,7 @@ impl Renderer {
         Self::from_ptr(unsafe {
             SDL_CreateRenderer(
                 wnd.handle.as_ptr(),
-                name.map_or(std::ptr::null(), |n| n.as_ptr()),
+                name.map_or(std::ptr::null(), CStr::as_ptr),
             )
         })
     }
