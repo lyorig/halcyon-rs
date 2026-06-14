@@ -143,9 +143,9 @@ use crate::{
 };
 
 /// Ensures SDL_ttf (de)initialization.
-pub struct TtfContext;
+pub struct Context;
 
-impl TtfContext {
+impl Context {
     #[doc(alias = "TTF_Init")]
     pub fn new() -> SdlResult<Self> {
         if unsafe { TTF_Init() } {
@@ -172,15 +172,11 @@ impl TtfContext {
 
     #[doc(alias = "TTF_OpenFont")]
     pub fn open(&self, file: &CStr, point_size: f32) -> SdlResult<Font<'_>> {
-        Font::new_unchecked(file, point_size)
-    }
-
-    pub fn try_clone(&self) -> SdlResult<Self> {
-        Self::new()
+        unsafe { Font::new_unchecked(file, point_size) }
     }
 }
 
-impl Drop for TtfContext {
+impl Drop for Context {
     #[doc(alias = "TTF_Quit")]
     fn drop(&mut self) {
         unsafe { TTF_Quit() };
@@ -189,7 +185,7 @@ impl Drop for TtfContext {
 
 pub struct Font<'ttf> {
     pub(crate) inner: FontHandle,
-    _marker: PhantomData<&'ttf TtfContext>,
+    marker: PhantomData<&'ttf Context>,
 }
 
 #[derive(Clone, Copy)]
@@ -208,7 +204,7 @@ impl Font<'_> {
         match NonNull::new(handle) {
             Some(handle) => Ok(Font {
                 inner: FontHandle { handle },
-                _marker: PhantomData,
+                marker: PhantomData,
             }),
             None => Err(Error::current()),
         }
@@ -244,12 +240,21 @@ impl Drop for Font<'_> {
     }
 }
 
-impl FontHandle {
+impl Clone for Font<'_> {
     #[doc(alias = "TTF_CopyFont")]
-    pub fn try_clone(&self) -> SdlResult<Font<'_>> {
-        Font::from_ptr(unsafe { TTF_CopyFont(self.handle.as_ptr()) })
-    }
+    fn clone(&self) -> Self {
+        let ptr = unsafe { TTF_CopyFont(self.handle.as_ptr()) };
+        let handle = unsafe { NonNull::new_unchecked(ptr) };
+        let inner = FontHandle { handle };
 
+        Self {
+            inner,
+            marker: PhantomData,
+        }
+    }
+}
+
+impl FontHandle {
     #[doc(alias = "TTF_RenderGlyph_Blended")]
     pub fn render_glyph_blended(&self, ch: char, color: RgbaU8) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
@@ -331,15 +336,15 @@ impl FontHandle {
     #[doc(alias = "TTF_RenderText_Blended_Wrapped")]
     pub fn render_text_blended_wrapped(
         &self,
-        text: &CStr,
+        text: &str,
         color: RgbaU8,
         wrap_length: i32,
     ) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_Blended_Wrapped(
                 self.handle.as_ptr(),
-                text.as_ptr(),
-                text.count_bytes(),
+                text.as_ptr().cast(),
+                text.len(),
                 color.into(),
                 wrap_length,
             )
@@ -349,7 +354,7 @@ impl FontHandle {
     #[doc(alias = "TTF_RenderText_LCD_Wrapped")]
     pub fn render_text_lcd_wrapped(
         &self,
-        text: &CStr,
+        text: &str,
         fg: RgbaU8,
         bg: RgbaU8,
         wrap_length: i32,
@@ -357,8 +362,8 @@ impl FontHandle {
         Surface::from_ptr(unsafe {
             TTF_RenderText_LCD_Wrapped(
                 self.handle.as_ptr(),
-                text.as_ptr(),
-                text.count_bytes(),
+                text.as_ptr().cast(),
+                text.len(),
                 fg.into(),
                 bg.into(),
                 wrap_length,
@@ -369,7 +374,7 @@ impl FontHandle {
     #[doc(alias = "TTF_RenderText_Shaded_Wrapped")]
     pub fn render_text_shaded_wrapped(
         &self,
-        text: &CStr,
+        text: &str,
         fg: RgbaU8,
         bg: RgbaU8,
         wrap_length: i32,
@@ -377,8 +382,8 @@ impl FontHandle {
         Surface::from_ptr(unsafe {
             TTF_RenderText_Shaded_Wrapped(
                 self.handle.as_ptr(),
-                text.as_ptr(),
-                text.count_bytes(),
+                text.as_ptr().cast(),
+                text.len(),
                 fg.into(),
                 bg.into(),
                 wrap_length,
@@ -389,15 +394,15 @@ impl FontHandle {
     #[doc(alias = "TTF_RenderText_Solid_Wrapped")]
     pub fn render_text_solid_wrapped(
         &self,
-        text: &CStr,
+        text: &str,
         color: RgbaU8,
         wrap_length: i32,
     ) -> SdlResult<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_Solid_Wrapped(
                 self.handle.as_ptr(),
-                text.as_ptr(),
-                text.count_bytes(),
+                text.as_ptr().cast(),
+                text.len(),
                 color.into(),
                 wrap_length,
             )
@@ -405,7 +410,7 @@ impl FontHandle {
     }
 
     #[doc(alias = "TTF_GetFontFamilyName")]
-    pub fn family(&self) -> &'_ str {
+    pub fn family(&self) -> &str {
         unsafe { c_ptr_to_str(TTF_GetFontFamilyName(self.handle.as_ptr())) }
     }
 
@@ -417,12 +422,12 @@ impl FontHandle {
 
 impl Font<'_> {
     /// # Safety
-    /// Ensure a [`TtfContext`] will exist for the entire lifetime of the returned font.
+    /// Ensure a [`Context`] will exist for the entire lifetime of the returned font.
     /// That includes the point at which it's dropped. A segfault will probably
     /// happen otherwise.
-    /// (**Tip:** you can check whether TTF is initialized via [`TtfContext::is_init()`]).
+    /// (**Tip:** you can check whether TTF is initialized via [`Context::is_init()`]).
     #[doc(alias = "TTF_OpenFont")]
-    pub fn new_unchecked<'a>(file: &CStr, point_size: f32) -> SdlResult<Font<'a>> {
+    pub unsafe fn new_unchecked(file: &CStr, point_size: f32) -> SdlResult<Self> {
         Font::from_ptr(unsafe { TTF_OpenFont(file.as_ptr(), point_size) })
     }
 }
@@ -490,7 +495,7 @@ impl TextHandle {
 
 impl Text {
     #[doc(alias = "TTF_CreateText")]
-    pub fn new(font: FontHandle, text: &str) -> SdlResult<Self> {
+    pub fn new(font: Ref<Font>, text: &str) -> SdlResult<Self> {
         Self::from_ptr(unsafe {
             TTF_CreateText(
                 std::ptr::null_mut(),
