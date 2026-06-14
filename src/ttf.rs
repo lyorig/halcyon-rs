@@ -121,7 +121,13 @@
 //! - [x] TTF_Version
 //! - [x] TTF_WasInit
 
-use std::{ffi::CStr, mem::MaybeUninit};
+use std::{
+    ffi::CStr,
+    marker::PhantomData,
+    mem::MaybeUninit,
+    ops::{Deref, DerefMut},
+    ptr::NonNull,
+};
 
 use sdl3_ttf_sys::ttf::*;
 
@@ -132,7 +138,7 @@ use crate::{
     rect::{PointF32, PointI32},
     resource,
     surface::Surface,
-    traits::Ref,
+    traits::{Ref, Resource},
     util::{c_ptr_to_str, to_result},
 };
 
@@ -164,6 +170,11 @@ impl TtfContext {
         TTF_Version()
     }
 
+    #[doc(alias = "TTF_OpenFont")]
+    pub fn open(&self, file: &CStr, point_size: f32) -> SdlResult<Font<'_>> {
+        Font::new_unchecked(file, point_size)
+    }
+
     pub fn try_clone(&self) -> SdlResult<Self> {
         Self::new()
     }
@@ -176,11 +187,66 @@ impl Drop for TtfContext {
     }
 }
 
-resource!(Font, TTF, Close);
+pub struct Font<'ttf> {
+    pub(crate) inner: FontHandle,
+    _marker: PhantomData<&'ttf TtfContext>,
+}
+
+#[derive(Clone, Copy)]
+pub struct FontHandle {
+    pub(crate) handle: NonNull<TTF_Font>,
+}
+
+impl FontHandle {
+    pub(crate) fn from_ptr(handle: *mut TTF_Font) -> Option<Self> {
+        NonNull::new(handle).map(|handle| Self { handle })
+    }
+}
+
+impl Font<'_> {
+    pub(crate) fn from_ptr<'a>(handle: *mut TTF_Font) -> SdlResult<Font<'a>> {
+        match NonNull::new(handle) {
+            Some(handle) => Ok(Font {
+                inner: FontHandle { handle },
+                _marker: PhantomData,
+            }),
+            None => Err(Error::current()),
+        }
+    }
+}
+
+impl Deref for Font<'_> {
+    type Target = FontHandle;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl DerefMut for Font<'_> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
+
+impl Resource for Font<'_> {
+    type Handle = FontHandle;
+
+    unsafe fn as_handle(&self) -> Self::Handle {
+        self.inner
+    }
+}
+
+impl Drop for Font<'_> {
+    #[doc(alias = "TTF_DestroyFont")]
+    fn drop(&mut self) {
+        unsafe { TTF_CloseFont(self.inner.handle.as_ptr()) }
+    }
+}
 
 impl FontHandle {
     #[doc(alias = "TTF_CopyFont")]
-    pub fn try_clone(&self) -> SdlResult<Font> {
+    pub fn try_clone(&self) -> SdlResult<Font<'_>> {
         Font::from_ptr(unsafe { TTF_CopyFont(self.handle.as_ptr()) })
     }
 
@@ -349,15 +415,15 @@ impl FontHandle {
     }
 }
 
-impl Font {
+impl Font<'_> {
     /// # Safety
     /// Ensure a [`TtfContext`] will exist for the entire lifetime of the returned font.
     /// That includes the point at which it's dropped. A segfault will probably
     /// happen otherwise.
     /// (**Tip:** you can check whether TTF is initialized via [`TtfContext::is_init()`]).
     #[doc(alias = "TTF_OpenFont")]
-    pub unsafe fn new(file: &CStr, point_size: f32) -> SdlResult<Self> {
-        Self::from_ptr(unsafe { TTF_OpenFont(file.as_ptr(), point_size) })
+    pub fn new_unchecked<'a>(file: &CStr, point_size: f32) -> SdlResult<Font<'a>> {
+        Font::from_ptr(unsafe { TTF_OpenFont(file.as_ptr(), point_size) })
     }
 }
 
