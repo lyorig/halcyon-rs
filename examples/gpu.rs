@@ -7,7 +7,7 @@ fn foo() -> SdlResult {
     let ctx = unsafe { Context::new() };
     let _video = Video::new(&ctx);
 
-    let device = GPUDevice::new(ShaderFormat::Msl, true)?;
+    let device = GPUDevice::new(ShaderFormats::Msl, true)?;
     let cmdbuf = GPUCommandBuffer::new(device.as_ref())?;
     let _copy = GPUCopyPass::new(cmdbuf.as_ref())?;
     let buffer = GPUBuffer::new(device.as_ref(), &BUFFER_CREATE_INFO)?;

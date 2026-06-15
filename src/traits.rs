@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::{marker::PhantomData, ops::Deref};
 
 use sdl3_sys::blendmode::SDL_BlendMode;
 
@@ -24,7 +24,16 @@ pub trait Resource: Sized {
 
 pub struct Ref<'a, T: Resource> {
     handle: T::Handle,
-    _marker: std::marker::PhantomData<&'a T>,
+    _marker: PhantomData<&'a T>,
+}
+
+impl<T: Resource> Ref<'_, T> {
+    pub(crate) unsafe fn from_handle(handle: T::Handle) -> Self {
+        Self {
+            handle,
+            _marker: PhantomData,
+        }
+    }
 }
 
 impl<T: Resource> Clone for Ref<'_, T> {

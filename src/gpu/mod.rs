@@ -9,14 +9,16 @@ use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
 use crate::{
     defs::SdlResult,
+    error::Error,
     rect::Point,
     resource, resource_no_drop,
     traits::Ref,
-    util::{opt2ptr_mut, to_result},
+    util::{opt2ptr, opt2ptr_mut, to_result},
     window::Window,
 };
 
-#[bitmask(u32)]
+/// Non-bitmask variant of [`SDL_GPUShaderFormat`].
+#[repr(u32)]
 pub enum ShaderFormat {
     SpirV = SDL_GPUShaderFormat::SPIRV.0,
     Dxbc = SDL_GPUShaderFormat::DXBC.0,
@@ -25,29 +27,44 @@ pub enum ShaderFormat {
     Metallib = SDL_GPUShaderFormat::METALLIB.0,
 }
 
-pub fn are_formats_supported(fmts: ShaderFormat) -> bool {
-    let fmt = SDL_GPUShaderFormat::new(fmts.bits());
-    unsafe { SDL_GPUSupportsShaderFormats(fmt, std::ptr::null()) }
+#[bitmask(u32)]
+pub enum ShaderFormats {
+    SpirV = SDL_GPUShaderFormat::SPIRV.0,
+    Dxbc = SDL_GPUShaderFormat::DXBC.0,
+    Dxil = SDL_GPUShaderFormat::DXIL.0,
+    Msl = SDL_GPUShaderFormat::MSL.0,
+    Metallib = SDL_GPUShaderFormat::METALLIB.0,
+}
+
+pub fn are_formats_supported(fmts: ShaderFormats) -> bool {
+    let fmts = SDL_GPUShaderFormat::new(fmts.bits());
+    unsafe { SDL_GPUSupportsShaderFormats(fmts, std::ptr::null()) }
 }
 
 resource!(GPUDevice);
 impl GPUDevice {
-    pub fn new(formats: ShaderFormat, debug_mode: bool) -> SdlResult<Self> {
-        let fmt = SDL_GPUShaderFormat::new(formats.bits());
-        let handle = unsafe { SDL_CreateGPUDevice(fmt, debug_mode, std::ptr::null()) };
+    pub fn new(formats: ShaderFormats, debug_mode: bool) -> SdlResult<Self> {
+        let fmts = SDL_GPUShaderFormat::new(formats.bits());
+        let handle = unsafe { SDL_CreateGPUDevice(fmts, debug_mode, std::ptr::null()) };
         Self::from_ptr(handle)
     }
+}
 
+impl GPUDeviceHandle {
     pub fn claim_window(&self, window: Ref<Window>) -> SdlResult {
         to_result(unsafe {
             SDL_ClaimWindowForGPUDevice(self.handle.as_ptr(), window.handle.as_ptr())
         })
     }
 
-    pub fn driver(&self) -> &str {
+    pub fn driver(&self) -> SdlResult<&str> {
         let raw = unsafe { SDL_GetGPUDeviceDriver(self.handle.as_ptr()) };
-        let cstr = unsafe { CStr::from_ptr(raw) };
-        unsafe { std::str::from_utf8_unchecked(cstr.to_bytes()) }
+        if raw.is_null() {
+            Err(Error::current())
+        } else {
+            let cstr = unsafe { CStr::from_ptr(raw) };
+            Ok(unsafe { std::str::from_utf8_unchecked(cstr.to_bytes()) })
+        }
     }
 }
 
@@ -106,6 +123,12 @@ impl GPUBuffer {
         Self::from_ptr(handle)
     }
 
+    pub fn drop(self, device: Ref<GPUDevice>) {
+        unsafe { SDL_ReleaseGPUBuffer(device.handle.as_ptr(), self.handle.as_ptr()) };
+    }
+}
+
+impl GPUBufferHandle {
     pub fn upload(
         &self,
         copy_pass: Ref<GPUCopyPass>,
@@ -123,10 +146,6 @@ impl GPUBuffer {
         dst: &TransferBufferLocation,
     ) {
         unsafe { SDL_DownloadFromGPUBuffer(copy_pass.handle.as_ptr(), &src.0, &dst.0) };
-    }
-
-    pub fn drop(self, device: Ref<GPUDevice>) {
-        unsafe { SDL_ReleaseGPUBuffer(device.handle.as_ptr(), self.handle.as_ptr()) };
     }
 }
 
@@ -150,7 +169,7 @@ impl ComputePipelineCreateInfo {
             code_size: code.len(),
             code: code.as_ptr(),
             entrypoint: entrypoint.as_ptr(),
-            format: SDL_GPUShaderFormat::new(fmt.bits()),
+            format: SDL_GPUShaderFormat::new(fmt as _),
             num_samplers: samplers,
             num_readonly_storage_textures: ro_stor_tex,
             num_readonly_storage_buffers: ro_stor_buf,
@@ -190,12 +209,14 @@ impl GPUGraphicsPipeline {
         Self::from_ptr(handle)
     }
 
-    pub fn bind(&self, render_pass: Ref<GPURenderPass>) {
-        unsafe { SDL_BindGPUGraphicsPipeline(render_pass.handle.as_ptr(), self.handle.as_ptr()) };
-    }
-
     pub fn drop(self, device: Ref<GPUDevice>) {
         unsafe { SDL_ReleaseGPUGraphicsPipeline(device.handle.as_ptr(), self.handle.as_ptr()) };
+    }
+}
+
+impl GPUGraphicsPipelineHandle {
+    pub fn bind(&self, render_pass: Ref<GPURenderPass>) {
+        unsafe { SDL_BindGPUGraphicsPipeline(render_pass.handle.as_ptr(), self.handle.as_ptr()) };
     }
 }
 
@@ -215,22 +236,24 @@ impl GPUCommandBuffer {
     }
 
     #[doc(alias = "SDL_SubmitGPUCommandBuffer")]
-    pub fn submit(&self) -> SdlResult {
+    pub fn submit(self) -> SdlResult {
         to_result(unsafe { SDL_SubmitGPUCommandBuffer(self.handle.as_ptr()) })
     }
 
     #[doc(alias = "SDL_SubmitGPUCommandBufferAndAcquireFence")]
-    pub fn submit_fence(&self) -> SdlResult<GPUFence> {
+    pub fn submit_fence(self) -> SdlResult<GPUFence> {
         let fence = unsafe { SDL_SubmitGPUCommandBufferAndAcquireFence(self.handle.as_ptr()) };
         GPUFence::from_ptr(fence)
     }
+}
 
+impl GPUCommandBufferHandle {
     #[doc(alias = "SDL_WaitAndAcquireGPUSwapchainTexture")]
     pub fn wait_for_swapchain_texture(
         &self,
         wnd: Ref<Window>,
         (tex_x, tex_y): (Option<&mut u32>, Option<&mut u32>),
-    ) -> SdlResult<Option<GPUTexture>> {
+    ) -> SdlResult<Option<Ref<'_, GPUTexture>>> {
         let mut tex = MaybeUninit::uninit();
         let res = unsafe {
             SDL_WaitAndAcquireGPUSwapchainTexture(
@@ -242,10 +265,10 @@ impl GPUCommandBuffer {
             )
         };
 
-        fn m(ptr: *mut SDL_GPUTexture) -> Option<GPUTexture> {
+        fn m<'a>(ptr: *mut SDL_GPUTexture) -> Option<Ref<'a, GPUTexture>> {
             let handle = NonNull::new(ptr)?;
             let inner = GPUTextureHandle { handle };
-            Some(GPUTexture { inner })
+            Some(unsafe { Ref::from_handle(inner) })
         }
 
         to_result(res).map(|()| m(unsafe { tex.assume_init() }))
@@ -254,13 +277,17 @@ impl GPUCommandBuffer {
 
 resource!(GPURenderPass, SDL, End);
 impl GPURenderPass {
-    pub fn new(cmdbuf: Ref<GPUCommandBuffer>, g: &[SDL_GPUColorTargetInfo]) -> SdlResult<Self> {
+    pub fn new(
+        cmdbuf: Ref<GPUCommandBuffer>,
+        color_targets: &[SDL_GPUColorTargetInfo],
+        depth_stencil_target: Option<&SDL_GPUDepthStencilTargetInfo>,
+    ) -> SdlResult<Self> {
         let handle = unsafe {
             SDL_BeginGPURenderPass(
                 cmdbuf.handle.as_ptr(),
-                g.as_ptr(),
-                g.len() as _,
-                std::ptr::null(),
+                color_targets.as_ptr(),
+                color_targets.len() as _,
+                opt2ptr(depth_stencil_target),
             )
         };
         Self::from_ptr(handle)
@@ -269,6 +296,10 @@ impl GPURenderPass {
 
 resource!(GPUComputePass, SDL, End);
 impl GPUComputePass {
+    // TODO: `SDL_BeginGPUComputePass`
+}
+
+impl GPUComputePassHandle {
     pub fn bind(&self, pipeline: Ref<GPUComputePipeline>) {
         unsafe { SDL_BindGPUComputePipeline(self.handle.as_ptr(), pipeline.handle.as_ptr()) };
     }
@@ -306,7 +337,7 @@ impl ShaderCreateInfo {
             code_size: code.len(),
             code: code.as_ptr(),
             entrypoint: entrypoint.as_ptr(),
-            format: SDL_GPUShaderFormat::new(fmt.bits()),
+            format: SDL_GPUShaderFormat::new(fmt as _),
             stage: SDL_GPUShaderStage::new(stage as _),
             num_samplers,
             num_storage_textures,
@@ -340,8 +371,6 @@ pub enum TextureType {
     Cube = SDL_GPUTextureType::CUBE.0,
     CubeArray = SDL_GPUTextureType::CUBE_ARRAY.0,
 }
-
-pub enum TextureFormat {}
 
 #[bitmask(u32)]
 pub enum TextureUsageFlags {
@@ -444,6 +473,12 @@ impl GPUTexture {
         Self::from_ptr(handle)
     }
 
+    pub fn drop(self, device: Ref<GPUDevice>) {
+        unsafe { SDL_ReleaseGPUTexture(device.handle.as_ptr(), self.handle.as_ptr()) };
+    }
+}
+
+impl GPUTextureHandle {
     pub fn upload(
         &self,
         copy_pass: Ref<GPUCopyPass>,
@@ -455,10 +490,6 @@ impl GPUTexture {
             SDL_UploadToGPUTexture(copy_pass.handle.as_ptr(), &src.0, &dst.0, cycle);
         }
     }
-
-    pub fn drop(self, device: Ref<GPUDevice>) {
-        unsafe { SDL_ReleaseGPUTexture(device.handle.as_ptr(), self.handle.as_ptr()) };
-    }
 }
 
 resource_no_drop!(GPUTransferBuffer, SDL);
@@ -466,4 +497,9 @@ impl GPUTransferBuffer {
     pub fn drop(self, dev: Ref<GPUDevice>) {
         unsafe { SDL_ReleaseGPUTransferBuffer(dev.handle.as_ptr(), self.handle.as_ptr()) };
     }
+
+    // TODO:
+    // - SDL_CreateGPUTransferBuffer
+    // - SDL_MapGPUTransferBuffer
+    // - SDL_UnmapGPUTransferBuffer
 }
