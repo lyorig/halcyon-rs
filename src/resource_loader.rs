@@ -17,7 +17,7 @@ pub struct ResourceLoader {
 impl ResourceLoader {
     pub fn new() -> Self {
         Self {
-            root: crate::base_path(),
+            root: Path::new(crate::base_path()),
         }
     }
 

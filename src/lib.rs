@@ -1,7 +1,5 @@
 #![allow(dead_code)]
 
-use std::path::Path;
-
 use sdl3_sys::{filesystem::SDL_GetBasePath, init::SDL_IsMainThread, platform::SDL_GetPlatform};
 
 use crate::util::c_ptr_to_str;
@@ -40,10 +38,10 @@ pub fn platform() -> &'static str {
 }
 
 #[doc(alias = "SDL_GetBasePath")]
-pub fn base_path() -> &'static Path {
+pub fn base_path() -> &'static str {
     // SAFETY: The string returned by `SDL_GetBasePath()`
     // is guaranteed to be valid UTF-8.
-    Path::new(unsafe { c_ptr_to_str(SDL_GetBasePath()) })
+    unsafe { c_ptr_to_str(SDL_GetBasePath()) }
 }
 
 #[doc(alias = "SDL_IsMainThread")]

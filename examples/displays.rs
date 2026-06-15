@@ -4,7 +4,7 @@ use halcyon::{
 
 fn outer() -> SdlResult {
     let context = Context::new();
-    let _video = Video::new(&context);
+    let _video: Video = context.init()?;
 
     for (i, disp) in DisplayHandle::all()?.iter().copied().enumerate() {
         println!(
