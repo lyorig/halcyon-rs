@@ -1,7 +1,7 @@
 use halcyon::{context::Context, subsystem::Video};
 
 fn main() {
-    let ctx = unsafe { Context::new() };
+    let ctx = Context::new();
     let _vid = Video::new(&ctx).expect("Cannot initialize video subsystem");
 
     println!(

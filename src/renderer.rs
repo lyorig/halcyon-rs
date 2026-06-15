@@ -192,8 +192,9 @@ impl RendererHandle {
     /// the actual pointed-to object's lifetime. Consult the SDL function's docs
     /// for more specific info.
     #[doc(alias = "SDL_GetRenderTarget")]
-    pub unsafe fn target(&self) -> Option<TextureHandle> {
+    pub unsafe fn target(&self) -> Option<Ref<'_, Texture>> {
         TextureHandle::from_ptr(unsafe { SDL_GetRenderTarget(self.handle.as_ptr()) })
+            .map(|h| unsafe { Ref::from_handle(h) })
     }
 
     #[doc(alias = "SDL_GetRenderVSync")]
@@ -460,7 +461,7 @@ impl RendererHandle {
     /// If the parameter is `Some(tex)`, ensure `tex` lives for as long as it's
     /// used as the target texture.
     #[doc(alias = "SDL_SetRenderTarget")]
-    pub unsafe fn set_target_opt(&self, tgt: Option<TextureHandle>) -> SdlResult {
+    pub fn set_target_opt(&self, tgt: Option<Ref<Texture>>) -> SdlResult {
         to_result(unsafe {
             SDL_SetRenderTarget(
                 self.handle.as_ptr(),
@@ -474,17 +475,17 @@ impl RendererHandle {
 
     #[doc(alias = "SDL_SetRenderTarget")]
     pub fn set_target(&self, tgt: Ref<Texture>) -> SdlResult {
-        unsafe { self.set_target_opt(Some(*tgt)) }
+        self.set_target_opt(Some(tgt))
     }
 
     #[doc(alias = "SDL_SetRenderTarget")]
     pub fn reset_target(&self) -> SdlResult {
-        unsafe { self.set_target_opt(None) }
+        self.set_target_opt(None)
     }
 
     /// # Safety
     /// Ensure `tgt` lives for as long as it's used as the target texture.
-    pub unsafe fn xchg_target(&self, tgt: Ref<Texture>) -> SdlResult<Option<TextureHandle>> {
+    pub fn xchg_target(&self, tgt: Ref<Texture>) -> SdlResult<Option<Ref<'_, Texture>>> {
         let old = unsafe { self.target() };
         self.set_target(tgt)?;
         Ok(old)

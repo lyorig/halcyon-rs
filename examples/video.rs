@@ -12,7 +12,7 @@ use halcyon::{
 
 /// SAFETY: Only call this on the main thread!
 unsafe fn run() -> SdlResult {
-    let ctx = unsafe { Context::new() };
+    let ctx = Context::new();
     let _vid = Video::new(&ctx).expect("Video creation failed");
 
     let wnd = WindowBuilder::new()

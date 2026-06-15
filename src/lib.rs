@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use sdl3_sys::{filesystem::SDL_GetBasePath, platform::SDL_GetPlatform};
+use sdl3_sys::{filesystem::SDL_GetBasePath, init::SDL_IsMainThread, platform::SDL_GetPlatform};
 
 use crate::util::c_ptr_to_str;
 
@@ -46,6 +46,11 @@ pub fn base_path() -> &'static Path {
     Path::new(unsafe { c_ptr_to_str(SDL_GetBasePath()) })
 }
 
+#[doc(alias = "SDL_IsMainThread")]
+pub fn is_main_thread() -> bool {
+    unsafe { SDL_IsMainThread() }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{context::Context, subsystem::Video};
@@ -53,7 +58,7 @@ mod tests {
     #[test]
     fn context() {
         // FIXME: This fails due to the test harness executing on a separate thread.
-        let ctx = unsafe { Context::new() };
+        let ctx = Context::new();
         let _vid = Video::new(&ctx).expect("Should be able to initialize video subsystem");
     }
 }

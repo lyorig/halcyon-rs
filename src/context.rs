@@ -9,8 +9,14 @@ pub struct Context;
 impl Context {
     /// # Safety
     /// Only call this on the main thread.
-    pub unsafe fn new() -> Self {
+    pub unsafe fn new_unchecked() -> Self {
         Self {}
+    }
+
+    /// Panics if this function is not called on the main thread.
+    pub fn new() -> Self {
+        assert!(crate::is_main_thread());
+        unsafe { Self::new_unchecked() }
     }
 }
 
@@ -18,5 +24,11 @@ impl Drop for Context {
     #[doc(alias = "SDL_Quit")]
     fn drop(&mut self) {
         unsafe { SDL_Quit() };
+    }
+}
+
+impl Default for Context {
+    fn default() -> Self {
+        Self::new()
     }
 }

@@ -3,7 +3,7 @@ use halcyon::{
 };
 
 fn outer() -> SdlResult {
-    let context = unsafe { Context::new() };
+    let context = Context::new();
     let _video = Video::new(&context);
 
     for (i, disp) in DisplayHandle::all()?.iter().copied().enumerate() {
