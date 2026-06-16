@@ -168,7 +168,7 @@ impl RendererHandle {
     pub fn name(&self) -> &str {
         unsafe {
             // SAFETY: Renderer name strings are all UTF-8.
-            std::str::from_utf8_unchecked(
+            str::from_utf8_unchecked(
                 CStr::from_ptr(SDL_GetRendererName(self.handle.as_ptr())).to_bytes(),
             )
         }
@@ -310,8 +310,8 @@ impl RendererHandle {
             SDL_RenderTexture(
                 self.handle.as_ptr(),
                 tex.handle.as_ptr(),
-                opt2ptr(src),
-                opt2ptr(dst),
+                opt2ptr(src).cast(),
+                opt2ptr(dst).cast(),
             )
         })
     }
@@ -329,10 +329,10 @@ impl RendererHandle {
             SDL_RenderTextureAffine(
                 self.handle.as_ptr(),
                 tex.handle.as_ptr(),
-                opt2ptr(src),
-                opt2ptr(origin),
-                opt2ptr(right),
-                opt2ptr(down),
+                opt2ptr(src).cast(),
+                opt2ptr(origin).cast(),
+                opt2ptr(right).cast(),
+                opt2ptr(down).cast(),
             )
         })
     }
@@ -349,9 +349,9 @@ impl RendererHandle {
             SDL_RenderTextureTiled(
                 self.handle.as_ptr(),
                 tex.handle.as_ptr(),
-                opt2ptr(src),
+                opt2ptr(src).cast(),
                 scale,
-                opt2ptr(dst),
+                opt2ptr(dst).cast(),
             )
         })
     }
@@ -369,13 +369,13 @@ impl RendererHandle {
             SDL_RenderTexture9Grid(
                 self.handle.as_ptr(),
                 tex.handle.as_ptr(),
-                opt2ptr(src),
+                opt2ptr(src).cast(),
                 width_left,
                 width_right,
                 width_top,
                 width_bottom,
                 scale,
-                opt2ptr(dst),
+                opt2ptr(dst).cast(),
             )
         })
     }

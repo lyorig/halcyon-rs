@@ -172,9 +172,9 @@ impl SurfaceHandle {
         to_result(unsafe {
             SDL_StretchSurface(
                 self.handle.as_ptr(),
-                opt2ptr(src),
+                opt2ptr(src).cast(),
                 target.handle.as_ptr(),
-                opt2ptr(dst),
+                opt2ptr(dst).cast(),
                 scale_mode,
             )
         })
@@ -195,9 +195,9 @@ impl SurfaceHandle {
         to_result(unsafe {
             SDL_BlitSurface(
                 self.handle.as_ptr(),
-                opt2ptr(src),
+                opt2ptr(src).cast(),
                 target.handle.as_ptr(),
-                opt2ptr(dst),
+                opt2ptr(dst).cast(),
             )
         })
     }
@@ -215,7 +215,7 @@ impl SurfaceHandle {
         to_result(unsafe {
             SDL_BlitSurface9Grid(
                 self.handle.as_ptr(),
-                opt2ptr(src),
+                opt2ptr(src).cast(),
                 left_width,
                 right_width,
                 top_height,
@@ -223,7 +223,7 @@ impl SurfaceHandle {
                 scale,
                 scale_mode,
                 target.handle.as_ptr(),
-                opt2ptr(dst),
+                opt2ptr(dst).cast(),
             )
         })
     }
@@ -239,9 +239,9 @@ impl SurfaceHandle {
         to_result(unsafe {
             SDL_BlitSurfaceScaled(
                 self.handle.as_ptr(),
-                opt2ptr(src),
+                opt2ptr(src).cast(),
                 target.handle.as_ptr(),
-                opt2ptr(dst),
+                opt2ptr(dst).cast(),
                 scale_mode,
             )
         })
@@ -257,9 +257,9 @@ impl SurfaceHandle {
         to_result(unsafe {
             SDL_BlitSurfaceTiled(
                 self.handle.as_ptr(),
-                opt2ptr(src),
+                opt2ptr(src).cast(),
                 target.handle.as_ptr(),
-                opt2ptr(dst),
+                opt2ptr(dst).cast(),
             )
         })
     }
@@ -276,11 +276,11 @@ impl SurfaceHandle {
         to_result(unsafe {
             SDL_BlitSurfaceTiledWithScale(
                 self.handle.as_ptr(),
-                opt2ptr(src),
+                opt2ptr(src).cast(),
                 scale,
                 scale_mode,
                 target.handle.as_ptr(),
-                opt2ptr(dst),
+                opt2ptr(dst).cast(),
             )
         })
     }

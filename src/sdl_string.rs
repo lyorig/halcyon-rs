@@ -29,7 +29,7 @@ impl Deref for SdlString {
 
     fn deref(&self) -> &Self::Target {
         unsafe {
-            std::str::from_utf8_unchecked(std::slice::from_raw_parts(
+            str::from_utf8_unchecked(std::slice::from_raw_parts(
                 self.handle.as_ptr().cast(),
                 self.len,
             ))

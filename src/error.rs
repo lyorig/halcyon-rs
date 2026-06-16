@@ -8,10 +8,10 @@ pub struct Error {
 }
 
 impl Error {
-    pub(crate) fn current() -> Self {
+    pub fn current() -> Self {
         // SAFETY: SDL's error strings are UTF-8.
         let cstr = unsafe { CStr::from_ptr(SDL_GetError()) };
-        let str = unsafe { std::str::from_utf8_unchecked(cstr.to_bytes()) };
+        let str = unsafe { str::from_utf8_unchecked(cstr.to_bytes()) };
         let reason = str.to_owned();
 
         Self { reason }

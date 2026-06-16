@@ -63,7 +63,7 @@ impl GPUDeviceHandle {
             Err(Error::current())
         } else {
             let cstr = unsafe { CStr::from_ptr(raw) };
-            Ok(unsafe { std::str::from_utf8_unchecked(cstr.to_bytes()) })
+            Ok(unsafe { str::from_utf8_unchecked(cstr.to_bytes()) })
         }
     }
 }

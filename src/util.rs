@@ -102,32 +102,18 @@ macro_rules! resource {
     };
 }
 
-/// Converts an [`Option`] to a pointer.
-/// This is a convenience function that also casts the resulting pointer.
+/// Converts an [`Option`] holding a reference to a pointer.
+/// As you would expect, `None` produces [`std::ptr::null()`], while
+/// `Some` returns `&T` as a pointer.
 ///
-/// # Output
-/// [`None`] => [`std::ptr::null()`]
-/// `Some(&T)` => `*const T as *const Dst`
-///
-/// # Safety
-/// This is only meant for interfacing with C libraries.
-/// All the usual pointer lifetime pitfalls apply.
-pub unsafe fn opt2ptr<T, Dst>(opt: Option<&T>) -> *const Dst {
-    opt.map_or(std::ptr::null(), |s| s as *const T as *const Dst)
+/// This function's purpose is to facilitate interfacing with C FFI libraries.
+pub fn opt2ptr<T>(opt: Option<&T>) -> *const T {
+    opt.map_or(std::ptr::null(), |s| s)
 }
 
-/// Converts an [`Option`] to a pointer (`mut` version).
-/// This is a convenience function that also casts the resulting pointer.
-///
-/// # Output
-/// [`None`] => [`std::ptr::null_mut()`]
-/// `Some(&T)` => `*const T as *const Dst`
-///
-/// # Safety
-/// This is only meant for interfacing with C libraries.
-/// All the usual pointer lifetime pitfalls apply.
-pub unsafe fn opt2ptr_mut<T, Dst>(opt: Option<&mut T>) -> *mut Dst {
-    opt.map_or(std::ptr::null_mut(), |s| s as *mut T as *mut Dst)
+/// Analogous to [`opt2ptr`], but for mutable references.
+pub fn opt2ptr_mut<T>(opt: Option<&mut T>) -> *mut T {
+    opt.map_or(std::ptr::null_mut(), |s| s)
 }
 
 pub fn to_result(result: bool) -> SdlResult {
@@ -145,9 +131,8 @@ pub fn to_result(result: bool) -> SdlResult {
 /// - `ptr` points to a valid null-terminated C string
 /// - the string pointed to by `ptr` is valid UTF-8
 ///
-/// I recommend only using the returned value as a one-off temporary, i.e. to
-/// construct a [`String`], or for printing (unless you know for sure that the
-/// foreign string won't change its location and/or size).
+/// The returned value's lifetime is inferred from its usage (see [`CStr::from_ptr`]).
+///
 pub unsafe fn c_ptr_to_str<'a>(ptr: *const c_char) -> &'a str {
-    unsafe { std::str::from_utf8_unchecked(CStr::from_ptr(ptr).to_bytes()) }
+    unsafe { str::from_utf8_unchecked(CStr::from_ptr(ptr).to_bytes()) }
 }

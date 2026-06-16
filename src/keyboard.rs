@@ -39,14 +39,12 @@ const NUM_SCANCODES: usize = SDL_SCANCODE_COUNT.0 as usize;
 
 #[doc(alias = "SDL_GetScancodeName")]
 pub fn scancode_name(scancode: SDL_Scancode) -> &'static str {
-    unsafe {
-        std::str::from_utf8_unchecked(CStr::from_ptr(SDL_GetScancodeName(scancode)).to_bytes())
-    }
+    unsafe { str::from_utf8_unchecked(CStr::from_ptr(SDL_GetScancodeName(scancode)).to_bytes()) }
 }
 
 #[doc(alias = "SDL_GetKeyName")]
 pub fn key_name(key: SDL_Keycode) -> &'static str {
-    unsafe { std::str::from_utf8_unchecked(CStr::from_ptr(SDL_GetKeyName(key)).to_bytes()) }
+    unsafe { str::from_utf8_unchecked(CStr::from_ptr(SDL_GetKeyName(key)).to_bytes()) }
 }
 
 #[doc(alias = "SDL_GetKeyboardState")]
