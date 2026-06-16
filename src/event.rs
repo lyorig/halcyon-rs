@@ -1,6 +1,6 @@
 use std::{iter::FusedIterator, mem::MaybeUninit};
 
-use sdl3_sys::{events::*, stdinc::Uint32};
+use sdl3_sys::events::*;
 
 use crate::{defs::SdlResult, util::to_result};
 
@@ -362,17 +362,14 @@ impl Event {
 const DISCRIMINANT_OFFSET: usize = align_of::<Event>();
 
 impl From<SDL_Event> for Event {
-    fn from(current: SDL_Event) -> Self {
+    fn from(value: SDL_Event) -> Self {
         let mut ret = MaybeUninit::<Event>::uninit();
 
         unsafe {
-            std::ptr::write(
-                ret.as_mut_ptr().cast::<Uint32>(),
-                *(&raw const current).cast(),
-            );
+            std::ptr::write(ret.as_mut_ptr().cast::<u32>(), *(&raw const value).cast());
 
             std::ptr::copy_nonoverlapping(
-                (&raw const current).cast::<u8>(),
+                (&raw const value).cast::<u8>(),
                 ret.as_mut_ptr().cast::<u8>().add(DISCRIMINANT_OFFSET),
                 size_of::<Event>() - DISCRIMINANT_OFFSET,
             );
@@ -384,15 +381,17 @@ impl From<SDL_Event> for Event {
 
 impl From<&Event> for SDL_Event {
     fn from(value: &Event) -> Self {
-        let mut ret = MaybeUninit::<SDL_Event>::uninit();
+        let mut ret = MaybeUninit::<SDL_Event>::zeroed();
+        let src = value as *const Event;
 
+        // YOLO
         unsafe {
-            let src = (value as *const Event as *const u8).add(DISCRIMINANT_OFFSET);
-            std::ptr::copy_nonoverlapping(
-                src,
-                ret.as_mut_ptr() as *mut u8,
-                size_of::<Event>() - DISCRIMINANT_OFFSET,
-            );
+            std::ptr::write(ret.as_mut_ptr().cast::<u32>(), src.cast::<u32>().read());
+
+            let src = src.cast::<u8>().add(DISCRIMINANT_OFFSET * 2);
+            let dst = ret.as_mut_ptr().cast::<u8>().add(DISCRIMINANT_OFFSET);
+            std::ptr::copy_nonoverlapping(src, dst, size_of::<Event>() - DISCRIMINANT_OFFSET);
+
             ret.assume_init()
         }
     }

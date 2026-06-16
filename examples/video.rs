@@ -1,3 +1,5 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
 use halcyon::{
     color::Rgba,
     context::Context,
@@ -8,6 +10,13 @@ use halcyon::{
     subsystem::Video,
     traits::Resource,
     window::{Window, WindowBuilder},
+};
+use sdl3_sys::{
+    events::{SDL_EVENT_KEY_DOWN, SDL_Event, SDL_KeyboardEvent},
+    keyboard::SDL_KeyboardID,
+    keycode::{SDL_Keycode, SDL_Keymod},
+    scancode::{SDL_SCANCODE_Q, SDL_SCANCODE_X, SDL_Scancode},
+    video::SDL_WindowID,
 };
 
 /// SAFETY: Only call this on the main thread!
@@ -50,8 +59,40 @@ unsafe fn run() -> SdlResult {
         rnd.clear()?;
 
         for event in EventIter::new() {
-            if let Event::Quit = event {
-                break 'main;
+            match event {
+                Event::Quit => break 'main,
+                Event::KeyDown(kd) => match kd.scancode {
+                    SDL_SCANCODE_Q => {
+                        println!("Pushing quit event");
+                        let e = Event::Quit;
+                        let _mod = SDL_Event::from(&e);
+                        e.push().expect("Cannot push quit event");
+                    }
+                    SDL_SCANCODE_X => {
+                        println!("Pushing Q scancode");
+                        let kb = SDL_KeyboardEvent {
+                            r#type: SDL_EVENT_KEY_DOWN,
+                            reserved: 0,
+                            timestamp: SystemTime::now()
+                                .duration_since(UNIX_EPOCH)
+                                .unwrap()
+                                .as_secs(),
+                            windowID: SDL_WindowID(1),
+                            which: SDL_KeyboardID(0),
+                            scancode: SDL_Scancode::Q,
+                            key: SDL_Keycode::Q,
+                            r#mod: SDL_Keymod::NONE,
+                            raw: 0,
+                            down: true,
+                            repeat: false,
+                        };
+                        let e = Event::KeyDown(kb);
+                        let _mod = SDL_Event::from(&e);
+                        e.push().expect("Cannot push Q-press event");
+                    }
+                    _ => (),
+                },
+                _ => (),
             }
         }
     }
