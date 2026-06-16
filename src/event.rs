@@ -361,15 +361,18 @@ impl Event {
 // Works on my machine, though, so... womp womp.
 const DISCRIMINANT_OFFSET: usize = align_of::<Event>();
 
-impl From<SDL_Event> for Event {
-    fn from(value: SDL_Event) -> Self {
+impl From<&SDL_Event> for Event {
+    fn from(value: &SDL_Event) -> Self {
         let mut ret = MaybeUninit::<Event>::uninit();
 
         unsafe {
-            std::ptr::write(ret.as_mut_ptr().cast::<u32>(), *(&raw const value).cast());
+            std::ptr::write(
+                ret.as_mut_ptr().cast::<u32>(),
+                *(value as *const SDL_Event).cast(),
+            );
 
             std::ptr::copy_nonoverlapping(
-                (&raw const value).cast::<u8>(),
+                (value as *const SDL_Event).cast::<u8>(),
                 ret.as_mut_ptr().cast::<u8>().add(DISCRIMINANT_OFFSET),
                 size_of::<Event>() - DISCRIMINANT_OFFSET,
             );
@@ -427,7 +430,7 @@ impl Iterator for EventIter {
     fn next(&mut self) -> Option<Self::Item> {
         let mut current = MaybeUninit::<SDL_Event>::uninit();
         if unsafe { SDL_PollEvent(current.as_mut_ptr()) } {
-            Some(unsafe { current.assume_init() }.into())
+            Some(unsafe { current.assume_init_ref() }.into())
         } else {
             None
         }
