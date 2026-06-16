@@ -390,7 +390,7 @@ impl From<&Event> for SDL_Event {
 
             let src = src.cast::<u8>().add(DISCRIMINANT_OFFSET * 2);
             let dst = ret.as_mut_ptr().cast::<u8>().add(DISCRIMINANT_OFFSET);
-            std::ptr::copy_nonoverlapping(src, dst, size_of::<Event>() - DISCRIMINANT_OFFSET);
+            std::ptr::copy_nonoverlapping(src, dst, size_of::<Event>() - DISCRIMINANT_OFFSET * 2);
 
             ret.assume_init()
         }
