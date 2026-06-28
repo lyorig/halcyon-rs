@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-/// An abstraction over `Context::base_path()` that provides
+/// An abstraction over [`Context::base_path()`] that provides
 /// utility methods for constructing `Path`s relative to the
 /// directory of the program that's running.
 ///
@@ -15,10 +15,12 @@ pub struct ResourceLoader {
 }
 
 impl ResourceLoader {
-    pub fn new() -> Self {
-        Self {
-            root: Path::new(crate::base_path()),
-        }
+    pub fn from_base() -> Self {
+        Self::from_path(Path::new(crate::base_path()))
+    }
+
+    pub fn from_path(root: &'static Path) -> Self {
+        Self { root }
     }
 
     pub fn resolve(&self, path: &str) -> Box<CStr> {
@@ -33,6 +35,6 @@ impl ResourceLoader {
 
 impl Default for ResourceLoader {
     fn default() -> Self {
-        Self::new()
+        Self::from_base()
     }
 }
