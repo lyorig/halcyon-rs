@@ -385,6 +385,15 @@ impl RendererHandle {
         to_result(unsafe { SDL_RenderLine(self.handle.as_ptr(), start.x, start.y, end.x, end.y) })
     }
 
+    #[doc(alias = "SDL_RenderLine")]
+    pub fn draw_line_with(&self, start: PointF32, end: PointF32, col: RgbaF32) -> SdlResult {
+        let old = self.xchg_draw_color_f32(col);
+        let ret = self.draw_line(start, end);
+        self.set_draw_color_f32(old);
+
+        ret
+    }
+
     #[doc(alias = "SDL_RenderLines")]
     pub fn draw_lines(&self, lines: &[PointF32]) -> SdlResult {
         to_result(unsafe {
@@ -396,9 +405,27 @@ impl RendererHandle {
         })
     }
 
+    #[doc(alias = "SDL_RenderLines")]
+    pub fn draw_lines_with(&self, lines: &[PointF32], col: RgbaF32) -> SdlResult {
+        let old = self.xchg_draw_color_f32(col);
+        let ret = self.draw_lines(lines);
+        self.set_draw_color_f32(old);
+
+        ret
+    }
+
     #[doc(alias = "SDL_RenderPoint")]
     pub fn draw_point(&self, pos: PointF32) -> SdlResult {
         to_result(unsafe { SDL_RenderPoint(self.handle.as_ptr(), pos.x, pos.y) })
+    }
+
+    #[doc(alias = "SDL_RenderPoint")]
+    pub fn draw_point_with(&self, pos: PointF32, col: RgbaF32) -> SdlResult {
+        let old = self.xchg_draw_color_f32(col);
+        let ret = self.draw_point(pos);
+        self.set_draw_color_f32(old);
+
+        ret
     }
 
     #[doc(alias = "SDL_RenderPoints")]
@@ -412,14 +439,41 @@ impl RendererHandle {
         })
     }
 
+    #[doc(alias = "SDL_RenderPoints")]
+    pub fn draw_points_with(&self, points: &[PointF32], col: RgbaF32) -> SdlResult {
+        let old = self.xchg_draw_color_f32(col);
+        let ret = self.draw_points(points);
+        self.set_draw_color_f32(old);
+
+        ret
+    }
+
     #[doc(alias = "SDL_RenderRect")]
     pub fn draw_rect(&self, rect: RectF32) -> SdlResult {
         to_result(unsafe { SDL_RenderRect(self.handle.as_ptr(), (&raw const rect).cast()) })
     }
 
     #[doc(alias = "SDL_RenderRect")]
+    pub fn draw_rect_with(&self, rect: RectF32, col: RgbaF32) -> SdlResult {
+        let old = self.xchg_draw_color_f32(col);
+        let ret = self.draw_rect(rect);
+        self.set_draw_color_f32(old);
+
+        ret
+    }
+
+    #[doc(alias = "SDL_RenderRect")]
     pub fn draw_target_outline(&self) -> SdlResult {
         to_result(unsafe { SDL_RenderRect(self.handle.as_ptr(), std::ptr::null()) })
+    }
+
+    #[doc(alias = "SDL_RenderRect")]
+    pub fn draw_target_outline_with(&self, col: RgbaF32) -> SdlResult {
+        let old = self.xchg_draw_color_f32(col);
+        let ret = self.draw_target_outline();
+        self.set_draw_color_f32(old);
+
+        ret
     }
 
     #[doc(alias = "SDL_RenderRects")]
@@ -433,14 +487,41 @@ impl RendererHandle {
         })
     }
 
+    #[doc(alias = "SDL_RenderRects")]
+    pub fn draw_rects_with(&self, rects: &[RectF32], col: RgbaF32) -> SdlResult {
+        let old = self.xchg_draw_color_f32(col);
+        let ret = self.draw_rects(rects);
+        self.set_draw_color_f32(old);
+
+        ret
+    }
+
     #[doc(alias = "SDL_RenderFillRect")]
     pub fn fill_target(&self) -> SdlResult {
         to_result(unsafe { SDL_RenderFillRect(self.handle.as_ptr(), std::ptr::null()) })
     }
 
     #[doc(alias = "SDL_RenderFillRect")]
+    pub fn fill_target_with(&self, col: RgbaF32) -> SdlResult {
+        let old = self.xchg_draw_color_f32(col);
+        let ret = self.fill_target();
+        self.set_draw_color_f32(old);
+
+        ret
+    }
+
+    #[doc(alias = "SDL_RenderFillRect")]
     pub fn fill_rect(&self, rect: RectF32) -> SdlResult {
         to_result(unsafe { SDL_RenderFillRect(self.handle.as_ptr(), (&raw const rect).cast()) })
+    }
+
+    #[doc(alias = "SDL_RenderFillRect")]
+    pub fn fill_rect_with(&self, rect: RectF32, col: RgbaF32) -> SdlResult {
+        let old = self.xchg_draw_color_f32(col);
+        let ret = self.fill_rect(rect);
+        self.set_draw_color_f32(old);
+
+        ret
     }
 
     #[doc(alias = "SDL_RenderFillRects")]
@@ -452,6 +533,15 @@ impl RendererHandle {
                 rects.len() as i32,
             )
         })
+    }
+
+    #[doc(alias = "SDL_RenderFillRects")]
+    pub fn fill_rects_with(&self, rects: &[RectF32], col: RgbaF32) -> SdlResult {
+        let old = self.xchg_draw_color_f32(col);
+        let ret = self.fill_rects(rects);
+        self.set_draw_color_f32(old);
+
+        ret
     }
 
     /// For use with [`RendererHandle::xchg_target`]. Otherwise, prefer using

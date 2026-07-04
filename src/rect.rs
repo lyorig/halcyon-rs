@@ -10,6 +10,8 @@ pub struct Point<T> {
 
 pub type PointI32 = Point<i32>;
 impl PointI32 {
+    pub const ZERO: Self = Self::new(0, 0);
+
     pub fn as_f32(self) -> PointF32 {
         self.into()
     }
@@ -17,6 +19,8 @@ impl PointI32 {
 
 pub type PointF32 = Point<f32>;
 impl PointF32 {
+    pub const ZERO: Self = Self::new(0., 0.);
+
     pub fn as_i32(self) -> PointI32 {
         self.into()
     }
@@ -64,6 +68,8 @@ pub struct Rect<T> {
 
 pub type RectI32 = Rect<i32>;
 impl RectI32 {
+    pub const ZEROED: Self = Self::xywh(0, 0, 0, 0);
+
     pub fn as_f32(self) -> RectF32 {
         self.into()
     }
@@ -71,6 +77,8 @@ impl RectI32 {
 
 pub type RectF32 = Rect<f32>;
 impl RectF32 {
+    pub const ZEROED: Self = Self::xywh(0., 0., 0., 0.);
+
     pub fn as_i32(self) -> RectI32 {
         self.into()
     }
