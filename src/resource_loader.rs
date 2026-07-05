@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-/// An abstraction over [`Context::base_path()`] that provides
+/// An abstraction over [`crate::base_path`] that provides
 /// utility methods for constructing `Path`s relative to the
 /// directory of the program that's running.
 ///
@@ -24,12 +24,13 @@ impl ResourceLoader {
     }
 
     pub fn resolve(&self, path: &str) -> Box<CStr> {
+        const NUL_ERROR: &str =
+            "ResourceLoader::resolve() should never be given a Path with embedded NUL bytes";
+
         let pb = PathBuf::from_iter([self.root, Path::new(path)]);
-        CString::new(pb.as_os_str().as_encoded_bytes())
-            .expect(
-                "ResourceLoader::resolve() should never be given a Path with embedded NUL bytes",
-            )
-            .into_boxed_c_str()
+        let enc = pb.as_os_str().as_encoded_bytes();
+
+        CString::new(enc).expect(NUL_ERROR).into_boxed_c_str()
     }
 }
 
