@@ -102,6 +102,69 @@ macro_rules! resource {
     };
 }
 
+#[macro_export]
+macro_rules! resource_tied {
+    ($owned:ident, $library:ident, $dtor:ident, $tied:ident) => {
+            paste::paste! {
+                pub struct $owned<'a> {
+                    pub(crate) inner: [<$owned Handle>],
+                    marker: PhantomData<&'a $tied>,
+                }
+
+                #[derive(Clone, Copy)]
+                pub struct [<$owned Handle>] {
+                    pub(crate) handle: std::ptr::NonNull<[<$library _ $owned>]>,
+                }
+
+                impl [<$owned Handle>] {
+                    pub(crate) fn from_ptr(handle: *mut [<$library _ $owned>]) -> Option<Self> {
+                        std::ptr::NonNull::new(handle).map(|handle| Self { handle })
+                    }
+                }
+
+                impl $owned<'_> {
+                    pub(crate) fn from_ptr<'a>(handle: *mut [<$library _ $owned>]) -> $crate::defs::SdlResult<$owned<'a>> {
+                        match std::ptr::NonNull::new(handle) {
+                            Some(handle) => Ok($owned {
+                                inner: [<$owned Handle>] { handle },
+                                marker: PhantomData,
+                            }),
+                            None => Err($crate::error::Error::current()),
+                        }
+                    }
+                }
+
+                impl std::ops::Deref for $owned<'_> {
+                    type Target = [<$owned Handle>];
+                    fn deref(&self) -> &Self::Target {
+                        &self.inner
+                    }
+                }
+
+                impl std::ops::DerefMut for $owned<'_> {
+                    fn deref_mut(&mut self) -> &mut Self::Target {
+                        &mut self.inner
+                    }
+                }
+
+                impl $crate::traits::Resource for $owned<'_> {
+                    type Handle = [<$owned Handle>];
+
+                    unsafe fn as_handle(&self) -> Self::Handle {
+                        self.inner
+                    }
+                }
+
+                impl Drop for $owned<'_> {
+                    #[doc(alias = $library "_Destroy" $owned)]
+                    fn drop(&mut self) {
+                        unsafe { [<$library _ $dtor $owned>](self.inner.handle.as_ptr()) }
+                    }
+                }
+            }
+        }
+}
+
 /// Converts an [`Option`] holding a reference to a pointer.
 /// As you would expect, `None` produces [`std::ptr::null()`], while
 /// `Some` returns `&T` as a pointer.
