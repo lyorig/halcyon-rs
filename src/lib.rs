@@ -16,7 +16,6 @@ pub mod error;
 pub mod event;
 pub mod gpu;
 pub mod keyboard;
-pub mod mixer;
 pub mod msgbox;
 pub mod rect;
 pub mod renderer;
