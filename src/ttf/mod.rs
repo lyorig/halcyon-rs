@@ -422,12 +422,14 @@ impl TextHandle {
         to_result(unsafe { TTF_UpdateText(self.handle.as_ptr()) })
     }
 
+    #[doc(alias = "TTF_DrawSurfaceText")]
     pub fn draw_to_surface(&self, surf: Ref<Surface>, pos: PointI32) -> SdlResult {
         to_result(unsafe {
             TTF_DrawSurfaceText(self.handle.as_ptr(), pos.x, pos.y, surf.handle.as_ptr())
         })
     }
 
+    #[doc(alias = "TTF_DrawRendererText")]
     pub fn draw_to_renderer(&self, pos: PointF32) -> SdlResult {
         to_result(unsafe { TTF_DrawRendererText(self.handle.as_ptr(), pos.x, pos.y) })
     }
@@ -436,6 +438,7 @@ impl TextHandle {
 impl Text {
     #[doc(alias = "TTF_CreateText")]
     pub fn new(font: Ref<Font>, text: &str) -> SdlResult<Self> {
+        assert!(!text.is_empty());
         Self::from_ptr(unsafe {
             TTF_CreateText(
                 std::ptr::null_mut(),

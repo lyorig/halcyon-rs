@@ -64,12 +64,26 @@ pub fn is_main_thread() -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::{context::Context, subsystem::Video};
+    use sdl3_sys::events::*;
+
+    use crate::event::Event;
 
     #[test]
-    fn context() {
-        // FIXME: This fails due to the test harness executing on a separate thread.
-        let ctx = Context::new();
-        let _vid = Video::new(&ctx).expect("Should be able to initialize video subsystem");
+    fn event_sdl_to_hal() {
+        let hal = Event::from(&SDL_Event {
+            clipboard: SDL_ClipboardEvent {
+                r#type: SDL_EVENT_CLIPBOARD_UPDATE,
+                ..Default::default()
+            },
+        });
+
+        let Event::ClipboardUpdate(_) = hal else {
+            panic!("Expected clipboard update");
+        };
+    }
+
+    fn event_hal_to_sdl() {
+        let sdl = SDL_Event::from(&Event::Quit);
+        assert!(unsafe { sdl.quit.r#type } == SDL_EVENT_QUIT);
     }
 }
