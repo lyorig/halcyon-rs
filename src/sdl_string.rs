@@ -1,6 +1,6 @@
 use std::{
     ffi::{CStr, c_char},
-    fmt::Display,
+    fmt::{Debug, Display},
     ptr::NonNull,
 };
 
@@ -10,6 +10,7 @@ use crate::{defs::SdlResult, error::Error};
 
 /// Like an owned `String`, but it gets dropped via SDL's
 /// custom `SDL_free()` function.
+#[derive(Debug)]
 pub struct SdlString {
     handle: NonNull<c_char>,
 }
@@ -34,7 +35,14 @@ impl SdlString {
 
 impl Display for SdlString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.to_str().fmt(f)
+        let str = self.to_str();
+        <str as Display>::fmt(str, f)
+    }
+}
+
+impl PartialEq for SdlString {
+    fn eq(&self, other: &Self) -> bool {
+        self.to_str() == other.to_str()
     }
 }
 
