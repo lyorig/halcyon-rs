@@ -79,6 +79,7 @@ mod tests {
         };
     }
 
+    #[test]
     fn event_hal_to_sdl() {
         let sdl = SDL_Event::from(&Event::Quit);
         assert!(unsafe { sdl.quit.r#type } == SDL_EVENT_QUIT);
