@@ -1,4 +1,4 @@
-use std::{ffi::CStr, ptr::NonNull};
+use std::ffi::CStr;
 
 use sdl3_sys::clipboard::*;
 
@@ -11,8 +11,10 @@ pub fn has_text() -> bool {
 
 #[doc(alias = "SDL_GetClipboardText")]
 pub fn text() -> SdlString {
+    let ptr = unsafe { SDL_GetClipboardText() };
+
     // SAFETY: `SDL_GetClipboardText()` always returns a valid string.
-    unsafe { SdlString::from_ptr(NonNull::new_unchecked(SDL_GetClipboardText())) }
+    unsafe { SdlString::from_ptr(ptr).unwrap_unchecked() }
 }
 
 #[doc(alias = "SDL_SetClipboardText")]

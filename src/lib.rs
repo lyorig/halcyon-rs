@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use std::{ffi::CStr, ptr::NonNull};
+use std::ffi::CStr;
 
 use sdl3_sys::{
     filesystem::{SDL_GetBasePath, SDL_GetPrefPath},
@@ -8,7 +8,7 @@ use sdl3_sys::{
     platform::SDL_GetPlatform,
 };
 
-use crate::{defs::SdlResult, error::Error, sdl_string::SdlString, util::c_ptr_to_str};
+use crate::{defs::SdlResult, sdl_string::SdlString, util::c_ptr_to_str};
 
 mod properties;
 mod sdl_box;
@@ -51,10 +51,7 @@ pub fn base_path() -> &'static str {
 #[doc(alias = "SDL_GetPrefPath")]
 pub fn pref_path(org: &CStr, app: &CStr) -> SdlResult<SdlString> {
     let ptr = unsafe { SDL_GetPrefPath(org.as_ptr(), app.as_ptr()) };
-    match NonNull::new(ptr) {
-        Some(n) => Ok(unsafe { SdlString::from_ptr(n) }),
-        None => Err(Error::current()),
-    }
+    SdlString::from_ptr(ptr)
 }
 
 #[doc(alias = "SDL_IsMainThread")]
