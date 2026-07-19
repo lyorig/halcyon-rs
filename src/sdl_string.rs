@@ -23,13 +23,21 @@ impl SdlString {
         }
     }
 
+    /// Convert this SDL string to a string slice. This can be done,
+    /// since all strings originating from SDL are guaranteed UTF-8.
+    /// This involves calculating its length via [`Self::count_bytes`].
     pub fn to_str(&self) -> &str {
+        use core::slice::from_raw_parts;
         unsafe {
-            let cs = CStr::from_ptr(self.handle.as_ptr());
-            let slice = core::slice::from_raw_parts(self.handle.as_ptr().cast(), cs.count_bytes());
-
+            let slice = from_raw_parts(self.handle.as_ptr().cast(), self.count_bytes());
             str::from_utf8_unchecked(slice)
         }
+    }
+
+    /// Analogous to [`CStr::count_bytes`].
+    pub fn count_bytes(&self) -> usize {
+        let cs = unsafe { CStr::from_ptr(self.handle.as_ptr()) };
+        cs.count_bytes()
     }
 }
 
