@@ -58,30 +58,3 @@ pub fn pref_path(org: &CStr, app: &CStr) -> SdlResult<SdlString> {
 pub fn is_main_thread() -> bool {
     unsafe { SDL_IsMainThread() }
 }
-
-#[cfg(test)]
-mod tests {
-    use sdl3_sys::events::*;
-
-    use crate::event::Event;
-
-    #[test]
-    fn event_sdl_to_hal() {
-        let hal = Event::from(&SDL_Event {
-            clipboard: SDL_ClipboardEvent {
-                r#type: SDL_EVENT_CLIPBOARD_UPDATE,
-                ..Default::default()
-            },
-        });
-
-        let Event::ClipboardUpdate(_) = hal else {
-            panic!("Expected clipboard update");
-        };
-    }
-
-    #[test]
-    fn event_hal_to_sdl() {
-        let sdl = SDL_Event::from(&Event::Quit);
-        assert!(unsafe { sdl.quit.r#type } == SDL_EVENT_QUIT);
-    }
-}

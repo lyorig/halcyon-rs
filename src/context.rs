@@ -17,7 +17,11 @@ impl Context {
 
     /// Panics if this function is not called on the main thread.
     pub fn new() -> Self {
-        assert!(crate::is_main_thread());
+        assert!(
+            crate::is_main_thread(),
+            "Halcyon can only be initialized on the main thread"
+        );
+
         unsafe { Self::new_unchecked() }
     }
 
