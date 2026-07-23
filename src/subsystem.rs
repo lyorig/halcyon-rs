@@ -5,10 +5,8 @@ use sdl3_sys::init::*;
 use crate::{context::Context, defs::SdlResult, error::Error};
 
 /// A handle to an SDL subsystem.
-/// This doesn't actually de-initialize the
-/// underlying subsystem upon being dropped;
-/// that's left up to the context being destroyed.
-/// For this reason, it cannot outlive the context.
+/// This doesn't actually de-initialize the underlying subsystem upon being dropped;
+/// that's left up to the [`Context`] being destroyed. Thus, it cannot outlive it.
 pub struct Subsystem<'ctx, const TYPE: u32> {
     marker: PhantomData<&'ctx Context>,
 }
@@ -27,4 +25,5 @@ impl<const N: u32> Subsystem<'_, N> {
     }
 }
 
-pub type Video<'ctx> = Subsystem<'ctx, { SDL_INIT_VIDEO.0 }>;
+pub type Video<'ctx> = Subsystem<'ctx, { SDL_InitFlags::VIDEO.0 }>;
+pub type Events<'ctx> = Subsystem<'ctx, { SDL_InitFlags::EVENTS.0 }>;

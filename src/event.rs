@@ -351,7 +351,9 @@ pub enum Event {
 }
 
 impl Event {
+    #[doc(alias = "SDL_PushEvent")]
     pub fn push(&self) -> SdlResult {
+        // NOTE: The timestamp is set internally in `SDL_PushEvent()`.
         let mut e = SDL_Event::from(self);
         to_result(unsafe { SDL_PushEvent(&raw mut e) })
     }

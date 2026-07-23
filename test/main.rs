@@ -1,16 +1,17 @@
 use sdl3_sys::{events::*, pixels::SDL_PixelFormat, render::SDL_TextureAccess};
 
 use halcyon::{
-    context::Context, event::Event, rect::Point, renderer::RendererBuilder, texture::Texture,
-    traits::Resource, window::WindowBuilder,
+    context::Context,
+    event::{Event, EventIter},
+    rect::Point,
+    renderer::RendererBuilder,
+    subsystem::Events,
+    texture::Texture,
+    traits::Resource,
+    window::WindowBuilder,
 };
 
-fn main() {
-    init();
-    event_sdl_to_hal();
-    event_hal_to_sdl();
-}
-
+/// Basic initialization stuff.
 fn init() {
     let _ctx = Context::new();
 
@@ -36,20 +37,62 @@ fn init() {
     assert_eq!(tex.size(), Point::new(16.0, 16.0));
 }
 
+/// [`SDL_Event`] -> [`Event`] conversion.
 fn event_sdl_to_hal() {
+    // Manually set the timestamp for testing purposes.
+    let ticks = halcyon::ticks_ns();
+
     let hal = Event::from(&SDL_Event {
         clipboard: SDL_ClipboardEvent {
             r#type: SDL_EVENT_CLIPBOARD_UPDATE,
+            timestamp: ticks,
             ..Default::default()
         },
     });
 
-    let Event::ClipboardUpdate(_) = hal else {
+    let Event::ClipboardUpdate(cu) = hal else {
         panic!("Expected clipboard update");
+    };
+
+    assert_eq!(cu.timestamp, ticks);
+}
+
+/// [`Event`] -> [`SDL_Event`] conversion.
+fn event_hal_to_sdl() {
+    let mut sdl = SDL_Event::from(&Event::Quit);
+
+    // Manually set the timestamp for testing purposes.
+    let ticks = halcyon::ticks_ns();
+    sdl.quit.timestamp = ticks;
+
+    assert!(unsafe { sdl.quit.r#type } == SDL_EVENT_QUIT);
+    assert!(unsafe { sdl.r#type } == SDL_EVENT_QUIT);
+    assert_eq!(unsafe { sdl.quit }.timestamp, ticks);
+    assert_eq!(unsafe { sdl.common }.timestamp, ticks);
+}
+
+/// [`Event::push()`] testing.
+fn event_push() {
+    // Should fail, since events aren't initialized.
+    Event::Quit.push().unwrap_err();
+
+    // Initialize events.
+    let ctx = Context::new();
+    let _evts = Events::new(&ctx);
+
+    // Should work now.
+    Event::Quit.push().unwrap();
+
+    let evt = EventIter::new().next().unwrap();
+    let Event::Quit = evt else {
+        panic!("Expected quit event");
     };
 }
 
-fn event_hal_to_sdl() {
-    let sdl = SDL_Event::from(&Event::Quit);
-    assert!(unsafe { sdl.quit.r#type } == SDL_EVENT_QUIT);
+fn main() {
+    init();
+
+    event_sdl_to_hal();
+    event_hal_to_sdl();
+    event_push();
 }
