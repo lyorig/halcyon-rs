@@ -6,6 +6,7 @@ use sdl3_sys::{
     filesystem::{SDL_GetBasePath, SDL_GetPrefPath},
     init::SDL_IsMainThread,
     platform::SDL_GetPlatform,
+    timer::{SDL_GetTicks, SDL_GetTicksNS},
 };
 
 use crate::{defs::SdlResult, sdl_string::SdlString, util::c_ptr_to_str};
@@ -57,4 +58,14 @@ pub fn pref_path(org: &CStr, app: &CStr) -> SdlResult<SdlString> {
 #[doc(alias = "SDL_IsMainThread")]
 pub fn is_main_thread() -> bool {
     unsafe { SDL_IsMainThread() }
+}
+
+#[doc(alias = "SDL_GetTicks")]
+pub fn ticks() -> u64 {
+    unsafe { SDL_GetTicks() }
+}
+
+#[doc(alias = "SDL_GetTicksNS")]
+pub fn ticks_ns() -> u64 {
+    unsafe { SDL_GetTicksNS() }
 }
