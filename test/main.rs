@@ -16,17 +16,17 @@ fn init() {
 
     const WINDOW_SIZE: Point<i32> = Point::new(128, 128);
 
-    let window = WindowBuilder::new()
+    let wnd = WindowBuilder::new()
         .hidden(true)
         .size(WINDOW_SIZE)
         .build()
         .unwrap();
 
-    assert_eq!(window.size(), WINDOW_SIZE);
+    assert_eq!(wnd.size(), WINDOW_SIZE);
 
-    let renderer = RendererBuilder::new(window.as_ref()).build().unwrap();
+    let rnd = RendererBuilder::new(wnd.as_ref()).build().unwrap();
     let tex = Texture::new(
-        renderer.as_ref(),
+        rnd.as_ref(),
         SDL_PixelFormat::RGB24,
         SDL_TextureAccess::STATIC,
         Point::new(16, 16),
