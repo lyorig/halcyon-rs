@@ -71,6 +71,16 @@ fn event_hal_to_sdl() {
     assert_eq!(unsafe { sdl.common }.timestamp, ticks);
 }
 
+/// [`Event::set_timestamp`].
+fn event_timestamp() {
+    let mut evt = Event::Quit;
+    let ticks = halcyon::ticks_ns();
+    evt.set_timestamp(ticks);
+
+    let sdl = SDL_Event::from(&evt);
+    assert_eq!(unsafe { sdl.common }.timestamp, ticks);
+}
+
 /// [`Event::push()`] testing.
 fn event_push() {
     // Should fail, since events aren't initialized.
@@ -94,5 +104,6 @@ fn main() {
 
     event_sdl_to_hal();
     event_hal_to_sdl();
+    event_timestamp();
     event_push();
 }

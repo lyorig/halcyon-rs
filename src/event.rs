@@ -357,6 +357,18 @@ impl Event {
         let mut e = SDL_Event::from(self);
         to_result(unsafe { SDL_PushEvent(&raw mut e) })
     }
+
+    /// Sets the event timestamp. SDL recommends obtaining the value via [`crate::ticks_ns`].
+    /// If you do not set the timestamp yourself, [`Self::push`] sets it internally to [`crate::ticks_ns`].
+    pub fn set_timestamp(&mut self, ts: u64) {
+        // The fields in `SDL_CommonEvent` are shared by all variants,
+        // so it's always safe to read/write.
+        let mut ptr = self as *mut Event as *mut SDL_CommonEvent;
+        ptr = unsafe { ptr.byte_add(DISCRIMINANT_OFFSET) };
+        let common = unsafe { ptr.as_mut_unchecked() };
+
+        common.timestamp = ts;
+    }
 }
 
 // HACK: Probably not the correct way to get the offset.
