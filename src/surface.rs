@@ -23,7 +23,7 @@
 //! - [x] SDL_GetSurfaceAlphaMod
 //! - [x] SDL_GetSurfaceBlendMode
 //! - [ ] SDL_GetSurfaceClipRect
-//! - [x] SDL_GetSurfaceColorKey
+//! - [ ] SDL_GetSurfaceColorKey
 //! - [x] SDL_GetSurfaceColorMod
 //! - [ ] SDL_GetSurfaceColorspace
 //! - [ ] SDL_GetSurfaceImages
@@ -162,6 +162,7 @@ impl SurfaceHandle {
         Surface::from_ptr(unsafe { SDL_DuplicateSurface(self.handle.as_ptr()) })
     }
 
+    #[doc(alias = "SDL_StretchSurface")]
     pub fn stretch(
         &self,
         target: Ref<Surface>,

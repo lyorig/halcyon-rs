@@ -7,7 +7,7 @@
 //! - [ ] SDL_CreateGPURenderState
 //! - [x] SDL_CreateRenderer
 //! - [x] SDL_CreateRendererWithProperties
-//! - [x] SDL_CreateSoftwareRenderer
+//! - [ ] SDL_CreateSoftwareRenderer
 //! - [ ] SDL_DestroyGPURenderState
 //! - [x] SDL_DestroyRenderer
 //! - [x] SDL_FlushRenderer
@@ -39,8 +39,8 @@
 //! - [ ] SDL_RenderCoordinatesToWindow
 //! - [ ] SDL_RenderDebugText
 //! - [ ] SDL_RenderDebugTextFormat
-//! - [ ] SDL_RenderFillRect
-//! - [ ] SDL_RenderFillRects
+//! - [x] SDL_RenderFillRect
+//! - [x] SDL_RenderFillRects
 //! - [ ] SDL_RenderGeometry
 //! - [ ] SDL_RenderGeometryRaw
 //! - [x] SDL_RenderLine
@@ -53,9 +53,9 @@
 //! - [x] SDL_RenderRects
 //! - [x] SDL_RenderTexture
 //! - [x] SDL_RenderTexture9Grid
-//! - [x] SDL_RenderTexture9GridTiled
+//! - [ ] SDL_RenderTexture9GridTiled
 //! - [x] SDL_RenderTextureAffine
-//! - [x] SDL_RenderTextureRotated
+//! - [ ] SDL_RenderTextureRotated
 //! - [x] SDL_RenderTextureTiled
 //! - [ ] SDL_RenderViewportSet
 //! - [ ] SDL_SetGPURenderStateFragmentUniforms

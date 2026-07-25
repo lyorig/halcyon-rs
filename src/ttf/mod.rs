@@ -17,8 +17,8 @@
 //! - [ ] TTF_DestroyRendererTextEngine
 //! - [ ] TTF_DestroySurfaceTextEngine
 //! - [x] TTF_DestroyText
-//! - [ ] TTF_DrawRendererText
-//! - [ ] TTF_DrawSurfaceText
+//! - [x] TTF_DrawRendererText
+//! - [x] TTF_DrawSurfaceText
 //! - [ ] TTF_FontHasGlyph
 //! - [x] TTF_FontIsFixedWidth
 //! - [ ] TTF_FontIsScalable

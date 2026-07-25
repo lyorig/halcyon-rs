@@ -4,7 +4,7 @@
 //! - [ ] SDL_GetKeyboardFocus
 //! - [ ] SDL_GetKeyboardNameForID
 //! - [ ] SDL_GetKeyboards
-//! - [ ] SDL_GetKeyboardState
+//! - [x] SDL_GetKeyboardState
 //! - [ ] SDL_GetKeyFromName
 //! - [ ] SDL_GetKeyFromScancode
 //! - [x] SDL_GetKeyName

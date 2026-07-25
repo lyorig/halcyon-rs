@@ -75,10 +75,12 @@ impl DisplayHandle {
         Self::new(unsafe { SDL_GetPrimaryDisplay() })
     }
 
+    #[doc(alias = "SDL_GetDisplayForPoint")]
     pub fn for_point(point: PointI32) -> SdlResult<Self> {
         Self::new(unsafe { SDL_GetDisplayForPoint((&raw const point).cast()) })
     }
 
+    #[doc(alias = "SDL_GetDisplayForRect")]
     pub fn for_rect(rect: RectI32) -> SdlResult<Self> {
         Self::new(unsafe { SDL_GetDisplayForRect((&raw const rect).cast()) })
     }

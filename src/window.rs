@@ -63,7 +63,7 @@
 //! - [ ] SDL_GL_SetSwapInterval
 //! - [ ] SDL_GL_SwapWindow
 //! - [ ] SDL_GL_UnloadLibrary
-//! - [ ] SDL_HideWindow
+//! - [x] SDL_HideWindow
 //! - [ ] SDL_MaximizeWindow
 //! - [ ] SDL_MinimizeWindow
 //! - [ ] SDL_RaiseWindow
@@ -85,15 +85,15 @@
 //! - [ ] SDL_SetWindowMouseRect
 //! - [ ] SDL_SetWindowOpacity
 //! - [ ] SDL_SetWindowParent
-//! - [ ] SDL_SetWindowPosition
+//! - [x] SDL_SetWindowPosition
 //! - [ ] SDL_SetWindowProgressState
 //! - [ ] SDL_SetWindowProgressValue
 //! - [ ] SDL_SetWindowResizable
 //! - [ ] SDL_SetWindowShape
-//! - [ ] SDL_SetWindowSize
+//! - [x] SDL_SetWindowSize
 //! - [ ] SDL_SetWindowSurfaceVSync
 //! - [ ] SDL_SetWindowTitle
-//! - [ ] SDL_ShowWindow
+//! - [x] SDL_ShowWindow
 //! - [ ] SDL_ShowWindowSystemMenu
 //! - [x] SDL_SyncWindow
 //! - [ ] SDL_UpdateWindowSurface
@@ -453,6 +453,7 @@ impl Window {
     }
 
     /// Returns this window's unique ID.
+    #[doc(alias = "SDL_GetWindowID")]
     pub fn id(&self) -> WindowId {
         let id = unsafe { SDL_GetWindowID(self.inner.handle.as_ptr()) }.0;
 
