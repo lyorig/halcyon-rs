@@ -4,6 +4,8 @@ use sdl3_sys::events::*;
 
 use crate::{defs::SdlResult, util::to_result};
 
+/// NOTE: Documentation for variants is copied from SDL.
+/// It might not make sense in the context of this crate.
 #[repr(C, u32)]
 #[doc(alias = "SDL_Event")]
 pub enum Event {

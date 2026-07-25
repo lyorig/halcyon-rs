@@ -1,0 +1,74 @@
+use rustest::test;
+use sdl3_sys::events::*;
+
+use halcyon::{
+    context::Context,
+    event::{Event, EventIter},
+    subsystem::Events,
+};
+
+/// [`SDL_Event`] -> [`Event`] conversion.
+#[test]
+fn sdl_to_hal() {
+    // Manually set the timestamp for testing purposes.
+    let ticks = halcyon::ticks_ns();
+
+    let hal = Event::from(&SDL_Event {
+        clipboard: SDL_ClipboardEvent {
+            r#type: SDL_EVENT_CLIPBOARD_UPDATE,
+            timestamp: ticks,
+            ..Default::default()
+        },
+    });
+
+    let Event::ClipboardUpdate(cu) = hal else {
+        panic!("Expected clipboard update");
+    };
+
+    assert_eq!(cu.timestamp, ticks);
+}
+
+/// [`Event`] -> [`SDL_Event`] conversion.
+#[test]
+fn hal_to_sdl() {
+    let mut sdl = SDL_Event::from(&Event::Quit);
+
+    // Manually set the timestamp for testing purposes.
+    let ticks = halcyon::ticks_ns();
+    sdl.quit.timestamp = ticks;
+
+    assert!(unsafe { sdl.quit.r#type } == SDL_EVENT_QUIT);
+    assert!(unsafe { sdl.r#type } == SDL_EVENT_QUIT);
+    assert_eq!(unsafe { sdl.quit }.timestamp, ticks);
+    assert_eq!(unsafe { sdl.common }.timestamp, ticks);
+}
+
+/// [`Event::set_timestamp`].
+#[test]
+fn timestamp() {
+    let mut evt = Event::Quit;
+    let ticks = halcyon::ticks_ns();
+    evt.set_timestamp(ticks);
+
+    let sdl = SDL_Event::from(&evt);
+    assert_eq!(unsafe { sdl.common }.timestamp, ticks);
+}
+
+/// [`Event::push()`] testing.
+#[test]
+fn push() {
+    // Should fail, since events aren't initialized.
+    Event::Quit.push().unwrap_err();
+
+    // Initialize events.
+    let ctx = Context::new();
+    let _evts = Events::new(&ctx);
+
+    // Should work now.
+    Event::Quit.push().unwrap();
+
+    let evt = EventIter::new().next().unwrap();
+    let Event::Quit = evt else {
+        panic!("Expected quit event");
+    };
+}

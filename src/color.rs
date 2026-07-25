@@ -3,7 +3,7 @@ use sdl3_sys::pixels::SDL_Color;
 /// "Sub-struct" of [`Rgba`], because some SDL functions only use
 /// the RGB components and don't require the alpha.
 #[repr(C)]
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy, Default, Debug, PartialEq)]
 pub struct Rgb<T> {
     pub r: T,
     pub g: T,
@@ -61,7 +61,7 @@ impl From<RgbF32> for RgbU8 {
 
 /// Wrapper around [`SDL_Color`]. Can be transmuted.
 #[repr(C)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Rgba<T> {
     pub rgb: Rgb<T>,
     pub a: T,
