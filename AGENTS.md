@@ -6,9 +6,7 @@ halcyon-rs aims to combine the various abstractions over OS video/audio faciliti
 # Testing
 
 Tests are not present in `src/lib.rs`, because a lot of SDL functionality requires running on the main thread. As such, the default harness (which runs on a separate thread) is disabled, and tests are instead in a standalone `test/` directory. [rustest](https://docs.rs/rustest/latest/rustest/) is used to mimic Cargo's default test behavior.
-Run tests via `cargo test --tests -- --test-threads=1`. The rationale for this is:
-a) there are currently no doctests,
-b) running with multiple threads causes unintended failures, as mentioned before.
+Run tests via `scripts/test.rs`, which runs `cargo test` with all necessary arguments.
 
 # General coding rules
 
