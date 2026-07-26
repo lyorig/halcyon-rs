@@ -1,0 +1,15 @@
+[
+  {
+    "label": "Test",
+    "command": "scripts/test.sh",
+    "show_command": false,
+    "show_summary": false,
+  },
+
+  {
+    "label": "Run (release)",
+    "command": "cargo run -r",
+    "show_command": false,
+    "show_summary": false,
+  },
+]
