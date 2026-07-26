@@ -11,15 +11,15 @@ halcyon-rs aims to combine the various abstractions over OS video/audio faciliti
 
 SDL works with raw pointers. halcyon-rs bridges this with three tiers:
 
-- **Handle** (e.g. `WindowHandle`) — a `NonNull` wrapper, `Copy + Clone`. The actual method surface.
-- **Owned object** (e.g. `Window`, `Texture`) — wraps an SDL pointer, implements `Drop` and `Deref<Target = Handle>`.
-- **Reference** (`Ref<'a, T>`) — a `Copy` handle tied to a lifetime via `PhantomData`. Produced by `Resource::as_ref()`. This avoids double indirection compared to `&Handle` — SDL APIs take raw pointers directly.
+- **Handle** (e.g. `WindowHandle`) — a `NonNull` wrapper, `Copy + Clone`. This is where all methods are actually implemented.
+- **Owned object** (e.g. `Window`, `Texture`) — wraps a handle, implements `Drop` and `Deref<Target = Handle>`.
+- **Reference** (`Ref<'a, T>`) — wraps a handle, is `Copy`, tied to a lifetime via `PhantomData`. Produced by `Resource::as_ref()`. This avoids double indirection compared to `&Handle`.
 
 Raw handle returns from methods are `unsafe` — their lifetime can't be expressed in Rust's type system.
 
 ## The `resource!` macro family (`src/util.rs`)
 
-Generates the Handle + Owned struct boilerplate. Every new SDL type uses one:
+Generates the handle + owned struct boilerplate. Every new SDL type uses one:
 
 | Macro                                                 | Use case                                                                                                        |
 | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
@@ -36,9 +36,8 @@ Central trait. `type Handle` is the raw SDL pointer type. `unsafe as_handle()` r
 
 | Module          | Purpose                                                                           |
 | --------------- | --------------------------------------------------------------------------------- |
-| `lib.rs`        | Top-level free functions wrapping global SDL functions                            |
+| `lib.rs`        | Top-level free functions wrapping global SDL functions, type aliases              |
 | `traits.rs`     | `Resource`, `BlendMode`, `ColorModU8`, `ColorModF32`                              |
-| `defs.rs`       | `type SdlResult<T = ()> = Result<T, Error>`                                       |
 | `error.rs`      | `Error` struct wrapping `SDL_GetError()`                                          |
 | `sdl_string.rs` | `SdlString` — owned string freed via `SDL_free()`                                 |
 | `sdl_box.rs`    | `SdlBox<T>`, `SdlBoxArr<T>` — SDL-allocated memory wrappers                       |
@@ -64,10 +63,10 @@ Each wrapper module begins with a commented `[x]` / `[ ]` checklist tracking SDL
 
 # Error handling
 
-- `SdlResult<T>` = `Result<T, Error>`.
+- `halcyon::Result<T>` = `Result<T, Error>`.
 - On failure, `Error::current()` reads `SDL_GetError()`.
 - `to_result(bool)` wraps the common pattern: check bool return, `Err(Error::current())` on false.
-- `SdlString::from_ptr(ptr)` returns `SdlResult<SdlString>`, handling null pointers.
+- `SdlString::from_ptr(ptr)` returns `halcyon::Result<SdlString>`, handling null pointers.
 
 # Naming conventions
 

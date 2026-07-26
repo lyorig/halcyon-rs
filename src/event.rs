@@ -2,7 +2,7 @@ use std::{iter::FusedIterator, mem::MaybeUninit};
 
 use sdl3_sys::events::*;
 
-use crate::{defs::SdlResult, util::to_result};
+use crate::{Result, util::to_result};
 
 /// NOTE: Documentation for variants is copied from SDL.
 /// It might not make sense in the context of this crate.
@@ -354,7 +354,7 @@ pub enum Event {
 
 impl Event {
     #[doc(alias = "SDL_PushEvent")]
-    pub fn push(&self) -> SdlResult {
+    pub fn push(&self) -> Result {
         // NOTE: The timestamp is set internally in `SDL_PushEvent()`.
         let mut e = SDL_Event::from(self);
         to_result(unsafe { SDL_PushEvent(&raw mut e) })

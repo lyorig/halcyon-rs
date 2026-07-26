@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use sdl3_sys::init::*;
 
-use crate::{context::Context, defs::SdlResult, error::Error};
+use crate::{Result, context::Context, error::Error};
 
 /// A handle to an SDL subsystem.
 /// This doesn't actually de-initialize the underlying subsystem upon being dropped;
@@ -13,7 +13,7 @@ pub struct Subsystem<'ctx, const TYPE: u32> {
 
 impl<const N: u32> Subsystem<'_, N> {
     #[doc(alias = "SDL_Init")]
-    pub fn new(_: &Context) -> SdlResult<Self> {
+    pub fn new(_: &Context) -> Result<Self> {
         let res = unsafe { SDL_Init(SDL_InitFlags::new(N)) };
         if res {
             Ok(Self {

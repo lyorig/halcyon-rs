@@ -2,7 +2,7 @@ use std::ffi::{CStr, c_char, c_void};
 
 use sdl3_sys::properties::*;
 
-use crate::{defs::SdlResult, util::to_result};
+use crate::{Result, util::to_result};
 
 /// Owned SDL properties.
 pub struct Properties {
@@ -27,7 +27,7 @@ impl Properties {
     }
 
     #[doc(alias = "SDL_SetNumberProperty")]
-    pub fn set_number(&mut self, key: *const c_char, value: i64) -> SdlResult {
+    pub fn set_number(&mut self, key: *const c_char, value: i64) -> Result {
         to_result(unsafe { SDL_SetNumberProperty(self.id, key, value) })
     }
 
@@ -37,7 +37,7 @@ impl Properties {
     }
 
     #[doc(alias = "SDL_SetFloatProperty")]
-    pub fn set_float(&mut self, key: *const c_char, value: f32) -> SdlResult {
+    pub fn set_float(&mut self, key: *const c_char, value: f32) -> Result {
         to_result(unsafe { SDL_SetFloatProperty(self.id, key, value) })
     }
 
@@ -47,7 +47,7 @@ impl Properties {
     }
 
     #[doc(alias = "SDL_SetPointerProperty")]
-    pub fn set_pointer(&mut self, key: *const c_char, value: *mut c_void) -> SdlResult {
+    pub fn set_pointer(&mut self, key: *const c_char, value: *mut c_void) -> Result {
         to_result(unsafe { SDL_SetPointerProperty(self.id, key, value) })
     }
 
@@ -57,7 +57,7 @@ impl Properties {
     }
 
     #[doc(alias = "SDL_SetStringProperty")]
-    pub fn set_string(&mut self, key: *const c_char, value: &CStr) -> SdlResult {
+    pub fn set_string(&mut self, key: *const c_char, value: &CStr) -> Result {
         to_result(unsafe { SDL_SetStringProperty(self.id, key, value.as_ptr()) })
     }
 
@@ -67,7 +67,7 @@ impl Properties {
     }
 
     #[doc(alias = "SDL_SetBooleanProperty")]
-    pub fn set_bool(&mut self, key: *const c_char, value: bool) -> SdlResult {
+    pub fn set_bool(&mut self, key: *const c_char, value: bool) -> Result {
         to_result(unsafe { SDL_SetBooleanProperty(self.id, key, value) })
     }
 }

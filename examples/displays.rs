@@ -1,8 +1,8 @@
 use halcyon::{
-    context::Context, defs::SdlResult, display::DisplayHandle, subsystem::Video, util::c_ptr_to_str,
+    Result, context::Context, display::DisplayHandle, subsystem::Video, util::c_ptr_to_str,
 };
 
-fn outer() -> SdlResult {
+fn outer() -> Result {
     let context = Context::new();
     let _video: Video = context.init()?;
 

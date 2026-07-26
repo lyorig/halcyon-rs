@@ -2,7 +2,7 @@ use std::ffi::CStr;
 
 use sdl3_sys::messagebox::*;
 
-use crate::{defs::SdlResult, util::to_result};
+use crate::{Result, util::to_result};
 
 #[repr(u32)]
 #[derive(Clone, Copy)]
@@ -18,7 +18,7 @@ impl Severity {
     }
 }
 
-pub fn show(sev: Severity, title: &CStr, message: &CStr) -> SdlResult {
+pub fn show(sev: Severity, title: &CStr, message: &CStr) -> Result {
     to_result(unsafe {
         SDL_ShowSimpleMessageBox(
             sev.as_flags(),

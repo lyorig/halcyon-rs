@@ -1,7 +1,7 @@
 use halcyon::{
+    Result,
     color::Rgba,
     context::Context,
-    defs::SdlResult,
     event::{Event, EventIter},
     rect::{Point, Rect},
     renderer::RendererBuilder,
@@ -11,7 +11,7 @@ use halcyon::{
 };
 
 /// SAFETY: Only call this on the main thread!
-unsafe fn run() -> SdlResult {
+unsafe fn run() -> Result {
     let ctx = Context::new();
     let _vid = Video::new(&ctx).expect("Video creation failed");
 

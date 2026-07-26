@@ -8,7 +8,7 @@ use bitmask_enum::bitmask;
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
 use crate::{
-    defs::SdlResult,
+    Result,
     error::Error,
     rect::Point,
     resource, resource_no_drop,
@@ -43,7 +43,7 @@ pub fn are_formats_supported(fmts: ShaderFormats) -> bool {
 
 resource!(GPUDevice);
 impl GPUDevice {
-    pub fn new(formats: ShaderFormats, debug_mode: bool) -> SdlResult<Self> {
+    pub fn new(formats: ShaderFormats, debug_mode: bool) -> Result<Self> {
         let fmts = SDL_GPUShaderFormat::new(formats.bits());
         let handle = unsafe { SDL_CreateGPUDevice(fmts, debug_mode, std::ptr::null()) };
         Self::from_ptr(handle)
@@ -51,13 +51,13 @@ impl GPUDevice {
 }
 
 impl GPUDeviceHandle {
-    pub fn claim_window(&self, window: Ref<Window>) -> SdlResult {
+    pub fn claim_window(&self, window: Ref<Window>) -> Result {
         to_result(unsafe {
             SDL_ClaimWindowForGPUDevice(self.handle.as_ptr(), window.handle.as_ptr())
         })
     }
 
-    pub fn driver(&self) -> SdlResult<&str> {
+    pub fn driver(&self) -> Result<&str> {
         let raw = unsafe { SDL_GetGPUDeviceDriver(self.handle.as_ptr()) };
         if raw.is_null() {
             Err(Error::current())
@@ -118,7 +118,7 @@ impl TransferBufferLocation {
 
 resource_no_drop!(GPUBuffer);
 impl GPUBuffer {
-    pub fn new(device: Ref<GPUDevice>, create_info: &BufferCreateInfo) -> SdlResult<Self> {
+    pub fn new(device: Ref<GPUDevice>, create_info: &BufferCreateInfo) -> Result<Self> {
         let handle = unsafe { SDL_CreateGPUBuffer(device.handle.as_ptr(), &create_info.0) };
         Self::from_ptr(handle)
     }
@@ -188,7 +188,7 @@ impl ComputePipelineCreateInfo {
 
 resource_no_drop!(GPUComputePipeline);
 impl GPUComputePipeline {
-    pub fn new(device: Ref<GPUDevice>, create_info: &ComputePipelineCreateInfo) -> SdlResult<Self> {
+    pub fn new(device: Ref<GPUDevice>, create_info: &ComputePipelineCreateInfo) -> Result<Self> {
         let handle =
             unsafe { SDL_CreateGPUComputePipeline(device.handle.as_ptr(), &create_info.0) };
         Self::from_ptr(handle)
@@ -204,7 +204,7 @@ impl GPUGraphicsPipeline {
     pub fn new(
         device: Ref<GPUDevice>,
         create_info: &SDL_GPUGraphicsPipelineCreateInfo,
-    ) -> SdlResult<Self> {
+    ) -> Result<Self> {
         let handle = unsafe { SDL_CreateGPUGraphicsPipeline(device.handle.as_ptr(), create_info) };
         Self::from_ptr(handle)
     }
@@ -230,18 +230,18 @@ impl GPUFence {
 resource_no_drop!(GPUCommandBuffer);
 impl GPUCommandBuffer {
     #[doc(alias = "SDL_AcquireGPUCommandBuffer")]
-    pub fn new(device: Ref<GPUDevice>) -> SdlResult<Self> {
+    pub fn new(device: Ref<GPUDevice>) -> Result<Self> {
         let handle = unsafe { SDL_AcquireGPUCommandBuffer(device.handle.as_ptr()) };
         Self::from_ptr(handle)
     }
 
     #[doc(alias = "SDL_SubmitGPUCommandBuffer")]
-    pub fn submit(self) -> SdlResult {
+    pub fn submit(self) -> Result {
         to_result(unsafe { SDL_SubmitGPUCommandBuffer(self.handle.as_ptr()) })
     }
 
     #[doc(alias = "SDL_SubmitGPUCommandBufferAndAcquireFence")]
-    pub fn submit_fence(self) -> SdlResult<GPUFence> {
+    pub fn submit_fence(self) -> Result<GPUFence> {
         let fence = unsafe { SDL_SubmitGPUCommandBufferAndAcquireFence(self.handle.as_ptr()) };
         GPUFence::from_ptr(fence)
     }
@@ -253,7 +253,7 @@ impl GPUCommandBufferHandle {
         &self,
         wnd: Ref<Window>,
         (tex_x, tex_y): (Option<&mut u32>, Option<&mut u32>),
-    ) -> SdlResult<Option<Ref<'_, GPUTexture>>> {
+    ) -> Result<Option<Ref<'_, GPUTexture>>> {
         let mut tex = MaybeUninit::uninit();
         let res = unsafe {
             SDL_WaitAndAcquireGPUSwapchainTexture(
@@ -281,7 +281,7 @@ impl GPURenderPass {
         cmdbuf: Ref<GPUCommandBuffer>,
         color_targets: &[SDL_GPUColorTargetInfo],
         depth_stencil_target: Option<&SDL_GPUDepthStencilTargetInfo>,
-    ) -> SdlResult<Self> {
+    ) -> Result<Self> {
         let handle = unsafe {
             SDL_BeginGPURenderPass(
                 cmdbuf.handle.as_ptr(),
@@ -311,7 +311,7 @@ impl GPUComputePassHandle {
 
 resource!(GPUCopyPass, SDL, End);
 impl GPUCopyPass {
-    pub fn new(cmdbuf: Ref<GPUCommandBuffer>) -> SdlResult<Self> {
+    pub fn new(cmdbuf: Ref<GPUCommandBuffer>) -> Result<Self> {
         let handle = unsafe { SDL_BeginGPUCopyPass(cmdbuf.handle.as_ptr()) };
         Self::from_ptr(handle)
     }
@@ -351,7 +351,7 @@ impl ShaderCreateInfo {
 
 resource_no_drop!(GPUShader);
 impl GPUShader {
-    pub fn new(device: Ref<GPUDevice>, create_info: &ShaderCreateInfo) -> SdlResult<Self> {
+    pub fn new(device: Ref<GPUDevice>, create_info: &ShaderCreateInfo) -> Result<Self> {
         let handle = unsafe { SDL_CreateGPUShader(device.handle.as_ptr(), &create_info.0) };
         Self::from_ptr(handle)
     }
@@ -468,7 +468,7 @@ impl TextureRegion {
 
 resource_no_drop!(GPUTexture);
 impl GPUTexture {
-    pub fn new(device: Ref<GPUDevice>, create_info: &TextureCreateInfo) -> SdlResult<Self> {
+    pub fn new(device: Ref<GPUDevice>, create_info: &TextureCreateInfo) -> Result<Self> {
         let handle = unsafe { SDL_CreateGPUTexture(device.handle.as_ptr(), &create_info.0) };
         Self::from_ptr(handle)
     }

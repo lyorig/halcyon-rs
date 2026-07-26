@@ -9,7 +9,7 @@ use sdl3_sys::{
     timer::{SDL_GetTicks, SDL_GetTicksNS},
 };
 
-use crate::{defs::SdlResult, sdl_string::SdlString, util::c_ptr_to_str};
+use crate::{sdl_string::SdlString, util::c_ptr_to_str};
 
 mod properties;
 mod sdl_box;
@@ -17,7 +17,6 @@ mod sdl_box;
 pub mod clipboard;
 pub mod color;
 pub mod context;
-pub mod defs;
 pub mod display;
 pub mod error;
 pub mod event;
@@ -35,10 +34,14 @@ pub mod ttf;
 pub mod util;
 pub mod window;
 
+/// Convenience alias for [`std::result::Result<T, Error>`.]
+/// Used as the return type throughout this crate.
+pub type Result<T = ()> = std::result::Result<T, error::Error>;
+
 #[doc(alias = "SDL_GetPlatform")]
 pub fn platform() -> &'static str {
     // SAFETY: All SDL3 platform strings are UTF-8,
-    // and they are stored statically.
+    // and are stored statically.
     unsafe { c_ptr_to_str(SDL_GetPlatform()) }
 }
 
@@ -50,7 +53,7 @@ pub fn base_path() -> &'static str {
 }
 
 #[doc(alias = "SDL_GetPrefPath")]
-pub fn pref_path(org: &CStr, app: &CStr) -> SdlResult<SdlString> {
+pub fn pref_path(org: &CStr, app: &CStr) -> Result<SdlString> {
     let ptr = unsafe { SDL_GetPrefPath(org.as_ptr(), app.as_ptr()) };
     SdlString::from_ptr(ptr)
 }

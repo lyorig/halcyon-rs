@@ -1,6 +1,6 @@
 use sdl3_sys::init::SDL_Quit;
 
-use crate::{defs::SdlResult, subsystem::Subsystem};
+use crate::{Result, subsystem::Subsystem};
 
 /// A zero-sized type that only exists to call [`SDL_Quit()`].
 /// As such, think of it as a guard that creates a scope for
@@ -19,7 +19,7 @@ impl Context {
 
     /// Panics if this function is not called on the main thread.
     ///
-    /// # Why doesn't this return a [`SdlResult`] instead?
+    /// # Why doesn't this return a [`Result`] instead?
     /// TL;DR: It's less error-prone.
     /// Contexts are sometimes left unused, i.e.
     /// ```
@@ -30,7 +30,7 @@ impl Context {
     /// the main thread isn't really something that can happen by chance and you
     /// can recover from. If necessary, check yourself via [`crate::is_main_thread()`].
     ///
-    /// In addition, [`SdlResult`] is only intended to originate from SDL API calls.
+    /// In addition, [`Result`] is only intended to originate from SDL API calls.
     /// Since [`Context`] is a ZST providing an abstraction over SDL initialization,
     /// this would newly require a way to create a "custom" error.
     pub fn new() -> Self {
@@ -38,7 +38,7 @@ impl Context {
         Self {}
     }
 
-    pub fn init<const N: u32>(&self) -> SdlResult<Subsystem<'_, N>> {
+    pub fn init<const N: u32>(&self) -> Result<Subsystem<'_, N>> {
         Subsystem::new(self)
     }
 }

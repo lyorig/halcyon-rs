@@ -2,7 +2,7 @@ use std::{mem::MaybeUninit, ops::Deref, ptr::NonNull};
 
 use sdl3_sys::stdinc::SDL_free;
 
-use crate::{defs::SdlResult, error::Error};
+use crate::{Result, error::Error};
 
 /// Wrapper for SDL allocations.
 pub struct SdlBox<T> {
@@ -13,7 +13,7 @@ impl<T> SdlBox<T> {
     /// Create an `SdlBox` from an owned pointer, most likely
     /// provided by SDL. This takes care of checking whether
     /// the pointer is null, and if so, returning the error.
-    pub unsafe fn from_ptr(ptr: *mut T) -> SdlResult<Self> {
+    pub unsafe fn from_ptr(ptr: *mut T) -> Result<Self> {
         match NonNull::new(ptr) {
             Some(handle) => Ok(Self { handle }),
             None => Err(Error::current()),
@@ -36,7 +36,7 @@ impl<T> SdlBoxArr<T> {
     /// Create an `SdlBoxArr` from an owned pointer, most likely provided by SDL,
     /// and potentially uninitialized size, since those work via out-parameters.
     /// This takes care of checking whether the pointer is null, and if so, returning the error.
-    pub unsafe fn from_ptr(ptr: *mut T, len: MaybeUninit<i32>) -> SdlResult<Self> {
+    pub unsafe fn from_ptr(ptr: *mut T, len: MaybeUninit<i32>) -> Result<Self> {
         unsafe {
             SdlBox::from_ptr(ptr).map(|handle| Self {
                 handle,

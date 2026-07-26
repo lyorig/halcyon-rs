@@ -2,7 +2,7 @@ use std::ffi::CStr;
 
 use sdl3_sys::clipboard::*;
 
-use crate::{defs::SdlResult, sdl_string::SdlString, util::to_result};
+use crate::{Result, sdl_string::SdlString, util::to_result};
 
 #[doc(alias = "SDL_HasClipboardText")]
 pub fn has_text() -> bool {
@@ -18,6 +18,6 @@ pub fn text() -> SdlString {
 }
 
 #[doc(alias = "SDL_SetClipboardText")]
-pub fn set_text(text: &CStr) -> SdlResult {
+pub fn set_text(text: &CStr) -> Result {
     to_result(unsafe { SDL_SetClipboardText(text.as_ptr()) })
 }

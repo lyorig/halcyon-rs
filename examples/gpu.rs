@@ -1,12 +1,12 @@
 use halcyon::{
-    context::Context, defs::SdlResult, gpu::*, rect::Point, subsystem::Video, traits::Resource,
+    Result, context::Context, gpu::*, rect::Point, subsystem::Video, traits::Resource,
     window::Window,
 };
 
 const BUFFER_CREATE_INFO: BufferCreateInfo =
     BufferCreateInfo::new(BufferUsageFlags::ComputeStorageWrite, 4096);
 
-fn foo() -> SdlResult {
+fn foo() -> Result {
     let ctx = Context::new();
     let _video = Video::new(&ctx);
 

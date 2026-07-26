@@ -103,7 +103,7 @@
 //! - [x] SDL_CreateWindowAndRenderer
 
 use crate::{
-    defs::SdlResult,
+    Result,
     display::DisplayHandle,
     error::Error,
     properties::Properties,
@@ -292,7 +292,7 @@ impl WindowBuilder {
 
     /// Build the window.
     #[doc(alias = "SDL_CreateWindowWithProperties")]
-    pub fn build(&self) -> SdlResult<Window> {
+    pub fn build(&self) -> Result<Window> {
         Window::from_ptr(unsafe { SDL_CreateWindowWithProperties(self.inner.id()) })
     }
 
@@ -318,7 +318,7 @@ pub struct WindowId {
 }
 
 impl WindowId {
-    fn from_raw(raw: u32) -> SdlResult<Self> {
+    fn from_raw(raw: u32) -> Result<Self> {
         match NonZero::new(raw) {
             Some(inner) => Ok(Self { inner }),
             None => Err(Error::current()),
@@ -339,12 +339,12 @@ resource!(Window);
 
 impl WindowHandle {
     #[doc(alias = "SDL_SyncWindow")]
-    pub fn sync(&self) -> SdlResult {
+    pub fn sync(&self) -> Result {
         to_result(unsafe { SDL_SyncWindow(self.handle.as_ptr()) })
     }
 
     #[doc(alias = "SDL_FlashWindow")]
-    pub fn flash(&self, op: SDL_FlashOperation) -> SdlResult {
+    pub fn flash(&self, op: SDL_FlashOperation) -> Result {
         to_result(unsafe { SDL_FlashWindow(self.handle.as_ptr(), op) })
     }
 
@@ -387,28 +387,28 @@ impl WindowHandle {
     }
 
     #[doc(alias = "SDL_GetDisplayForWindow")]
-    pub fn display(&self) -> SdlResult<DisplayHandle> {
+    pub fn display(&self) -> Result<DisplayHandle> {
         let raw = unsafe { SDL_GetDisplayForWindow(self.handle.as_ptr()) };
         DisplayHandle::new(raw)
     }
 
     #[doc(alias = "SDL_SetWindowSize")]
-    pub fn set_size(&self, size: PointI32) -> SdlResult {
+    pub fn set_size(&self, size: PointI32) -> Result {
         to_result(unsafe { SDL_SetWindowSize(self.handle.as_ptr(), size.x, size.y) })
     }
 
     #[doc(alias = "SDL_SetWindowPosition")]
-    pub fn set_pos(&self, pos: PointI32) -> SdlResult {
+    pub fn set_pos(&self, pos: PointI32) -> Result {
         to_result(unsafe { SDL_SetWindowPosition(self.handle.as_ptr(), pos.x, pos.y) })
     }
 
     #[doc(alias = "SDL_ShowWindow")]
-    pub fn show(&self) -> SdlResult {
+    pub fn show(&self) -> Result {
         to_result(unsafe { SDL_ShowWindow(self.handle.as_ptr()) })
     }
 
     #[doc(alias = "SDL_HideWindow")]
-    pub fn hide(&self) -> SdlResult {
+    pub fn hide(&self) -> Result {
         to_result(unsafe { SDL_HideWindow(self.handle.as_ptr()) })
     }
 }
@@ -418,7 +418,7 @@ impl Window {
     pub const POS_UNDEFINED: i32 = SDL_WINDOWPOS_UNDEFINED;
 
     #[doc(alias = "SDL_CreateWindow")]
-    pub fn new(title: &CStr, size: PointI32, flags: SDL_WindowFlags) -> SdlResult<Self> {
+    pub fn new(title: &CStr, size: PointI32, flags: SDL_WindowFlags) -> Result<Self> {
         Self::from_ptr(unsafe { SDL_CreateWindow(title.as_ptr(), size.x, size.y, flags) })
     }
 
@@ -427,7 +427,7 @@ impl Window {
         title: &CStr,
         size: PointI32,
         flags: SDL_WindowFlags,
-    ) -> (SdlResult<Self>, SdlResult<Renderer>) {
+    ) -> (Result<Self>, Result<Renderer>) {
         let mut ret = MaybeUninit::<(*mut SDL_Window, *mut SDL_Renderer)>::uninit();
         let ptr = ret.as_mut_ptr();
 

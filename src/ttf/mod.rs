@@ -128,8 +128,8 @@ use std::{ffi::CStr, marker::PhantomData, mem::MaybeUninit, ptr::NonNull};
 use sdl3_ttf_sys::ttf::*;
 
 use crate::{
+    Result,
     color::RgbaU8,
-    defs::SdlResult,
     error::Error,
     rect::{PointF32, PointI32},
     resource, resource_tied,
@@ -158,7 +158,7 @@ pub struct Context;
 
 impl Context {
     #[doc(alias = "TTF_Init")]
-    pub fn new() -> SdlResult<Self> {
+    pub fn new() -> Result<Self> {
         if unsafe { TTF_Init() } {
             Ok(Self {})
         } else {
@@ -167,7 +167,7 @@ impl Context {
     }
 
     #[doc(alias = "TTF_OpenFont")]
-    pub fn open(&self, file: &CStr, point_size: f32) -> SdlResult<Font<'_>> {
+    pub fn open(&self, file: &CStr, point_size: f32) -> Result<Font<'_>> {
         unsafe { Font::new_unchecked(file, point_size) }
     }
 }
@@ -197,35 +197,35 @@ impl Clone for Font<'_> {
 
 impl FontHandle {
     #[doc(alias = "TTF_RenderGlyph_Blended")]
-    pub fn render_glyph_blended(&self, ch: char, color: RgbaU8) -> SdlResult<Surface> {
+    pub fn render_glyph_blended(&self, ch: char, color: RgbaU8) -> Result<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderGlyph_Blended(self.handle.as_ptr(), ch.into(), color.into())
         })
     }
 
     #[doc(alias = "TTF_RenderGlyph_LCD")]
-    pub fn render_glyph_lcd(&self, ch: char, fg: RgbaU8, bg: RgbaU8) -> SdlResult<Surface> {
+    pub fn render_glyph_lcd(&self, ch: char, fg: RgbaU8, bg: RgbaU8) -> Result<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderGlyph_LCD(self.handle.as_ptr(), ch.into(), fg.into(), bg.into())
         })
     }
 
     #[doc(alias = "TTF_RenderGlyph_Shaded")]
-    pub fn render_glyph_shaded(&self, ch: char, fg: RgbaU8, bg: RgbaU8) -> SdlResult<Surface> {
+    pub fn render_glyph_shaded(&self, ch: char, fg: RgbaU8, bg: RgbaU8) -> Result<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderGlyph_Shaded(self.handle.as_ptr(), ch.into(), fg.into(), bg.into())
         })
     }
 
     #[doc(alias = "TTF_RenderGlyph_Solid")]
-    pub fn render_glyph_solid(&self, ch: char, color: RgbaU8) -> SdlResult<Surface> {
+    pub fn render_glyph_solid(&self, ch: char, color: RgbaU8) -> Result<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderGlyph_Solid(self.handle.as_ptr(), ch.into(), color.into())
         })
     }
 
     #[doc(alias = "TTF_RenderText_Blended")]
-    pub fn render_text_blended(&self, text: &str, color: RgbaU8) -> SdlResult<Surface> {
+    pub fn render_text_blended(&self, text: &str, color: RgbaU8) -> Result<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_Blended(
                 self.handle.as_ptr(),
@@ -237,7 +237,7 @@ impl FontHandle {
     }
 
     #[doc(alias = "TTF_RenderText_LCD")]
-    pub fn render_text_lcd(&self, text: &str, fg: RgbaU8, bg: RgbaU8) -> SdlResult<Surface> {
+    pub fn render_text_lcd(&self, text: &str, fg: RgbaU8, bg: RgbaU8) -> Result<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_LCD(
                 self.handle.as_ptr(),
@@ -250,7 +250,7 @@ impl FontHandle {
     }
 
     #[doc(alias = "TTF_RenderText_Shaded")]
-    pub fn render_text_shaded(&self, text: &str, fg: RgbaU8, bg: RgbaU8) -> SdlResult<Surface> {
+    pub fn render_text_shaded(&self, text: &str, fg: RgbaU8, bg: RgbaU8) -> Result<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_Shaded(
                 self.handle.as_ptr(),
@@ -263,7 +263,7 @@ impl FontHandle {
     }
 
     #[doc(alias = "TTF_RenderText_Solid")]
-    pub fn render_text_solid(&self, text: &str, color: RgbaU8) -> SdlResult<Surface> {
+    pub fn render_text_solid(&self, text: &str, color: RgbaU8) -> Result<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_Solid(
                 self.handle.as_ptr(),
@@ -280,7 +280,7 @@ impl FontHandle {
         text: &str,
         color: RgbaU8,
         wrap_length: i32,
-    ) -> SdlResult<Surface> {
+    ) -> Result<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_Blended_Wrapped(
                 self.handle.as_ptr(),
@@ -299,7 +299,7 @@ impl FontHandle {
         fg: RgbaU8,
         bg: RgbaU8,
         wrap_length: i32,
-    ) -> SdlResult<Surface> {
+    ) -> Result<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_LCD_Wrapped(
                 self.handle.as_ptr(),
@@ -319,7 +319,7 @@ impl FontHandle {
         fg: RgbaU8,
         bg: RgbaU8,
         wrap_length: i32,
-    ) -> SdlResult<Surface> {
+    ) -> Result<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_Shaded_Wrapped(
                 self.handle.as_ptr(),
@@ -338,7 +338,7 @@ impl FontHandle {
         text: &str,
         color: RgbaU8,
         wrap_length: i32,
-    ) -> SdlResult<Surface> {
+    ) -> Result<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_Solid_Wrapped(
                 self.handle.as_ptr(),
@@ -367,7 +367,7 @@ impl Font<'_> {
     /// That includes the point at which it's dropped. A segfault will probably
     /// happen otherwise.
     #[doc(alias = "TTF_OpenFont")]
-    pub unsafe fn new_unchecked(file: &CStr, point_size: f32) -> SdlResult<Self> {
+    pub unsafe fn new_unchecked(file: &CStr, point_size: f32) -> Result<Self> {
         Font::from_ptr(unsafe { TTF_OpenFont(file.as_ptr(), point_size) })
     }
 }
@@ -405,7 +405,7 @@ impl TextHandle {
     }
 
     #[doc(alias = "TTF_SetTextColor")]
-    pub fn set_color(&self, color: RgbaU8) -> SdlResult {
+    pub fn set_color(&self, color: RgbaU8) -> Result {
         to_result(unsafe {
             TTF_SetTextColor(
                 self.handle.as_ptr(),
@@ -418,26 +418,26 @@ impl TextHandle {
     }
 
     #[doc(alias = "TTF_UpdateText")]
-    pub fn update(&self) -> SdlResult {
+    pub fn update(&self) -> Result {
         to_result(unsafe { TTF_UpdateText(self.handle.as_ptr()) })
     }
 
     #[doc(alias = "TTF_DrawSurfaceText")]
-    pub fn draw_to_surface(&self, surf: Ref<Surface>, pos: PointI32) -> SdlResult {
+    pub fn draw_to_surface(&self, surf: Ref<Surface>, pos: PointI32) -> Result {
         to_result(unsafe {
             TTF_DrawSurfaceText(self.handle.as_ptr(), pos.x, pos.y, surf.handle.as_ptr())
         })
     }
 
     #[doc(alias = "TTF_DrawRendererText")]
-    pub fn draw_to_renderer(&self, pos: PointF32) -> SdlResult {
+    pub fn draw_to_renderer(&self, pos: PointF32) -> Result {
         to_result(unsafe { TTF_DrawRendererText(self.handle.as_ptr(), pos.x, pos.y) })
     }
 }
 
 impl Text {
     #[doc(alias = "TTF_CreateText")]
-    pub fn new(font: Ref<Font>, text: &str) -> SdlResult<Self> {
+    pub fn new(font: Ref<Font>, text: &str) -> Result<Self> {
         assert!(!text.is_empty());
         Self::from_ptr(unsafe {
             TTF_CreateText(

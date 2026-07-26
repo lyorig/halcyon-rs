@@ -1,6 +1,6 @@
 use std::ffi::{CStr, c_char};
 
-use crate::{defs::SdlResult, error::Error};
+use crate::{Result, error::Error};
 
 #[macro_export]
 macro_rules! resource_impl {
@@ -18,7 +18,7 @@ macro_rules! resource_impl {
             }
 
             impl $owned {
-                pub(crate) fn from_ptr(handle: *mut [<$library _ $owned>]) -> $crate::defs::SdlResult<Self> {
+                pub(crate) fn from_ptr(handle: *mut [<$library _ $owned>]) -> $crate::Result<Self> {
                     match std::ptr::NonNull::new(handle) {
                         Some(handle) => Ok(Self {
                             inner: [<$owned Handle>] { handle },
@@ -49,7 +49,7 @@ macro_rules! resource_impl {
                 }
             }
         }
-    }
+    };
 }
 
 #[macro_export]
@@ -123,7 +123,7 @@ macro_rules! resource_tied {
                 }
 
                 impl $owned<'_> {
-                    pub(crate) fn from_ptr<'a>(handle: *mut [<$library _ $owned>]) -> $crate::defs::SdlResult<$owned<'a>> {
+                    pub(crate) fn from_ptr<'a>(handle: *mut [<$library _ $owned>]) -> $crate::Result<$owned<'a>> {
                         match std::ptr::NonNull::new(handle) {
                             Some(handle) => Ok($owned {
                                 inner: [<$owned Handle>] { handle },
@@ -179,7 +179,7 @@ pub fn opt2ptr_mut<T>(opt: Option<&mut T>) -> *mut T {
     opt.map_or(std::ptr::null_mut(), |s| s)
 }
 
-pub fn to_result(result: bool) -> SdlResult {
+pub fn to_result(result: bool) -> Result {
     if result {
         Ok(())
     } else {

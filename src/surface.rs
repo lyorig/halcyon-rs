@@ -61,8 +61,8 @@
 use std::mem::MaybeUninit;
 
 use crate::{
+    Result,
     color::{RgbU8, RgbaF32, RgbaU8},
-    defs::SdlResult,
     rect::{PointI32, RectI32},
     resource,
     traits::{BlendMode, ColorModU8, Ref},
@@ -95,14 +95,14 @@ impl SurfaceHandle {
     }
 
     #[doc(alias = "SDL_FillSurfaceRect")]
-    pub fn fill(&self, c: RgbaU8) -> SdlResult {
+    pub fn fill(&self, c: RgbaU8) -> Result {
         to_result(unsafe {
             SDL_FillSurfaceRect(self.handle.as_ptr(), std::ptr::null(), self.map_rgba(c))
         })
     }
 
     #[doc(alias = "SDL_FillSurfaceRect")]
-    pub fn fill_rect(&self, pos: RectI32, c: RgbaU8) -> SdlResult {
+    pub fn fill_rect(&self, pos: RectI32, c: RgbaU8) -> Result {
         to_result(unsafe {
             SDL_FillSurfaceRect(
                 self.handle.as_ptr(),
@@ -113,7 +113,7 @@ impl SurfaceHandle {
     }
 
     #[doc(alias = "SDL_FillSurfaceRects")]
-    pub fn fill_rects(&self, pos: &[RectI32], c: RgbaU8) -> SdlResult {
+    pub fn fill_rects(&self, pos: &[RectI32], c: RgbaU8) -> Result {
         to_result(unsafe {
             SDL_FillSurfaceRects(
                 self.handle.as_ptr(),
@@ -125,17 +125,17 @@ impl SurfaceHandle {
     }
 
     #[doc(alias = "SDL_ClearSurface")]
-    pub fn clear(&self, c: RgbaF32) -> SdlResult {
+    pub fn clear(&self, c: RgbaF32) -> Result {
         to_result(unsafe { SDL_ClearSurface(self.handle.as_ptr(), c.rgb.r, c.rgb.g, c.rgb.b, c.a) })
     }
 
     #[doc(alias = "SDL_FlipSurface")]
-    pub fn flip(&self, fm: SDL_FlipMode) -> SdlResult {
+    pub fn flip(&self, fm: SDL_FlipMode) -> Result {
         to_result(unsafe { SDL_FlipSurface(self.handle.as_ptr(), fm) })
     }
 
     #[doc(alias = "SDL_ScaleSurface")]
-    pub fn scale(&self, size: PointI32, sm: SDL_ScaleMode) -> SdlResult<Surface> {
+    pub fn scale(&self, size: PointI32, sm: SDL_ScaleMode) -> Result<Surface> {
         Surface::from_ptr(unsafe { SDL_ScaleSurface(self.handle.as_ptr(), size.x, size.y, sm) })
     }
 
@@ -158,7 +158,7 @@ impl SurfaceHandle {
     }
 
     #[doc(alias = "SDL_DuplicateSurface")]
-    pub fn try_clone(&self) -> SdlResult<Surface> {
+    pub fn try_clone(&self) -> Result<Surface> {
         Surface::from_ptr(unsafe { SDL_DuplicateSurface(self.handle.as_ptr()) })
     }
 
@@ -169,7 +169,7 @@ impl SurfaceHandle {
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
         scale_mode: SDL_ScaleMode,
-    ) -> SdlResult {
+    ) -> Result {
         to_result(unsafe {
             SDL_StretchSurface(
                 self.handle.as_ptr(),
@@ -182,7 +182,7 @@ impl SurfaceHandle {
     }
 
     #[doc(alias = "SDL_SetSurfaceBlendMode")]
-    pub fn set_blend_mode(&self, bm: SDL_BlendMode) -> SdlResult {
+    pub fn set_blend_mode(&self, bm: SDL_BlendMode) -> Result {
         to_result(unsafe { SDL_SetSurfaceBlendMode(self.handle.as_ptr(), bm) })
     }
 
@@ -192,7 +192,7 @@ impl SurfaceHandle {
         target: Ref<Surface>,
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
-    ) -> SdlResult {
+    ) -> Result {
         to_result(unsafe {
             SDL_BlitSurface(
                 self.handle.as_ptr(),
@@ -212,7 +212,7 @@ impl SurfaceHandle {
         (left_width, right_width, top_height, bottom_height): (i32, i32, i32, i32),
         scale: f32,
         scale_mode: SDL_ScaleMode,
-    ) -> SdlResult {
+    ) -> Result {
         to_result(unsafe {
             SDL_BlitSurface9Grid(
                 self.handle.as_ptr(),
@@ -236,7 +236,7 @@ impl SurfaceHandle {
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
         scale_mode: SDL_ScaleMode,
-    ) -> SdlResult {
+    ) -> Result {
         to_result(unsafe {
             SDL_BlitSurfaceScaled(
                 self.handle.as_ptr(),
@@ -254,7 +254,7 @@ impl SurfaceHandle {
         target: Ref<Surface>,
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
-    ) -> SdlResult {
+    ) -> Result {
         to_result(unsafe {
             SDL_BlitSurfaceTiled(
                 self.handle.as_ptr(),
@@ -273,7 +273,7 @@ impl SurfaceHandle {
         dst: Option<&PointI32>,
         scale: f32,
         scale_mode: SDL_ScaleMode,
-    ) -> SdlResult {
+    ) -> Result {
         to_result(unsafe {
             SDL_BlitSurfaceTiledWithScale(
                 self.handle.as_ptr(),
@@ -343,7 +343,7 @@ impl ColorModU8 for SurfaceHandle {
 
 impl Surface {
     #[doc(alias = "SDL_CreateSurface")]
-    pub fn from_size_and_format(size: PointI32, format: SDL_PixelFormat) -> SdlResult<Self> {
+    pub fn from_size_and_format(size: PointI32, format: SDL_PixelFormat) -> Result<Self> {
         Self::from_ptr(unsafe { SDL_CreateSurface(size.x, size.y, format) })
     }
 }

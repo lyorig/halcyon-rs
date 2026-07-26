@@ -33,7 +33,7 @@ use sdl3_sys::{
     scancode::{SDL_SCANCODE_COUNT, SDL_Scancode},
 };
 
-use crate::{defs::SdlResult, traits::Ref, util::to_result, window::Window};
+use crate::{Result, traits::Ref, util::to_result, window::Window};
 
 const NUM_SCANCODES: usize = SDL_SCANCODE_COUNT.0 as usize;
 
@@ -62,12 +62,12 @@ pub fn mod_state() -> SDL_Keymod {
 }
 
 #[doc(alias = "SDL_StartTextInput")]
-pub fn text_input_start(wnd: Ref<Window>) -> SdlResult {
+pub fn text_input_start(wnd: Ref<Window>) -> Result {
     to_result(unsafe { SDL_StartTextInput(wnd.handle.as_ptr()) })
 }
 
 #[doc(alias = "SDL_StopTextInput")]
-pub fn text_input_stop(wnd: Ref<Window>) -> SdlResult {
+pub fn text_input_stop(wnd: Ref<Window>) -> Result {
     to_result(unsafe { SDL_StopTextInput(wnd.handle.as_ptr()) })
 }
 
