@@ -2,7 +2,7 @@ use rustest::test;
 use sdl3_sys::events::*;
 
 use halcyon::{
-    context::Context,
+    Context,
     event::{Event, EventIter},
     subsystem::Events,
 };

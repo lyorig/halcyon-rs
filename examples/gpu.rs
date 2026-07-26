@@ -1,6 +1,5 @@
 use halcyon::{
-    Result, context::Context, gpu::*, rect::Point, subsystem::Video, traits::Resource,
-    window::Window,
+    Context, Result, gpu::*, rect::Point, subsystem::Video, traits::Resource, window::Window,
 };
 
 const BUFFER_CREATE_INFO: BufferCreateInfo =

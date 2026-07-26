@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use sdl3_sys::init::*;
 
-use crate::{Result, context::Context, error::Error};
+use crate::{Context, Result, error::Error};
 
 /// A handle to an SDL subsystem.
 /// This doesn't actually de-initialize the underlying subsystem upon being dropped;

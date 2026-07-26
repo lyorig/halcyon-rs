@@ -1,4 +1,4 @@
-use halcyon::{context::Context, subsystem::Video};
+use halcyon::{Context, subsystem::Video};
 
 fn main() {
     let ctx = Context::new();

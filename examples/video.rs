@@ -1,7 +1,6 @@
 use halcyon::{
-    Result,
+    Context, Result,
     color::Rgba,
-    context::Context,
     event::{Event, EventIter},
     rect::{Point, Rect},
     renderer::RendererBuilder,

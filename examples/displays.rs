@@ -1,6 +1,4 @@
-use halcyon::{
-    Result, context::Context, display::DisplayHandle, subsystem::Video, util::c_ptr_to_str,
-};
+use halcyon::{Context, Result, display::DisplayHandle, subsystem::Video, util::c_ptr_to_str};
 
 fn outer() -> Result {
     let context = Context::new();

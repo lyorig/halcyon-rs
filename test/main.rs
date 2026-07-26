@@ -2,7 +2,7 @@ use rustest::{main, test};
 use sdl3_sys::{pixels::SDL_PixelFormat, render::SDL_TextureAccess};
 
 use halcyon::{
-    context::Context, rect::Point, renderer::RendererBuilder, texture::Texture, traits::Resource,
+    Context, rect::Point, renderer::RendererBuilder, texture::Texture, traits::Resource,
     window::WindowBuilder,
 };
 

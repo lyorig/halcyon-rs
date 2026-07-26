@@ -4,19 +4,18 @@ use std::ffi::CStr;
 
 use sdl3_sys::{
     filesystem::{SDL_GetBasePath, SDL_GetPrefPath},
-    init::SDL_IsMainThread,
+    init::{SDL_IsMainThread, SDL_Quit},
     platform::SDL_GetPlatform,
     timer::{SDL_GetTicks, SDL_GetTicksNS},
 };
 
-use crate::{sdl_string::SdlString, util::c_ptr_to_str};
+use crate::{sdl_string::SdlString, subsystem::Subsystem, util::c_ptr_to_str};
 
 mod properties;
 mod sdl_box;
 
 pub mod clipboard;
 pub mod color;
-pub mod context;
 pub mod display;
 pub mod error;
 pub mod event;
@@ -33,6 +32,54 @@ pub mod traits;
 pub mod ttf;
 pub mod util;
 pub mod window;
+
+/// A zero-sized type that only exists to call [`SDL_Quit()`].
+/// As such, think of it as a guard that creates a scope for
+/// the initialization of subsystems, ensuring they're properly
+/// quit once it goes out of scope.
+pub struct Context;
+
+impl Context {
+    /// Like [`Self::new()`], without the safety checks.
+    ///
+    /// # Safety
+    /// Only call this on the main thread.
+    pub unsafe fn new_unchecked() -> Self {
+        Self {}
+    }
+
+    /// Panics if this function is not called on the main thread.
+    ///
+    /// # Why doesn't this return a [`Result`] instead?
+    /// TL;DR: It's less error-prone.
+    /// Contexts are sometimes left unused, i.e.
+    /// ```
+    /// let _ctx = Context::new();
+    /// ```
+    /// If [`Self::new()`] returned [`Err`], this snippet would silently skip
+    /// the destructor and not quit SDL in case of an error. Not running on
+    /// the main thread isn't really something that can happen by chance and you
+    /// can recover from. If necessary, check yourself via [`crate::is_main_thread()`].
+    ///
+    /// In addition, [`Result`] is only intended to originate from SDL API calls.
+    /// Since [`Context`] is a ZST providing an abstraction over SDL initialization,
+    /// this would newly require a way to create a "custom" error.
+    pub fn new() -> Self {
+        assert!(crate::is_main_thread(), "Context not on main thread");
+        Self {}
+    }
+
+    pub fn init<const N: u32>(&self) -> Result<Subsystem<'_, N>> {
+        Subsystem::new(self)
+    }
+}
+
+impl Drop for Context {
+    #[doc(alias = "SDL_Quit")]
+    fn drop(&mut self) {
+        unsafe { SDL_Quit() };
+    }
+}
 
 /// Convenience alias for [`std::result::Result<T, Error>`.]
 /// Used as the return type throughout this crate.
