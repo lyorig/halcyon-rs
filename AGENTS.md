@@ -5,6 +5,7 @@ It combines the OS video and audio abstractions of SDL with the compile-time saf
 
 # Coding rules
 
+- Rust edition 2024 is used.
 - Zero-cost wrapping is a priority. Safety comes second. Do not add safety abstractions at the expense of performance.
 - Write self-documenting code. Comment only when the purpose is hard to deduce.
 - Comments must help new contributors understand the codebase.
@@ -88,6 +89,10 @@ Tests should focus on what Halcyon does differently from SDL. Avoid writing test
 
 1. Find the correct module for the test. For example, tests for the `Color` struct go in `test/color.rs`.
 2. Create a function with the `#[rustest::test]` attribute.
+
+## Test coding guidelines
+
+- Assets should not contain a custom error message explaining what went wrong. That is usually obvious from the source code.
 
 ## Running tests
 
