@@ -82,6 +82,8 @@ In all cases, the `Resource` trait is implemented. Among other things, it enable
 
 Tests live in `test/` and not in `src/`. SDL needs the main thread. The default Cargo harness is disabled. [rustest](https://docs.rs/rustest/latest/rustest/) replaces it.
 
+Tests should focus on what Halcyon does differently from SDL. Avoid writing tests that end up testing SDL itself.
+
 ## Creating a test
 
 1. Find the correct module for the test. For example, tests for the `Color` struct go in `test/color.rs`.
