@@ -74,6 +74,12 @@ impl Context {
     }
 }
 
+impl Default for Context {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Drop for Context {
     #[doc(alias = "SDL_Quit")]
     fn drop(&mut self) {

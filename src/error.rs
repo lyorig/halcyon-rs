@@ -12,7 +12,7 @@ impl Error {
         // SAFETY: SDL's error strings are UTF-8.
         let cstr = unsafe { CStr::from_ptr(SDL_GetError()) };
         let str = unsafe { str::from_utf8_unchecked(cstr.to_bytes()) };
-        let reason = str.to_owned();
+        let reason = String::from(str);
 
         Self { reason }
     }

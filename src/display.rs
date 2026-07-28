@@ -102,7 +102,7 @@ impl DisplayHandle {
         if ptr.is_null() {
             Err(Error::current())
         } else {
-            Ok(unsafe { c_ptr_to_str(ptr).to_owned() })
+            Ok(String::from(unsafe { c_ptr_to_str(ptr) }))
         }
     }
 
