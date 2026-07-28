@@ -6,6 +6,7 @@ use halcyon::{
     window::WindowBuilder,
 };
 
+mod clipboard;
 mod color;
 mod event;
 
@@ -37,9 +38,4 @@ fn init() {
 }
 
 #[main]
-fn main() {
-    color::test();
-    event::test();
-
-    init();
-}
+fn main() {}
