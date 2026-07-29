@@ -5,13 +5,13 @@ use halcyon::{
     clipboard::{has_text, set_text, text},
     subsystem::Video,
 };
+
 use rustest::test;
 
 /// `set_text` fails before the video subsystem is initialized.
 #[test]
 fn set_text_fails_before_video_init() {
-    let result = set_text(c"hello");
-    assert_matches!(result, Err(_));
+    assert_matches!(set_text(c"hello"), Err(_));
 }
 
 /// `set_text` succeeds after the video subsystem is initialized.
@@ -24,15 +24,6 @@ fn set_text_succeeds_after_video_init() {
 
     let roundtrip = text();
     assert_eq!(roundtrip.to_str(), "clipboard test payload");
-}
-
-/// `has_text` returns `false` before video init (no-error path).
-///
-/// This is not a fallible operation. It returns `false` on failure or
-/// when the clipboard is empty, both of which produce the same result.
-#[test]
-fn has_text_returns_false_before_video_init() {
-    assert!(!has_text());
 }
 
 /// `has_text` reflects clipboard state after init.

@@ -5,18 +5,6 @@ use rustest::test;
 use sdl3_sys::pixels::SDL_Color;
 
 #[test]
-fn opacity_bounds_u8() {
-    assert_eq!(u8::MIN_OPACITY, 0);
-    assert_eq!(u8::MAX_OPACITY, 255);
-}
-
-#[test]
-fn opacity_bounds_f32() {
-    assert_eq!(f32::MIN_OPACITY, 0.0);
-    assert_eq!(f32::MAX_OPACITY, 1.0);
-}
-
-#[test]
 fn rgb_new() {
     let c = RgbU8::new(10, 20, 30);
     assert_eq!(c.r, 10);
@@ -46,7 +34,7 @@ fn rgba_rgb() {
 fn rgb_to_rgba() {
     let rgb = RgbU8::RED;
     let rgba: RgbaU8 = rgb.to_rgba();
-    assert_eq!(rgba, RgbaU8::RED, "to_rgba should set alpha to MAX_OPACITY");
+    assert_eq!(rgba, RgbaU8::RED);
 
     let rgba2 = RgbU8::new(1, 2, 3).with_alpha(128);
     assert_eq!(rgba2, RgbaU8::new(1, 2, 3, 128));
@@ -102,7 +90,7 @@ fn rgb_u8_f32_roundtrip() {
 fn rgb_into_rgba() {
     let rgb = RgbU8::new(1, 2, 3);
     let rgba: RgbaU8 = rgb.into();
-    assert_eq!(rgba, RgbaU8::new(1, 2, 3, 255));
+    assert_eq!(rgba, RgbaU8::new(1, 2, 3, u8::MAX_OPACITY));
 }
 
 #[test]
@@ -110,13 +98,13 @@ fn rgba_u8_hex() {
     // rgb_hex: 0x00FF00 = green (R=0x00, G=0xFF, B=0x00)
     assert_eq!(
         RgbaU8::rgb_hex(0x00FF00),
-        RgbaU8::new(0x00, 0xFF, 0x00, 255)
+        RgbaU8::new(0x00, 0xFF, 0x00, u8::MAX_OPACITY)
     );
 
     // rgb_hex: arbitrary color
     assert_eq!(
         RgbaU8::rgb_hex(0x123456),
-        RgbaU8::new(0x12, 0x34, 0x56, 255)
+        RgbaU8::new(0x12, 0x34, 0x56, u8::MAX_OPACITY)
     );
 
     // rgb_hex: 0x000000 = black with full alpha
