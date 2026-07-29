@@ -8,11 +8,22 @@ use crate::{Context, Result, error::Error};
 /// This doesn't actually de-initialize the underlying subsystem upon being dropped;
 /// that's left up to the [`Context`] being destroyed. Thus, it cannot outlive it.
 ///
-/// # Usage with [`std::mem::ManuallyDrop`]
+/// # Usage with `ManuallyDrop`
 /// By default, dropping a subsystem de-initializes it.
 /// However, since dropping a [`Context`] de-initializes everything "by force"
 /// anyways, you can potentially avoid redundant FFI calls by wrapping this struct
-/// in [`std::mem::ManuallyDrop`].
+/// in `ManuallyDrop`:
+///
+/// ```rust
+/// use std::mem::ManuallyDrop;
+/// use halcyon::{Context, subsystem::Video};
+///
+/// let ctx = Context::new();
+///
+/// // Upon going out of scope, `ctx` de-initializes the video
+/// // subsystem, making it redundant to drop `vid`.
+/// let vid = ManuallyDrop::new(Video::new(&ctx).unwrap());
+/// ```
 pub struct Subsystem<'ctx, const TYPE: u32> {
     marker: PhantomData<&'ctx Context>,
 }
@@ -30,6 +41,12 @@ impl<const N: u32> Subsystem<'_, N> {
         } else {
             Err(Error::current())
         }
+    }
+
+    #[doc(alias = "SDL_WasInit")]
+    pub fn is_init() -> bool {
+        let flag = unsafe { SDL_WasInit(Self::FLAG) };
+        flag == Self::FLAG
     }
 }
 
