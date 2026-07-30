@@ -4,9 +4,7 @@ use sdl3_sys::init::*;
 
 use crate::{Context, Result, error::Error};
 
-/// A handle to an SDL subsystem.
-/// This doesn't actually de-initialize the underlying subsystem upon being dropped;
-/// that's left up to the [`Context`] being destroyed. Thus, it cannot outlive it.
+/// A RAII type handling (de)initialization of an SDL subsystem.
 ///
 /// # Usage with `ManuallyDrop`
 /// By default, dropping a subsystem de-initializes it.
