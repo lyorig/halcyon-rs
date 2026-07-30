@@ -1,9 +1,11 @@
+use std::mem::ManuallyDrop;
+
 use rustest::{main, test};
 use sdl3_sys::{pixels::SDL_PixelFormat, render::SDL_TextureAccess};
 
 use halcyon::{
-    Context, rect::Point, renderer::RendererBuilder, texture::Texture, traits::Resource,
-    window::WindowBuilder,
+    Context, rect::Point, renderer::RendererBuilder, subsystem::Video, texture::Texture,
+    traits::Resource, window::WindowBuilder,
 };
 
 mod clipboard;
@@ -35,6 +37,36 @@ fn init() {
     .unwrap();
 
     assert_eq!(tex.size(), Point::new(16.0, 16.0));
+}
+
+#[test]
+fn subsystems() {
+    let ctx = Context::new();
+
+    {
+        let _vid = Video::new(&ctx).unwrap();
+        assert!(Video::is_init());
+    }
+
+    assert!(!Video::is_init());
+}
+
+#[test]
+fn manually_drop() {
+    {
+        let ctx = Context::new();
+
+        {
+            let _vid = ManuallyDrop::new(Video::new(&ctx).unwrap());
+            assert!(Video::is_init());
+        }
+
+        // Still initialized, since `ManuallyDrop` skips the destructor.
+        assert!(Video::is_init());
+    }
+
+    // Context should've cleaned everything up.
+    assert!(!Video::is_init());
 }
 
 #[main]
