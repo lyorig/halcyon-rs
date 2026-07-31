@@ -1,4 +1,4 @@
-use sdl3_sys::pixels::SDL_Color;
+use sdl3_sys::pixels::*;
 
 /// "Sub-struct" of [`Rgba`], because some SDL functions only use
 /// the RGB components and don't require the alpha.
@@ -136,6 +136,24 @@ impl<T: OpacityBounds> From<Rgb<T>> for Rgba<T> {
 
 impl From<RgbaU8> for SDL_Color {
     fn from(value: RgbaU8) -> Self {
-        unsafe { std::mem::transmute_copy(&value) }
+        unsafe { std::mem::transmute(value) }
+    }
+}
+
+impl From<SDL_Color> for RgbaU8 {
+    fn from(value: SDL_Color) -> Self {
+        unsafe { std::mem::transmute(value) }
+    }
+}
+
+impl From<RgbaF32> for SDL_FColor {
+    fn from(value: RgbaF32) -> Self {
+        unsafe { std::mem::transmute(value) }
+    }
+}
+
+impl From<SDL_FColor> for RgbaF32 {
+    fn from(value: SDL_FColor) -> Self {
+        unsafe { std::mem::transmute(value) }
     }
 }
