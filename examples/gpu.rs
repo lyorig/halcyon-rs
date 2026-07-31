@@ -8,6 +8,16 @@ use sdl3_sys::gpu::SDL_GPUTextureFormat;
 const BUFFER_CREATE_INFO: BufferCreateInfo =
     BufferCreateInfo::new(BufferUsageFlags::ComputeStorageWrite, 4096);
 
+const TCI: TextureCreateInfo = TextureCreateInfo::new(
+    TextureType::_2d,
+    SDL_GPUTextureFormat::R8G8B8A8_UINT,
+    TextureUsageFlags::ColorTarget,
+    Point::new(16, 16),
+    1,
+    1,
+    SampleCount::One,
+);
+
 fn foo() -> Result {
     let ctx = Context::new();
     let _video = ManuallyDrop::new(Video::new(&ctx)?);
@@ -22,16 +32,6 @@ fn foo() -> Result {
 
     device.claim_window(wnd1.as_ref())?;
     device.claim_window(wnd2.as_ref())?;
-
-    const TCI: TextureCreateInfo = TextureCreateInfo::new(
-        TextureType::_2d,
-        SDL_GPUTextureFormat::R8G8B8A8_UINT,
-        TextureUsageFlags::ColorTarget,
-        Point::new(16, 16),
-        1,
-        1,
-        SampleCount::One,
-    );
 
     let tex = GPUTexture::new(device.as_ref(), &TCI)?;
     tex.drop(device.as_ref());
