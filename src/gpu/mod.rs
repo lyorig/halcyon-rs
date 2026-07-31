@@ -79,13 +79,13 @@
 //! - [x] SDL_ReleaseGPUTexture
 //! - [x] SDL_ReleaseGPUTransferBuffer
 //! - [x] SDL_ReleaseWindowFromGPUDevice
-//! - [ ] SDL_SetGPUAllowedFramesInFlight
+//! - [x] SDL_SetGPUAllowedFramesInFlight
 //! - [ ] SDL_SetGPUBlendConstants
-//! - [ ] SDL_SetGPUBufferName
-//! - [ ] SDL_SetGPUScissor
+//! - [x] SDL_SetGPUBufferName
+//! - [x] SDL_SetGPUScissor
 //! - [ ] SDL_SetGPUStencilReference
 //! - [ ] SDL_SetGPUSwapchainParameters
-//! - [ ] SDL_SetGPUTextureName
+//! - [x] SDL_SetGPUTextureName
 //! - [ ] SDL_SetGPUViewport
 //! - [x] SDL_SubmitGPUCommandBuffer
 //! - [x] SDL_SubmitGPUCommandBufferAndAcquireFence
@@ -93,11 +93,11 @@
 //! - [x] SDL_UploadToGPUBuffer
 //! - [x] SDL_UploadToGPUTexture
 //! - [x] SDL_WaitAndAcquireGPUSwapchainTexture
-//! - [ ] SDL_WaitForGPUFences
+//! - [x] SDL_WaitForGPUFences
 //! - [x] SDL_WaitForGPUIdle
-//! - [ ] SDL_WaitForGPUSwapchain
-//! - [ ] SDL_WindowSupportsGPUPresentMode
-//! - [ ] SDL_WindowSupportsGPUSwapchainComposition
+//! - [x] SDL_WaitForGPUSwapchain
+//! - [x] SDL_WindowSupportsGPUPresentMode
+//! - [x] SDL_WindowSupportsGPUSwapchainComposition
 
 use std::{ffi::CStr, mem::MaybeUninit, ptr::NonNull};
 
@@ -107,7 +107,7 @@ use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 use crate::{
     Result,
     error::Error,
-    rect::Point,
+    rect::{Point, RectI32},
     resource, resource_no_drop,
     traits::Ref,
     util::{opt2ptr, opt2ptr_mut, to_result},
@@ -141,6 +141,7 @@ pub fn are_formats_supported(fmts: ShaderFormats) -> bool {
     unsafe { SDL_GPUSupportsShaderFormats(fmts, std::ptr::null()) }
 }
 
+// TODO: Extract into boolenum-like macro
 #[repr(u8)]
 #[derive(Clone, Copy)]
 pub enum DeviceDebug {
@@ -153,6 +154,22 @@ impl From<DeviceDebug> for bool {
         match value {
             DeviceDebug::No => false,
             DeviceDebug::Yes => true,
+        }
+    }
+}
+
+#[repr(u8)]
+#[derive(Clone, Copy)]
+pub enum WaitAll {
+    No = 0,
+    Yes = 1,
+}
+
+impl From<WaitAll> for bool {
+    fn from(value: WaitAll) -> Self {
+        match value {
+            WaitAll::No => false,
+            WaitAll::Yes => true,
         }
     }
 }
@@ -180,9 +197,52 @@ impl GPUDeviceHandle {
         unsafe { SDL_ReleaseWindowFromGPUDevice(self.handle.as_ptr(), window.handle.as_ptr()) };
     }
 
+    #[doc(alias = "SDL_WindowSupportsGPUPresentMode")]
+    pub fn window_supports_gpu_present_mode(
+        &self,
+        window: Ref<Window>,
+        pm: SDL_GPUPresentMode,
+    ) -> bool {
+        unsafe {
+            SDL_WindowSupportsGPUPresentMode(self.handle.as_ptr(), window.handle.as_ptr(), pm)
+        }
+    }
+
+    #[doc(alias = "SDL_WindowSupportsGPUSwapchainComposition")]
+    pub fn window_supports_gpu_swapchain_composition(
+        &self,
+        window: Ref<Window>,
+        sc: SDL_GPUSwapchainComposition,
+    ) -> bool {
+        unsafe {
+            SDL_WindowSupportsGPUSwapchainComposition(
+                self.handle.as_ptr(),
+                window.handle.as_ptr(),
+                sc,
+            )
+        }
+    }
+
     #[doc(alias = "SDL_WaitForGPUIdle")]
     pub fn wait_idle(&self) -> Result {
         to_result(unsafe { SDL_WaitForGPUIdle(self.handle.as_ptr()) })
+    }
+
+    #[doc(alias = "SDL_WaitForGPUSwapchain")]
+    pub fn wait_swapchain(&self, window: Ref<Window>) -> Result {
+        to_result(unsafe { SDL_WaitForGPUSwapchain(self.handle.as_ptr(), window.handle.as_ptr()) })
+    }
+
+    #[doc(alias = "SDL_WaitForGPUFences")]
+    pub fn wait_fences(&self, wait_all: WaitAll, fences: &[Ref<GPUFence>]) -> Result {
+        to_result(unsafe {
+            SDL_WaitForGPUFences(
+                self.handle.as_ptr(),
+                wait_all.into(),
+                fences.as_ptr().cast(),
+                fences.len() as _,
+            )
+        })
     }
 
     #[doc(alias = "SDL_GetGPUDeviceDriver")]
@@ -194,6 +254,11 @@ impl GPUDeviceHandle {
             let cstr = unsafe { CStr::from_ptr(raw) };
             Ok(unsafe { str::from_utf8_unchecked(cstr.to_bytes()) })
         }
+    }
+
+    #[doc(alias = "SDL_SetGPUAllowedFramesInFlight")]
+    pub fn set_allowed_frames_in_flight(&self, n: u32) -> Result {
+        to_result(unsafe { SDL_SetGPUAllowedFramesInFlight(self.handle.as_ptr(), n) })
     }
 }
 
@@ -449,7 +514,15 @@ impl GPURenderPass {
                 opt2ptr(depth_stencil_target),
             )
         };
+
         Self::from_ptr(handle)
+    }
+}
+
+impl GPURenderPassHandle {
+    #[doc(alias = "SDL_SetGPUScissor")]
+    pub fn set_scissor(&self, scissor: &RectI32) {
+        unsafe { SDL_SetGPUScissor(self.handle.as_ptr(), scissor.as_sdl_ptr()) };
     }
 }
 
@@ -689,6 +762,13 @@ impl GPUTextureHandle {
     ) {
         unsafe {
             SDL_UploadToGPUTexture(copy_pass.handle.as_ptr(), &src.0, &dst.0, cycle);
+        }
+    }
+
+    #[doc(alias = "SDL_SetGPUTextureName")]
+    pub fn set_name(&self, device: Ref<GPUDevice>, name: &CStr) {
+        unsafe {
+            SDL_SetGPUTextureName(device.handle.as_ptr(), self.handle.as_ptr(), name.as_ptr())
         }
     }
 }
