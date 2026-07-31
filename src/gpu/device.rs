@@ -35,7 +35,7 @@ use crate::{
 use super::{
     ShaderFormats,
     fence::GPUFence,
-    texture::{SampleCount, TextureType, TextureUsageFlags},
+    texture::{SampleCount, TextureFormat, TextureType, TextureUsageFlags},
 };
 
 boolenum!(DeviceDebug);
@@ -139,21 +139,24 @@ impl GPUDeviceHandle {
     }
 
     #[doc(alias = "SDL_GetGPUSwapchainTextureFormat")]
-    pub fn swapchain_texture_format(&self, window: Ref<Window>) -> SDL_GPUTextureFormat {
-        unsafe { SDL_GetGPUSwapchainTextureFormat(self.handle.as_ptr(), window.handle.as_ptr()) }
+    pub fn swapchain_texture_format(&self, window: Ref<Window>) -> TextureFormat {
+        let fmt = unsafe {
+            SDL_GetGPUSwapchainTextureFormat(self.handle.as_ptr(), window.handle.as_ptr())
+        };
+        fmt.into()
     }
 
     #[doc(alias = "SDL_GPUTextureSupportsFormat")]
     pub fn texture_supports_format(
         &self,
-        format: SDL_GPUTextureFormat,
+        format: TextureFormat,
         kind: TextureType,
         usage: TextureUsageFlags,
     ) -> bool {
         unsafe {
             SDL_GPUTextureSupportsFormat(
                 self.handle.as_ptr(),
-                format,
+                SDL_GPUTextureFormat::new(format as _),
                 SDL_GPUTextureType::new(kind as _),
                 SDL_GPUTextureUsageFlags::new(usage.bits()),
             )
@@ -163,13 +166,13 @@ impl GPUDeviceHandle {
     #[doc(alias = "SDL_GPUTextureSupportsSampleCount")]
     pub fn texture_supports_sample_count(
         &self,
-        format: SDL_GPUTextureFormat,
+        format: TextureFormat,
         sample_count: SampleCount,
     ) -> bool {
         unsafe {
             SDL_GPUTextureSupportsSampleCount(
                 self.handle.as_ptr(),
-                format,
+                SDL_GPUTextureFormat::new(format as _),
                 SDL_GPUSampleCount::new(sample_count as _),
             )
         }

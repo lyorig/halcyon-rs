@@ -47,13 +47,8 @@ pub enum CompareOp {
 #[doc(alias = "SDL_GPUSamplerCreateInfo")]
 pub struct SamplerCreateInfo(SDL_GPUSamplerCreateInfo);
 impl SamplerCreateInfo {
-    /// `max_anisotropy` and `compare_op` are only used when `enable_anisotropy`
-    /// respectively `enable_compare` are true.
-    // The padding fields are only needed for alignment; sdl3-sys marks them
-    // deprecated, and recommends `..Default::default()`, which is not usable
-    // inside a `const fn`.
-    #[allow(deprecated)]
-    pub const fn new(
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
         min_filter: Filter,
         mag_filter: Filter,
         mipmap_mode: MipmapMode,
@@ -80,9 +75,8 @@ impl SamplerCreateInfo {
             max_lod,
             enable_anisotropy,
             enable_compare,
-            padding1: 0,
-            padding2: 0,
             props: SDL_PropertiesID::new(0),
+            ..Default::default()
         };
         Self(inner)
     }

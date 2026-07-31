@@ -3,14 +3,13 @@ use std::mem::ManuallyDrop;
 use halcyon::{
     Context, Result, gpu::*, rect::Point, subsystem::Video, traits::Resource, window::Window,
 };
-use sdl3_sys::gpu::SDL_GPUTextureFormat;
 
 const BUFFER_CREATE_INFO: BufferCreateInfo =
     BufferCreateInfo::new(BufferUsageFlags::ComputeStorageWrite, 4096);
 
 const TCI: TextureCreateInfo = TextureCreateInfo::new(
     TextureType::_2d,
-    SDL_GPUTextureFormat::R8G8B8A8_UINT,
+    TextureFormat::R8g8b8a8Uint,
     TextureUsageFlags::ColorTarget,
     Point::new(16, 16),
     1,

@@ -91,27 +91,34 @@ pub fn driver(i: i32) -> Option<&'static str> {
 
 #[doc(alias = "SDL_CalculateGPUTextureFormatSize")]
 pub fn calculate_texture_format_size(
-    format: SDL_GPUTextureFormat,
+    format: TextureFormat,
     width: u32,
     height: u32,
     depth_or_layer_count: u32,
 ) -> u32 {
-    unsafe { SDL_CalculateGPUTextureFormatSize(format, width, height, depth_or_layer_count) }
+    unsafe {
+        SDL_CalculateGPUTextureFormatSize(
+            SDL_GPUTextureFormat::new(format as _),
+            width,
+            height,
+            depth_or_layer_count,
+        )
+    }
 }
 
 #[doc(alias = "SDL_GPUTextureFormatTexelBlockSize")]
-pub fn texture_format_texel_block_size(format: SDL_GPUTextureFormat) -> u32 {
-    unsafe { SDL_GPUTextureFormatTexelBlockSize(format) }
+pub fn texture_format_texel_block_size(format: TextureFormat) -> u32 {
+    unsafe { SDL_GPUTextureFormatTexelBlockSize(SDL_GPUTextureFormat::new(format as _)) }
 }
 
 #[doc(alias = "SDL_GetGPUTextureFormatFromPixelFormat")]
-pub fn texture_format_from_pixel_format(pixel_format: SDL_PixelFormat) -> SDL_GPUTextureFormat {
-    SDL_GetGPUTextureFormatFromPixelFormat(pixel_format)
+pub fn texture_format_from_pixel_format(pixel_format: SDL_PixelFormat) -> TextureFormat {
+    SDL_GetGPUTextureFormatFromPixelFormat(pixel_format).into()
 }
 
 #[doc(alias = "SDL_GetPixelFormatFromGPUTextureFormat")]
-pub fn pixel_format_from_texture_format(format: SDL_GPUTextureFormat) -> SDL_PixelFormat {
-    SDL_GetPixelFormatFromGPUTextureFormat(format)
+pub fn pixel_format_from_texture_format(format: TextureFormat) -> SDL_PixelFormat {
+    SDL_GetPixelFormatFromGPUTextureFormat(SDL_GPUTextureFormat::new(format as _))
 }
 
 #[doc(alias = "SDL_GPUSupportsProperties")]
