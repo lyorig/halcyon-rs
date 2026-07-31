@@ -156,7 +156,7 @@ pub struct RtStr<'a> {
 }
 
 impl RtStr<'_> {
-    pub fn new<'a>(s: &'a str) -> RtStr<'a> {
+    pub const fn new<'a>(s: &'a str) -> RtStr<'a> {
         let len = s.len();
         let ptr = if len == 0 {
             c"".as_ptr()
@@ -173,16 +173,20 @@ impl RtStr<'_> {
 
     /// # Safety
     /// `s` must not be empty.
-    pub unsafe fn new_unchecked<'a>(s: &'a str) -> RtStr<'a> {
+    pub const unsafe fn new_unchecked<'a>(s: &'a str) -> RtStr<'a> {
         unsafe { std::mem::transmute(s) }
     }
 
-    pub fn as_ptr(&self) -> *const i8 {
+    pub const fn as_ptr(&self) -> *const i8 {
         self.ptr
     }
 
-    pub fn len(&self) -> usize {
+    pub const fn len(&self) -> usize {
         self.len
+    }
+
+    pub const fn is_empty(&self) -> bool {
+        self.len == 0
     }
 }
 
