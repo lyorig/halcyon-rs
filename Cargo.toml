@@ -3,6 +3,11 @@ name = "halcyon"
 version = "0.1.0"
 edition = "2024"
 
+# Disables testing `src/lib.rs`, since there are no tests there.
+# The actual tests are located in `test/` (see [[test]] below).
+[lib]
+test = false
+
 [dependencies]
 bitmask-enum = "2.2.5"
 paste = "1.0.15"
