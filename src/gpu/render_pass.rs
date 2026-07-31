@@ -18,13 +18,13 @@
 //! - [x] SDL_SetGPUStencilReference
 //! - [x] SDL_SetGPUViewport
 
-use sdl3_sys::{gpu::*, pixels::SDL_FColor};
+use sdl3_sys::gpu::*;
 
 use crate::{
     Result,
     color::RgbaF32,
     gpu::GPUBuffer,
-    rect::{Point, RectI32},
+    rect::{PointF32, RectI32},
     resource,
     traits::Ref,
     util::opt2ptr,
@@ -47,7 +47,7 @@ pub enum IndexElementSize {
 #[derive(Clone, Copy)]
 pub struct Viewport(SDL_GPUViewport);
 impl Viewport {
-    pub fn new(pos: Point<f32>, size: Point<f32>, (min_depth, max_depth): (f32, f32)) -> Self {
+    pub fn new(pos: PointF32, size: PointF32, (min_depth, max_depth): (f32, f32)) -> Self {
         Self(SDL_GPUViewport {
             x: pos.x,
             y: pos.y,
@@ -95,14 +95,12 @@ impl ColorTargetInfo {
         cycle: bool,
         cycle_resolve_texture: bool,
     ) -> Self {
-        // SAFETY: `RgbaF32` is `#[repr(C)]` and layout-identical to `SDL_FColor`.
-        let clear_color: SDL_FColor = unsafe { std::mem::transmute(clear_color) };
         let resolve_texture = resolve_texture.map_or(std::ptr::null_mut(), |t| t.handle.as_ptr());
         Self(SDL_GPUColorTargetInfo {
             texture: tex.handle.as_ptr(),
             mip_level,
             layer_or_depth_plane,
-            clear_color,
+            clear_color: clear_color.into(),
             load_op: SDL_GPULoadOp::new(load_op as _),
             store_op: SDL_GPUStoreOp::new(store_op as _),
             resolve_texture,
