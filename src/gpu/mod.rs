@@ -13,9 +13,7 @@
 //! - [ ] SDL_BindGPUVertexSamplers
 //! - [ ] SDL_BindGPUVertexStorageBuffers
 //! - [ ] SDL_BindGPUVertexStorageTextures
-//! - [ ] SDL_BlitGPUTexture
 //! - [ ] SDL_CalculateGPUTextureFormatSize
-//! - [ ] SDL_CancelGPUCommandBuffer
 //! - [ ] SDL_CopyGPUBufferToBuffer
 //! - [ ] SDL_CopyGPUTextureToTexture
 //! - [ ] SDL_CreateGPUDeviceWithProperties
@@ -23,17 +21,14 @@
 //! - [ ] SDL_DispatchGPUComputeIndirect
 //! - [ ] SDL_DrawGPUIndexedPrimitives
 //! - [ ] SDL_DrawGPUIndexedPrimitivesIndirect
-//! - [ ] SDL_DrawGPUPrimitives
-//! - [ ] SDL_DrawGPUPrimitivesIndirect
 //! - [ ] SDL_GDKResumeGPU
 //! - [ ] SDL_GDKSuspendGPU
 //! - [ ] SDL_GenerateMipmapsForGPUTexture
 //! - [ ] SDL_GetGPUDeviceProperties
-//! - [ ] SDL_GetGPUDriver
-//! - [ ] SDL_GetGPUShaderFormats
+//! - [x] SDL_GetGPUDriver
 //! - [ ] SDL_GetGPUSwapchainTextureFormat
 //! - [ ] SDL_GetGPUTextureFormatFromPixelFormat
-//! - [ ] SDL_GetNumGPUDrivers
+//! - [x] SDL_GetNumGPUDrivers
 //! - [ ] SDL_GetPixelFormatFromGPUTextureFormat
 //! - [ ] SDL_GPUSupportsProperties
 //! - [x] SDL_GPUSupportsShaderFormats
@@ -81,6 +76,8 @@ pub use transfer_buffer::*;
 use bitmask_enum::bitmask;
 use sdl3_sys::gpu::*;
 
+use crate::util::c_ptr_to_str;
+
 /// Non-bitmask variant of `SDL_GPUShaderFormat`.
 #[repr(u32)]
 #[doc(alias = "SDL_GPUShaderFormat")]
@@ -106,4 +103,19 @@ pub enum ShaderFormats {
 pub fn are_formats_supported(fmts: ShaderFormats) -> bool {
     let fmts = SDL_GPUShaderFormat::new(fmts.bits());
     unsafe { SDL_GPUSupportsShaderFormats(fmts, std::ptr::null()) }
+}
+
+#[doc(alias = "SDL_GetNumGPUDrivers")]
+pub fn num_drivers() -> i32 {
+    unsafe { SDL_GetNumGPUDrivers() }
+}
+
+#[doc(alias = "SDL_GetGPUDriver")]
+pub fn driver(i: i32) -> Option<&'static str> {
+    let ptr = unsafe { SDL_GetGPUDriver(i) };
+    if ptr.is_null() {
+        None
+    } else {
+        Some(unsafe { c_ptr_to_str(ptr) })
+    }
 }

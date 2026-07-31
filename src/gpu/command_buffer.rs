@@ -3,6 +3,8 @@
 //! - [x] SDL_SubmitGPUCommandBuffer
 //! - [x] SDL_SubmitGPUCommandBufferAndAcquireFence
 //! - [x] SDL_WaitAndAcquireGPUSwapchainTexture
+//! - [x] SDL_CancelGPUCommandBuffer
+//! - [x] SDL_BlitGPUTexture
 
 use std::{mem::MaybeUninit, ptr::NonNull};
 
@@ -39,6 +41,11 @@ impl GPUCommandBuffer {
         let fence = unsafe { SDL_SubmitGPUCommandBufferAndAcquireFence(self.handle.as_ptr()) };
         GPUFence::from_ptr(fence)
     }
+
+    #[doc(alias = "SDL_CancelGPUCommandBuffer")]
+    pub fn cancel(self) -> Result {
+        to_result(unsafe { SDL_CancelGPUCommandBuffer(self.handle.as_ptr()) })
+    }
 }
 
 impl GPUCommandBufferHandle {
@@ -66,5 +73,10 @@ impl GPUCommandBufferHandle {
         }
 
         to_result(res).map(|()| m(unsafe { tex.assume_init() }))
+    }
+
+    #[doc(alias = "SDL_BlitGPUTexture")]
+    pub fn blit(&self, info: &SDL_GPUBlitInfo) {
+        unsafe { SDL_BlitGPUTexture(self.handle.as_ptr(), info) }
     }
 }

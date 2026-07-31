@@ -10,6 +10,7 @@
 //! - [x] SDL_WaitForGPUSwapchain
 //! - [x] SDL_WindowSupportsGPUPresentMode
 //! - [x] SDL_WindowSupportsGPUSwapchainComposition
+//! - [x] SDL_GetGPUShaderFormats
 
 use std::ffi::CStr;
 
@@ -104,6 +105,12 @@ impl GPUDeviceHandle {
             let cstr = unsafe { CStr::from_ptr(raw) };
             Ok(unsafe { str::from_utf8_unchecked(cstr.to_bytes()) })
         }
+    }
+
+    #[doc(alias = "SDL_GetGPUShaderFormats")]
+    pub fn shader_formats(&self) -> ShaderFormats {
+        let fmts = unsafe { SDL_GetGPUShaderFormats(self.handle.as_ptr()) };
+        ShaderFormats::from(fmts.0)
     }
 
     #[doc(alias = "SDL_SetGPUAllowedFramesInFlight")]

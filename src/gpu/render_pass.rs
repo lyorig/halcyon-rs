@@ -2,10 +2,12 @@
 //! - [x] SDL_BeginGPURenderPass
 //! - [x] SDL_EndGPURenderPass
 //! - [x] SDL_SetGPUScissor
+//! - [x] SDL_DrawGPUPrimitives
+//! - [x] SDL_DrawGPUPrimitivesIndirect
 
 use sdl3_sys::gpu::*;
 
-use crate::{Result, rect::RectI32, resource, traits::Ref, util::opt2ptr};
+use crate::{Result, gpu::GPUBuffer, rect::RectI32, resource, traits::Ref, util::opt2ptr};
 
 use super::command_buffer::GPUCommandBuffer;
 
@@ -34,5 +36,30 @@ impl GPURenderPassHandle {
     #[doc(alias = "SDL_SetGPUScissor")]
     pub fn set_scissor(&self, scissor: &RectI32) {
         unsafe { SDL_SetGPUScissor(self.handle.as_ptr(), scissor.as_sdl_ptr()) };
+    }
+
+    #[doc(alias = "SDL_DrawGPUPrimitives")]
+    pub fn draw_primitives(&self, n_verts: u32, n_insts: u32, first_vert: u32, first_inst: u32) {
+        unsafe {
+            SDL_DrawGPUPrimitives(
+                self.handle.as_ptr(),
+                n_verts,
+                n_insts,
+                first_vert,
+                first_inst,
+            )
+        }
+    }
+
+    #[doc(alias = "SDL_DrawGPUPrimitivesIndirect")]
+    pub fn draw_primitives_indirect(&self, buffer: Ref<GPUBuffer>, offset: u32, draw_count: u32) {
+        unsafe {
+            SDL_DrawGPUPrimitivesIndirect(
+                self.handle.as_ptr(),
+                buffer.handle.as_ptr(),
+                offset,
+                draw_count,
+            )
+        }
     }
 }
