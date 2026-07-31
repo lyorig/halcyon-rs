@@ -3,7 +3,7 @@
 //! Implementation checklist ([source](https://wiki.libsdl.org/SDL3/CategoryGPU)):
 //! - [x] SDL_AcquireGPUCommandBuffer
 //! - [ ] SDL_AcquireGPUSwapchainTexture
-//! - [ ] SDL_BeginGPUComputePass
+//! - [x] SDL_BeginGPUComputePass
 //! - [x] SDL_BeginGPUCopyPass
 //! - [x] SDL_BeginGPURenderPass
 //! - [x] SDL_BindGPUComputePipeline
@@ -33,12 +33,12 @@
 //! - [ ] SDL_CreateGPUSampler
 //! - [x] SDL_CreateGPUShader
 //! - [x] SDL_CreateGPUTexture
-//! - [ ] SDL_CreateGPUTransferBuffer
+//! - [x] SDL_CreateGPUTransferBuffer
 //! - [x] SDL_DestroyGPUDevice
 //! - [x] SDL_DispatchGPUCompute
 //! - [ ] SDL_DispatchGPUComputeIndirect
 //! - [x] SDL_DownloadFromGPUBuffer
-//! - [ ] SDL_DownloadFromGPUTexture
+//! - [x] SDL_DownloadFromGPUTexture
 //! - [ ] SDL_DrawGPUIndexedPrimitives
 //! - [ ] SDL_DrawGPUIndexedPrimitivesIndirect
 //! - [ ] SDL_DrawGPUPrimitives
@@ -63,13 +63,13 @@
 //! - [ ] SDL_GPUTextureSupportsFormat
 //! - [ ] SDL_GPUTextureSupportsSampleCount
 //! - [ ] SDL_InsertGPUDebugLabel
-//! - [ ] SDL_MapGPUTransferBuffer
+//! - [x] SDL_MapGPUTransferBuffer
 //! - [ ] SDL_PopGPUDebugGroup
 //! - [ ] SDL_PushGPUComputeUniformData
 //! - [ ] SDL_PushGPUDebugGroup
 //! - [ ] SDL_PushGPUFragmentUniformData
 //! - [ ] SDL_PushGPUVertexUniformData
-//! - [ ] SDL_QueryGPUFence
+//! - [x] SDL_QueryGPUFence
 //! - [x] SDL_ReleaseGPUBuffer
 //! - [x] SDL_ReleaseGPUComputePipeline
 //! - [x] SDL_ReleaseGPUFence
@@ -78,7 +78,7 @@
 //! - [x] SDL_ReleaseGPUShader
 //! - [x] SDL_ReleaseGPUTexture
 //! - [x] SDL_ReleaseGPUTransferBuffer
-//! - [ ] SDL_ReleaseWindowFromGPUDevice
+//! - [x] SDL_ReleaseWindowFromGPUDevice
 //! - [ ] SDL_SetGPUAllowedFramesInFlight
 //! - [ ] SDL_SetGPUBlendConstants
 //! - [ ] SDL_SetGPUBufferName
@@ -89,12 +89,12 @@
 //! - [ ] SDL_SetGPUViewport
 //! - [x] SDL_SubmitGPUCommandBuffer
 //! - [x] SDL_SubmitGPUCommandBufferAndAcquireFence
-//! - [ ] SDL_UnmapGPUTransferBuffer
+//! - [x] SDL_UnmapGPUTransferBuffer
 //! - [x] SDL_UploadToGPUBuffer
 //! - [x] SDL_UploadToGPUTexture
 //! - [x] SDL_WaitAndAcquireGPUSwapchainTexture
 //! - [ ] SDL_WaitForGPUFences
-//! - [ ] SDL_WaitForGPUIdle
+//! - [x] SDL_WaitForGPUIdle
 //! - [ ] SDL_WaitForGPUSwapchain
 //! - [ ] SDL_WindowSupportsGPUPresentMode
 //! - [ ] SDL_WindowSupportsGPUSwapchainComposition
@@ -164,12 +164,24 @@ impl GPUDevice {
 }
 
 impl GPUDeviceHandle {
+    #[doc(alias = "SDL_ClaimWindowForGPUDevice")]
     pub fn claim_window(&self, window: Ref<Window>) -> Result {
         to_result(unsafe {
             SDL_ClaimWindowForGPUDevice(self.handle.as_ptr(), window.handle.as_ptr())
         })
     }
 
+    #[doc(alias = "SDL_ReleaseWindowFromGPUDevice")]
+    pub fn release_window(&self, window: Ref<Window>) {
+        unsafe { SDL_ReleaseWindowFromGPUDevice(self.handle.as_ptr(), window.handle.as_ptr()) };
+    }
+
+    #[doc(alias = "SDL_WaitForGPUIdle")]
+    pub fn wait_idle(&self) -> Result {
+        to_result(unsafe { SDL_WaitForGPUIdle(self.handle.as_ptr()) })
+    }
+
+    #[doc(alias = "SDL_GetGPUDeviceDriver")]
     pub fn driver(&self) -> Result<&str> {
         let raw = unsafe { SDL_GetGPUDeviceDriver(self.handle.as_ptr()) };
         if raw.is_null() {
@@ -335,8 +347,16 @@ impl GPUGraphicsPipelineHandle {
 
 resource_no_drop!(GPUFence);
 impl GPUFence {
+    #[doc(alias = "SDL_ReleaseGPUFence")]
     pub fn drop(self, device: Ref<GPUDevice>) {
         unsafe { SDL_ReleaseGPUFence(device.handle.as_ptr(), self.handle.as_ptr()) }
+    }
+}
+
+impl GPUFenceHandle {
+    #[doc(alias = "SDL_QueryGPUFence")]
+    pub fn is_signaled(&self, device: Ref<GPUDevice>) -> bool {
+        unsafe { SDL_QueryGPUFence(device.handle.as_ptr(), self.handle.as_ptr()) }
     }
 }
 
@@ -408,6 +428,25 @@ impl GPURenderPass {
 }
 
 resource!(GPUComputePass, SDL, End);
+impl GPUComputePass {
+    #[doc(alias = "SDL_BeginGPUComputePass")]
+    pub fn new(
+        cmdbuf: Ref<GPUCommandBuffer>,
+        storage_texture_bindings: &[SDL_GPUStorageTextureReadWriteBinding],
+        storage_buffer_bindings: &[SDL_GPUStorageBufferReadWriteBinding],
+    ) -> Result<Self> {
+        let handle = unsafe {
+            SDL_BeginGPUComputePass(
+                cmdbuf.handle.as_ptr(),
+                storage_texture_bindings.as_ptr(),
+                storage_texture_bindings.len() as _,
+                storage_buffer_bindings.as_ptr(),
+                storage_buffer_bindings.len() as _,
+            )
+        };
+        Self::from_ptr(handle)
+    }
+}
 
 impl GPUComputePassHandle {
     pub fn bind(&self, pipeline: Ref<GPUComputePipeline>) {
@@ -589,6 +628,17 @@ impl GPUTexture {
 }
 
 impl GPUTextureHandle {
+    #[doc(alias = "SDL_DownloadFromGPUTexture")]
+    pub fn download(
+        &self,
+        copy_pass: Ref<GPUCopyPass>,
+        src: &TextureRegion,
+        dst: &TextureTransferInfo,
+    ) {
+        unsafe { SDL_DownloadFromGPUTexture(copy_pass.handle.as_ptr(), &src.0, &dst.0) };
+    }
+
+    #[doc(alias = "SDL_UploadToGPUTexture")]
     pub fn upload(
         &self,
         copy_pass: Ref<GPUCopyPass>,
@@ -602,9 +652,46 @@ impl GPUTextureHandle {
     }
 }
 
+#[repr(i32)]
+pub enum TransferBufferUsage {
+    Upload = SDL_GPUTransferBufferUsage::UPLOAD.0,
+    Download = SDL_GPUTransferBufferUsage::DOWNLOAD.0,
+}
+
+pub struct TransferBufferCreateInfo(SDL_GPUTransferBufferCreateInfo);
+impl TransferBufferCreateInfo {
+    pub const fn new(usage: TransferBufferUsage, size: u32) -> Self {
+        Self(SDL_GPUTransferBufferCreateInfo {
+            usage: SDL_GPUTransferBufferUsage::new(usage as _),
+            size,
+            props: SDL_PropertiesID::new(0),
+        })
+    }
+}
+
 resource_no_drop!(GPUTransferBuffer, SDL);
 impl GPUTransferBuffer {
+    #[doc(alias = "SDL_CreateGPUTransferBuffer")]
+    pub fn new(device: Ref<GPUDevice>, create_info: &TransferBufferCreateInfo) -> Result<Self> {
+        let handle = unsafe { SDL_CreateGPUTransferBuffer(device.handle.as_ptr(), &create_info.0) };
+        Self::from_ptr(handle)
+    }
+
+    #[doc(alias = "SDL_ReleaseGPUTransferBuffer")]
     pub fn drop(self, dev: Ref<GPUDevice>) {
         unsafe { SDL_ReleaseGPUTransferBuffer(dev.handle.as_ptr(), self.handle.as_ptr()) };
+    }
+
+    #[doc(alias = "SDL_MapGPUTransferBuffer")]
+    pub fn map(&self, device: Ref<GPUDevice>, cycle: bool) -> Result<NonNull<u8>> {
+        let ptr = unsafe {
+            SDL_MapGPUTransferBuffer(device.handle.as_ptr(), self.handle.as_ptr(), cycle)
+        };
+        NonNull::new(ptr.cast()).ok_or_else(Error::current)
+    }
+
+    #[doc(alias = "SDL_UnmapGPUTransferBuffer")]
+    pub fn unmap(&self, device: Ref<GPUDevice>) {
+        unsafe { SDL_UnmapGPUTransferBuffer(device.handle.as_ptr(), self.handle.as_ptr()) };
     }
 }
