@@ -22,6 +22,7 @@ use sdl3_sys::{gpu::*, pixels::SDL_FColor};
 
 use crate::{
     Result,
+    color::RgbaF32,
     gpu::GPUBuffer,
     rect::{Point, RectI32},
     resource,
@@ -58,20 +59,104 @@ impl Viewport {
     }
 }
 
+#[repr(i32)]
+#[derive(Clone, Copy)]
+#[doc(alias = "SDL_GPULoadOp")]
+pub enum LoadOp {
+    Load = SDL_GPULoadOp::LOAD.0,
+    Clear = SDL_GPULoadOp::CLEAR.0,
+    DontCare = SDL_GPULoadOp::DONT_CARE.0,
+}
+
+#[repr(i32)]
+#[derive(Clone, Copy)]
+#[doc(alias = "SDL_GPUStoreOp")]
+pub enum StoreOp {
+    Store = SDL_GPUStoreOp::STORE.0,
+    DontCare = SDL_GPUStoreOp::DONT_CARE.0,
+    Resolve = SDL_GPUStoreOp::RESOLVE.0,
+    ResolveAndStore = SDL_GPUStoreOp::RESOLVE_AND_STORE.0,
+}
+
+#[doc(alias = "SDL_GPUColorTargetInfo")]
+#[derive(Clone, Copy)]
+pub struct ColorTargetInfo(SDL_GPUColorTargetInfo);
+impl ColorTargetInfo {
+    pub fn new(
+        tex: Ref<GPUTexture>,
+        mip_level: u32,
+        layer_or_depth_plane: u32,
+        clear_color: RgbaF32,
+        load_op: LoadOp,
+        store_op: StoreOp,
+        resolve_texture: Option<Ref<GPUTexture>>,
+        (resolve_mip_level, resolve_layer): (u32, u32),
+        cycle: bool,
+        cycle_resolve_texture: bool,
+    ) -> Self {
+        // SAFETY: `RgbaF32` is `#[repr(C)]` and layout-identical to `SDL_FColor`.
+        let clear_color: SDL_FColor = unsafe { std::mem::transmute(clear_color) };
+        let resolve_texture = resolve_texture.map_or(std::ptr::null_mut(), |t| t.handle.as_ptr());
+        Self(SDL_GPUColorTargetInfo {
+            texture: tex.handle.as_ptr(),
+            mip_level,
+            layer_or_depth_plane,
+            clear_color,
+            load_op: SDL_GPULoadOp::new(load_op as _),
+            store_op: SDL_GPUStoreOp::new(store_op as _),
+            resolve_texture,
+            resolve_mip_level,
+            resolve_layer,
+            cycle,
+            cycle_resolve_texture,
+            ..Default::default()
+        })
+    }
+}
+
+#[doc(alias = "SDL_GPUDepthStencilTargetInfo")]
+#[derive(Clone, Copy)]
+pub struct DepthStencilTargetInfo(SDL_GPUDepthStencilTargetInfo);
+impl DepthStencilTargetInfo {
+    pub fn new(
+        tex: Ref<GPUTexture>,
+        clear_depth: f32,
+        (load_op, store_op): (LoadOp, StoreOp),
+        (stencil_load_op, stencil_store_op): (LoadOp, StoreOp),
+        cycle: bool,
+        clear_stencil: u8,
+        (mip_level, layer): (u8, u8),
+    ) -> Self {
+        let texture = tex.handle.as_ptr();
+        Self(SDL_GPUDepthStencilTargetInfo {
+            texture,
+            clear_depth,
+            load_op: SDL_GPULoadOp::new(load_op as _),
+            store_op: SDL_GPUStoreOp::new(store_op as _),
+            stencil_load_op: SDL_GPULoadOp::new(stencil_load_op as _),
+            stencil_store_op: SDL_GPUStoreOp::new(stencil_store_op as _),
+            cycle,
+            clear_stencil,
+            mip_level,
+            layer,
+        })
+    }
+}
+
 resource!(GPURenderPass, SDL, End);
 impl GPURenderPass {
     #[doc(alias = "SDL_BeginGPURenderPass")]
     pub fn new(
         cmdbuf: Ref<GPUCommandBuffer>,
-        color_targets: &[SDL_GPUColorTargetInfo],
-        depth_stencil_target: Option<&SDL_GPUDepthStencilTargetInfo>,
+        color_targets: &[ColorTargetInfo],
+        depth_stencil_target: Option<&DepthStencilTargetInfo>,
     ) -> Result<Self> {
         let handle = unsafe {
             SDL_BeginGPURenderPass(
                 cmdbuf.handle.as_ptr(),
-                color_targets.as_ptr(),
+                color_targets.as_ptr().cast(),
                 color_targets.len() as _,
-                opt2ptr(depth_stencil_target),
+                opt2ptr(depth_stencil_target).cast(),
             )
         };
 
