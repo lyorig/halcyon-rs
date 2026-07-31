@@ -20,10 +20,16 @@
 
 use std::ffi::CStr;
 
-use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
+use sdl3_sys::gpu::*;
 
 use crate::{
-    Result, boolenum, error::Error, resource, traits::Ref, util::to_result, window::Window,
+    Result, boolenum,
+    error::Error,
+    properties::{Properties, PropertiesHandle},
+    resource,
+    traits::Ref,
+    util::to_result,
+    window::Window,
 };
 
 use super::{
@@ -45,8 +51,8 @@ impl GPUDevice {
     }
 
     #[doc(alias = "SDL_CreateGPUDeviceWithProperties")]
-    pub fn with_properties(props: SDL_PropertiesID) -> Result<Self> {
-        let handle = unsafe { SDL_CreateGPUDeviceWithProperties(props) };
+    pub fn with_properties(props: Ref<Properties>) -> Result<Self> {
+        let handle = unsafe { SDL_CreateGPUDeviceWithProperties(props.id()) };
         Self::from_ptr(handle)
     }
 }
@@ -124,8 +130,12 @@ impl GPUDeviceHandle {
     }
 
     #[doc(alias = "SDL_GetGPUDeviceProperties")]
-    pub fn properties(&self) -> SDL_PropertiesID {
-        unsafe { SDL_GetGPUDeviceProperties(self.handle.as_ptr()) }
+    pub fn properties(&'_ self) -> Ref<'_, Properties> {
+        let id = unsafe { SDL_GetGPUDeviceProperties(self.handle.as_ptr()) };
+        let handle =
+            PropertiesHandle::from_id(id).expect("A valid GPU device should have properties");
+
+        unsafe { Ref::from_handle(handle) }
     }
 
     #[doc(alias = "SDL_GetGPUSwapchainTextureFormat")]

@@ -160,7 +160,7 @@ pub struct WindowBuilder {
 impl WindowBuilder {
     pub fn new() -> Self {
         Self {
-            inner: Properties::new(),
+            inner: Properties::new().unwrap(),
         }
     }
 

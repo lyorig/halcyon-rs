@@ -99,7 +99,7 @@ pub struct RendererBuilder {
 impl RendererBuilder {
     pub fn new(wnd: Ref<Window>) -> Self {
         let mut ret = Self {
-            inner: Properties::new(),
+            inner: Properties::new().unwrap(),
         };
 
         ret.window(wnd);
@@ -300,12 +300,7 @@ impl RendererHandle {
     /// This function is a direct wrapper of SDL's [`SDL_RenderTexture`];
     /// see [`DrawBuilder`] for a neater way to draw to a renderer.
     #[doc(alias = "SDL_RenderTexture")]
-    pub fn draw(
-        &self,
-        tex: Ref<Texture>,
-        src: Option<&RectF32>,
-        dst: Option<&RectF32>,
-    ) -> Result {
+    pub fn draw(&self, tex: Ref<Texture>, src: Option<&RectF32>, dst: Option<&RectF32>) -> Result {
         to_result(unsafe {
             SDL_RenderTexture(
                 self.handle.as_ptr(),
