@@ -1,51 +1,20 @@
-//! Minimal SDL_gpu wrapper, plus some convenience functions.
+//! SDL_gpu wrapper.
 //!
-//! Implementation checklist ([source](https://wiki.libsdl.org/SDL3/CategoryGPU)):
-//! - [x] SDL_AcquireGPUSwapchainTexture
-//! - [x] SDL_BindGPUComputeSamplers
-//! - [x] SDL_BindGPUComputeStorageBuffers
-//! - [x] SDL_BindGPUComputeStorageTextures
-//! - [x] SDL_BindGPUFragmentSamplers
-//! - [x] SDL_BindGPUFragmentStorageBuffers
-//! - [x] SDL_BindGPUFragmentStorageTextures
-//! - [x] SDL_BindGPUIndexBuffer
-//! - [x] SDL_BindGPUVertexBuffers
-//! - [x] SDL_BindGPUVertexSamplers
-//! - [x] SDL_BindGPUVertexStorageBuffers
-//! - [x] SDL_BindGPUVertexStorageTextures
+//! Implementation checklist ([source](https://wiki.libsdl.org/SDL3/CategoryGPU)).
+//! Only free functions and functionality that fits no submodule belong here;
+//! everything else is covered by the submodule checklists.
 //! - [x] SDL_CalculateGPUTextureFormatSize
-//! - [x] SDL_CopyGPUBufferToBuffer
-//! - [x] SDL_CopyGPUTextureToTexture
-//! - [x] SDL_CreateGPUDeviceWithProperties
 //! - [ ] SDL_CreateGPUSampler
-//! - [x] SDL_DispatchGPUComputeIndirect
-//! - [x] SDL_DrawGPUIndexedPrimitives
-//! - [x] SDL_DrawGPUIndexedPrimitivesIndirect
-//! - [ ] SDL_GDKResumeGPU
-//! - [ ] SDL_GDKSuspendGPU
-//! - [x] SDL_GenerateMipmapsForGPUTexture
-//! - [x] SDL_GetGPUDeviceProperties
+//! - [ ] SDL_GDKResumeGPU — GDK (Xbox) only, makes no sense to implement here
+//! - [ ] SDL_GDKSuspendGPU — GDK (Xbox) only, makes no sense to implement here
 //! - [x] SDL_GetGPUDriver
-//! - [x] SDL_GetGPUSwapchainTextureFormat
 //! - [x] SDL_GetGPUTextureFormatFromPixelFormat
 //! - [x] SDL_GetNumGPUDrivers
 //! - [x] SDL_GetPixelFormatFromGPUTextureFormat
 //! - [x] SDL_GPUSupportsProperties
 //! - [x] SDL_GPUSupportsShaderFormats
 //! - [x] SDL_GPUTextureFormatTexelBlockSize
-//! - [x] SDL_GPUTextureSupportsFormat
-//! - [x] SDL_GPUTextureSupportsSampleCount
-//! - [x] SDL_InsertGPUDebugLabel
-//! - [x] SDL_PopGPUDebugGroup
-//! - [x] SDL_PushGPUComputeUniformData
-//! - [x] SDL_PushGPUDebugGroup
-//! - [x] SDL_PushGPUFragmentUniformData
-//! - [x] SDL_PushGPUVertexUniformData
 //! - [ ] SDL_ReleaseGPUSampler
-//! - [x] SDL_SetGPUBlendConstants
-//! - [x] SDL_SetGPUStencilReference
-//! - [x] SDL_SetGPUSwapchainParameters
-//! - [x] SDL_SetGPUViewport
 
 pub mod buffer;
 pub mod command_buffer;
