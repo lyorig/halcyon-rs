@@ -123,12 +123,7 @@
 
 pub mod engine;
 
-use std::{
-    ffi::{CStr, c_char},
-    marker::PhantomData,
-    mem::MaybeUninit,
-    ptr::NonNull,
-};
+use std::{ffi::CStr, marker::PhantomData, mem::MaybeUninit, ptr::NonNull};
 
 use sdl3_ttf_sys::ttf::*;
 
@@ -143,12 +138,39 @@ use crate::{
     util::{c_ptr_to_str, to_result},
 };
 
-#[inline]
-fn text_args(text: &str) -> (*const c_char, usize) {
-    if text.is_empty() {
-        (c"".as_ptr(), 0)
-    } else {
-        (text.as_ptr().cast(), text.len())
+#[derive(Clone, Copy)]
+pub struct RtStr<'a> {
+    ptr: *const i8,
+    len: usize,
+    marker: std::marker::PhantomData<&'a str>,
+}
+
+impl RtStr<'_> {
+    pub fn new<'a>(s: &'a str) -> RtStr<'a> {
+        let len = s.len();
+        let ptr = if len == 0 {
+            c"".as_ptr()
+        } else {
+            s.as_ptr().cast()
+        };
+
+        RtStr {
+            ptr,
+            len,
+            marker: std::marker::PhantomData,
+        }
+    }
+
+    pub unsafe fn new_unchecked<'a>(s: &'a str) -> RtStr<'a> {
+        unsafe { std::mem::transmute(s) }
+    }
+
+    pub fn as_ptr(&self) -> *const i8 {
+        self.ptr
+    }
+
+    pub fn len(&self) -> usize {
+        self.len
     }
 }
 
@@ -239,21 +261,24 @@ impl FontHandle {
     }
 
     #[doc(alias = "TTF_RenderText_Blended")]
-    pub fn render_text_blended(&self, text: &str, color: RgbaU8) -> Result<Surface> {
-        let (text_ptr, text_len) = text_args(text);
+    pub fn render_text_blended(&self, text: RtStr, color: RgbaU8) -> Result<Surface> {
         Surface::from_ptr(unsafe {
-            TTF_RenderText_Blended(self.handle.as_ptr(), text_ptr, text_len, color.into())
+            TTF_RenderText_Blended(
+                self.handle.as_ptr(),
+                text.as_ptr(),
+                text.len(),
+                color.into(),
+            )
         })
     }
 
     #[doc(alias = "TTF_RenderText_LCD")]
-    pub fn render_text_lcd(&self, text: &str, fg: RgbaU8, bg: RgbaU8) -> Result<Surface> {
-        let (text_ptr, text_len) = text_args(text);
+    pub fn render_text_lcd(&self, text: RtStr, fg: RgbaU8, bg: RgbaU8) -> Result<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_LCD(
                 self.handle.as_ptr(),
-                text_ptr,
-                text_len,
+                text.as_ptr(),
+                text.len(),
                 fg.into(),
                 bg.into(),
             )
@@ -261,13 +286,12 @@ impl FontHandle {
     }
 
     #[doc(alias = "TTF_RenderText_Shaded")]
-    pub fn render_text_shaded(&self, text: &str, fg: RgbaU8, bg: RgbaU8) -> Result<Surface> {
-        let (text_ptr, text_len) = text_args(text);
+    pub fn render_text_shaded(&self, text: RtStr, fg: RgbaU8, bg: RgbaU8) -> Result<Surface> {
         Surface::from_ptr(unsafe {
             TTF_RenderText_Shaded(
                 self.handle.as_ptr(),
-                text_ptr,
-                text_len,
+                text.as_ptr(),
+                text.len(),
                 fg.into(),
                 bg.into(),
             )
@@ -275,26 +299,29 @@ impl FontHandle {
     }
 
     #[doc(alias = "TTF_RenderText_Solid")]
-    pub fn render_text_solid(&self, text: &str, color: RgbaU8) -> Result<Surface> {
-        let (text_ptr, text_len) = text_args(text);
+    pub fn render_text_solid(&self, text: RtStr, color: RgbaU8) -> Result<Surface> {
         Surface::from_ptr(unsafe {
-            TTF_RenderText_Solid(self.handle.as_ptr(), text_ptr, text_len, color.into())
+            TTF_RenderText_Solid(
+                self.handle.as_ptr(),
+                text.as_ptr(),
+                text.len(),
+                color.into(),
+            )
         })
     }
 
     #[doc(alias = "TTF_RenderText_Blended_Wrapped")]
     pub fn render_text_blended_wrapped(
         &self,
-        text: &str,
+        text: RtStr,
         color: RgbaU8,
         wrap_length: i32,
     ) -> Result<Surface> {
-        let (text_ptr, text_len) = text_args(text);
         Surface::from_ptr(unsafe {
             TTF_RenderText_Blended_Wrapped(
                 self.handle.as_ptr(),
-                text_ptr,
-                text_len,
+                text.as_ptr(),
+                text.len(),
                 color.into(),
                 wrap_length,
             )
@@ -304,17 +331,16 @@ impl FontHandle {
     #[doc(alias = "TTF_RenderText_LCD_Wrapped")]
     pub fn render_text_lcd_wrapped(
         &self,
-        text: &str,
+        text: RtStr,
         fg: RgbaU8,
         bg: RgbaU8,
         wrap_length: i32,
     ) -> Result<Surface> {
-        let (text_ptr, text_len) = text_args(text);
         Surface::from_ptr(unsafe {
             TTF_RenderText_LCD_Wrapped(
                 self.handle.as_ptr(),
-                text_ptr,
-                text_len,
+                text.as_ptr(),
+                text.len(),
                 fg.into(),
                 bg.into(),
                 wrap_length,
@@ -325,17 +351,16 @@ impl FontHandle {
     #[doc(alias = "TTF_RenderText_Shaded_Wrapped")]
     pub fn render_text_shaded_wrapped(
         &self,
-        text: &str,
+        text: RtStr,
         fg: RgbaU8,
         bg: RgbaU8,
         wrap_length: i32,
     ) -> Result<Surface> {
-        let (text_ptr, text_len) = text_args(text);
         Surface::from_ptr(unsafe {
             TTF_RenderText_Shaded_Wrapped(
                 self.handle.as_ptr(),
-                text_ptr,
-                text_len,
+                text.as_ptr(),
+                text.len(),
                 fg.into(),
                 bg.into(),
                 wrap_length,
@@ -346,16 +371,15 @@ impl FontHandle {
     #[doc(alias = "TTF_RenderText_Solid_Wrapped")]
     pub fn render_text_solid_wrapped(
         &self,
-        text: &str,
+        text: RtStr,
         color: RgbaU8,
         wrap_length: i32,
     ) -> Result<Surface> {
-        let (text_ptr, text_len) = text_args(text);
         Surface::from_ptr(unsafe {
             TTF_RenderText_Solid_Wrapped(
                 self.handle.as_ptr(),
-                text_ptr,
-                text_len,
+                text.as_ptr(),
+                text.len(),
                 color.into(),
                 wrap_length,
             )
@@ -450,14 +474,14 @@ impl TextHandle {
 impl Text {
     #[doc(alias = "TTF_CreateText")]
     pub fn new(font: Ref<Font>, text: &str) -> Result<Self> {
-        let (text_ptr, text_len) = text_args(text);
+        let text = RtStr::new(text);
 
         Self::from_ptr(unsafe {
             TTF_CreateText(
                 std::ptr::null_mut(),
                 font.handle.as_ptr(),
-                text_ptr,
-                text_len,
+                text.as_ptr(),
+                text.len(),
             )
         })
     }

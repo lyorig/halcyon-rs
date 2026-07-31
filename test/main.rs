@@ -11,6 +11,7 @@ use halcyon::{
 mod clipboard;
 mod color;
 mod event;
+mod ttf;
 
 /// Basic initialization stuff.
 #[test]
