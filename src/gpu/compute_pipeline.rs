@@ -11,6 +11,7 @@ use crate::{Result, resource_no_drop, traits::Ref};
 use super::{ShaderFormat, device::GPUDevice};
 
 #[doc(alias = "SDL_GPUComputePipelineCreateInfo")]
+#[derive(Clone, Copy)]
 pub struct ComputePipelineCreateInfo(SDL_GPUComputePipelineCreateInfo);
 impl ComputePipelineCreateInfo {
     pub const fn new(

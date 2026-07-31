@@ -41,6 +41,23 @@ use super::{
 boolenum!(DeviceDebug);
 boolenum!(WaitAll);
 
+#[repr(i32)]
+#[doc(alias = "SDL_GPUPresentMode")]
+pub enum PresentMode {
+    Vsync = SDL_GPUPresentMode::VSYNC.0,
+    Immediate = SDL_GPUPresentMode::IMMEDIATE.0,
+    Mailbox = SDL_GPUPresentMode::MAILBOX.0,
+}
+
+#[repr(i32)]
+#[doc(alias = "SDL_GPUSwapchainComposition")]
+pub enum SwapchainComposition {
+    Sdr = SDL_GPUSwapchainComposition::SDR.0,
+    SdrLinear = SDL_GPUSwapchainComposition::SDR_LINEAR.0,
+    HdrExtendedLinear = SDL_GPUSwapchainComposition::HDR_EXTENDED_LINEAR.0,
+    Hdr10St2084 = SDL_GPUSwapchainComposition::HDR10_ST2084.0,
+}
+
 resource!(GPUDevice);
 impl GPUDevice {
     #[doc(alias = "SDL_CreateGPUDevice")]
@@ -71,13 +88,13 @@ impl GPUDeviceHandle {
     }
 
     #[doc(alias = "SDL_WindowSupportsGPUPresentMode")]
-    pub fn window_supports_gpu_present_mode(
-        &self,
-        window: Ref<Window>,
-        pm: SDL_GPUPresentMode,
-    ) -> bool {
+    pub fn window_supports_gpu_present_mode(&self, window: Ref<Window>, pm: PresentMode) -> bool {
         unsafe {
-            SDL_WindowSupportsGPUPresentMode(self.handle.as_ptr(), window.handle.as_ptr(), pm)
+            SDL_WindowSupportsGPUPresentMode(
+                self.handle.as_ptr(),
+                window.handle.as_ptr(),
+                SDL_GPUPresentMode::new(pm as _),
+            )
         }
     }
 
@@ -85,13 +102,13 @@ impl GPUDeviceHandle {
     pub fn window_supports_gpu_swapchain_composition(
         &self,
         window: Ref<Window>,
-        sc: SDL_GPUSwapchainComposition,
+        sc: SwapchainComposition,
     ) -> bool {
         unsafe {
             SDL_WindowSupportsGPUSwapchainComposition(
                 self.handle.as_ptr(),
                 window.handle.as_ptr(),
-                sc,
+                SDL_GPUSwapchainComposition::new(sc as _),
             )
         }
     }
@@ -182,15 +199,15 @@ impl GPUDeviceHandle {
     pub fn set_swapchain_parameters(
         &self,
         window: Ref<Window>,
-        composition: SDL_GPUSwapchainComposition,
-        present_mode: SDL_GPUPresentMode,
+        composition: SwapchainComposition,
+        present_mode: PresentMode,
     ) -> Result {
         to_result(unsafe {
             SDL_SetGPUSwapchainParameters(
                 self.handle.as_ptr(),
                 window.handle.as_ptr(),
-                composition,
-                present_mode,
+                SDL_GPUSwapchainComposition::new(composition as _),
+                SDL_GPUPresentMode::new(present_mode as _),
             )
         })
     }

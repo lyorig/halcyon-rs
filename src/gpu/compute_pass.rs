@@ -13,8 +13,10 @@ use sdl3_sys::gpu::*;
 use crate::{Result, resource, traits::Ref};
 
 use super::{
-    buffer::GPUBuffer, command_buffer::GPUCommandBuffer, compute_pipeline::GPUComputePipeline,
-    texture::GPUTexture,
+    buffer::{GPUBuffer, StorageBufferReadWriteBinding},
+    command_buffer::GPUCommandBuffer,
+    compute_pipeline::GPUComputePipeline,
+    texture::{GPUTexture, StorageTextureReadWriteBinding, TextureSamplerBinding},
 };
 
 resource!(GPUComputePass, SDL, End);
@@ -22,15 +24,15 @@ impl GPUComputePass {
     #[doc(alias = "SDL_BeginGPUComputePass")]
     pub fn new(
         cmdbuf: Ref<GPUCommandBuffer>,
-        storage_texture_bindings: &[SDL_GPUStorageTextureReadWriteBinding],
-        storage_buffer_bindings: &[SDL_GPUStorageBufferReadWriteBinding],
+        storage_texture_bindings: &[StorageTextureReadWriteBinding],
+        storage_buffer_bindings: &[StorageBufferReadWriteBinding],
     ) -> Result<Self> {
         let handle = unsafe {
             SDL_BeginGPUComputePass(
                 cmdbuf.handle.as_ptr(),
-                storage_texture_bindings.as_ptr(),
+                storage_texture_bindings.as_ptr().cast(),
                 storage_texture_bindings.len() as _,
-                storage_buffer_bindings.as_ptr(),
+                storage_buffer_bindings.as_ptr().cast(),
                 storage_buffer_bindings.len() as _,
             )
         };
@@ -45,12 +47,12 @@ impl GPUComputePassHandle {
     }
 
     #[doc(alias = "SDL_BindGPUComputeSamplers")]
-    pub fn bind_samplers(&self, first_slot: u32, bindings: &[SDL_GPUTextureSamplerBinding]) {
+    pub fn bind_samplers(&self, first_slot: u32, bindings: &[TextureSamplerBinding]) {
         unsafe {
             SDL_BindGPUComputeSamplers(
                 self.handle.as_ptr(),
                 first_slot,
-                bindings.as_ptr(),
+                bindings.as_ptr().cast(),
                 bindings.len() as _,
             )
         }

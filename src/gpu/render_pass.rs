@@ -20,9 +20,43 @@
 
 use sdl3_sys::{gpu::*, pixels::SDL_FColor};
 
-use crate::{Result, gpu::GPUBuffer, rect::RectI32, resource, traits::Ref, util::opt2ptr};
+use crate::{
+    Result,
+    gpu::GPUBuffer,
+    rect::{Point, RectI32},
+    resource,
+    traits::Ref,
+    util::opt2ptr,
+};
 
-use super::{command_buffer::GPUCommandBuffer, texture::GPUTexture};
+use super::{
+    buffer::BufferBinding,
+    command_buffer::GPUCommandBuffer,
+    texture::{GPUTexture, TextureSamplerBinding},
+};
+
+#[repr(i32)]
+#[doc(alias = "SDL_GPUIndexElementSize")]
+pub enum IndexElementSize {
+    Bits16 = SDL_GPUIndexElementSize::_16BIT.0,
+    Bits32 = SDL_GPUIndexElementSize::_32BIT.0,
+}
+
+#[doc(alias = "SDL_GPUViewport")]
+#[derive(Clone, Copy)]
+pub struct Viewport(SDL_GPUViewport);
+impl Viewport {
+    pub fn new(pos: Point<f32>, size: Point<f32>, (min_depth, max_depth): (f32, f32)) -> Self {
+        Self(SDL_GPUViewport {
+            x: pos.x,
+            y: pos.y,
+            w: size.x,
+            h: size.y,
+            min_depth,
+            max_depth,
+        })
+    }
+}
 
 resource!(GPURenderPass, SDL, End);
 impl GPURenderPass {
@@ -47,8 +81,8 @@ impl GPURenderPass {
 
 impl GPURenderPassHandle {
     #[doc(alias = "SDL_SetGPUViewport")]
-    pub fn set_viewport(&self, viewport: &SDL_GPUViewport) {
-        unsafe { SDL_SetGPUViewport(self.handle.as_ptr(), viewport) }
+    pub fn set_viewport(&self, viewport: &Viewport) {
+        unsafe { SDL_SetGPUViewport(self.handle.as_ptr(), &viewport.0) }
     }
 
     #[doc(alias = "SDL_SetGPUBlendConstants")]
@@ -67,33 +101,35 @@ impl GPURenderPassHandle {
     }
 
     #[doc(alias = "SDL_BindGPUVertexBuffers")]
-    pub fn bind_vertex_buffers(&self, first_slot: u32, bindings: &[SDL_GPUBufferBinding]) {
+    pub fn bind_vertex_buffers(&self, first_slot: u32, bindings: &[BufferBinding]) {
         unsafe {
             SDL_BindGPUVertexBuffers(
                 self.handle.as_ptr(),
                 first_slot,
-                bindings.as_ptr(),
+                bindings.as_ptr().cast(),
                 bindings.len() as _,
             )
         }
     }
 
     #[doc(alias = "SDL_BindGPUIndexBuffer")]
-    pub fn bind_index_buffer(
-        &self,
-        binding: &SDL_GPUBufferBinding,
-        index_element_size: SDL_GPUIndexElementSize,
-    ) {
-        unsafe { SDL_BindGPUIndexBuffer(self.handle.as_ptr(), binding, index_element_size) }
+    pub fn bind_index_buffer(&self, binding: &BufferBinding, index_element_size: IndexElementSize) {
+        unsafe {
+            SDL_BindGPUIndexBuffer(
+                self.handle.as_ptr(),
+                &binding.0,
+                SDL_GPUIndexElementSize::new(index_element_size as _),
+            )
+        }
     }
 
     #[doc(alias = "SDL_BindGPUVertexSamplers")]
-    pub fn bind_vertex_samplers(&self, first_slot: u32, bindings: &[SDL_GPUTextureSamplerBinding]) {
+    pub fn bind_vertex_samplers(&self, first_slot: u32, bindings: &[TextureSamplerBinding]) {
         unsafe {
             SDL_BindGPUVertexSamplers(
                 self.handle.as_ptr(),
                 first_slot,
-                bindings.as_ptr(),
+                bindings.as_ptr().cast(),
                 bindings.len() as _,
             )
         }
@@ -124,16 +160,12 @@ impl GPURenderPassHandle {
     }
 
     #[doc(alias = "SDL_BindGPUFragmentSamplers")]
-    pub fn bind_fragment_samplers(
-        &self,
-        first_slot: u32,
-        bindings: &[SDL_GPUTextureSamplerBinding],
-    ) {
+    pub fn bind_fragment_samplers(&self, first_slot: u32, bindings: &[TextureSamplerBinding]) {
         unsafe {
             SDL_BindGPUFragmentSamplers(
                 self.handle.as_ptr(),
                 first_slot,
-                bindings.as_ptr(),
+                bindings.as_ptr().cast(),
                 bindings.len() as _,
             )
         }

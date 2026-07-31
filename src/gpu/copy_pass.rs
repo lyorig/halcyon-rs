@@ -8,7 +8,7 @@ use sdl3_sys::gpu::*;
 
 use crate::{Result, resource, traits::Ref};
 
-use super::command_buffer::GPUCommandBuffer;
+use super::{buffer::BufferLocation, command_buffer::GPUCommandBuffer, texture::TextureLocation};
 
 resource!(GPUCopyPass, SDL, End);
 impl GPUCopyPass {
@@ -23,24 +23,34 @@ impl GPUCopyPassHandle {
     #[doc(alias = "SDL_CopyGPUTextureToTexture")]
     pub fn copy_texture_to_texture(
         &self,
-        source: &SDL_GPUTextureLocation,
-        destination: &SDL_GPUTextureLocation,
+        source: &TextureLocation,
+        destination: &TextureLocation,
         (w, h, d): (u32, u32, u32),
         cycle: bool,
     ) {
         unsafe {
-            SDL_CopyGPUTextureToTexture(self.handle.as_ptr(), source, destination, w, h, d, cycle)
+            SDL_CopyGPUTextureToTexture(
+                self.handle.as_ptr(),
+                &source.0,
+                &destination.0,
+                w,
+                h,
+                d,
+                cycle,
+            )
         }
     }
 
     #[doc(alias = "SDL_CopyGPUBufferToBuffer")]
     pub fn copy_buffer_to_buffer(
         &self,
-        source: &SDL_GPUBufferLocation,
-        destination: &SDL_GPUBufferLocation,
+        source: &BufferLocation,
+        destination: &BufferLocation,
         size: u32,
         cycle: bool,
     ) {
-        unsafe { SDL_CopyGPUBufferToBuffer(self.handle.as_ptr(), source, destination, size, cycle) }
+        unsafe {
+            SDL_CopyGPUBufferToBuffer(self.handle.as_ptr(), &source.0, &destination.0, size, cycle)
+        }
     }
 }

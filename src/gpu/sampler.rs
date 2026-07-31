@@ -45,6 +45,7 @@ pub enum CompareOp {
 }
 
 #[doc(alias = "SDL_GPUSamplerCreateInfo")]
+#[derive(Clone, Copy)]
 pub struct SamplerCreateInfo(SDL_GPUSamplerCreateInfo);
 impl SamplerCreateInfo {
     #[allow(clippy::too_many_arguments)]

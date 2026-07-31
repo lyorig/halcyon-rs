@@ -26,6 +26,7 @@ pub enum BufferUsageFlags {
 }
 
 #[doc(alias = "SDL_GPUBufferCreateInfo")]
+#[derive(Clone, Copy)]
 pub struct BufferCreateInfo(SDL_GPUBufferCreateInfo);
 impl BufferCreateInfo {
     pub const fn new(usage: BufferUsageFlags, size: u32) -> Self {
@@ -40,6 +41,7 @@ impl BufferCreateInfo {
 }
 
 #[doc(alias = "SDL_GPUBufferRegion")]
+#[derive(Clone, Copy)]
 pub struct BufferRegion(SDL_GPUBufferRegion);
 impl BufferRegion {
     pub fn new(buffer: Ref<GPUBuffer>, offset: u32, size: u32) -> Self {
@@ -50,6 +52,43 @@ impl BufferRegion {
             size,
         };
         Self(inner)
+    }
+}
+
+#[doc(alias = "SDL_GPUBufferBinding")]
+#[derive(Clone, Copy)]
+pub struct BufferBinding(pub(crate) SDL_GPUBufferBinding);
+impl BufferBinding {
+    pub fn new(buffer: Ref<GPUBuffer>, offset: u32) -> Self {
+        Self(SDL_GPUBufferBinding {
+            buffer: buffer.handle.as_ptr(),
+            offset,
+        })
+    }
+}
+
+#[doc(alias = "SDL_GPUBufferLocation")]
+#[derive(Clone, Copy)]
+pub struct BufferLocation(pub(crate) SDL_GPUBufferLocation);
+impl BufferLocation {
+    pub fn new(buffer: Ref<GPUBuffer>, offset: u32) -> Self {
+        Self(SDL_GPUBufferLocation {
+            buffer: buffer.handle.as_ptr(),
+            offset,
+        })
+    }
+}
+
+#[doc(alias = "SDL_GPUStorageBufferReadWriteBinding")]
+#[derive(Clone, Copy)]
+pub struct StorageBufferReadWriteBinding(SDL_GPUStorageBufferReadWriteBinding);
+impl StorageBufferReadWriteBinding {
+    pub fn new(buffer: Ref<GPUBuffer>, cycle: bool) -> Self {
+        Self(SDL_GPUStorageBufferReadWriteBinding {
+            buffer: buffer.handle.as_ptr(),
+            cycle,
+            ..Default::default()
+        })
     }
 }
 

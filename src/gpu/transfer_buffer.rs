@@ -13,6 +13,7 @@ use crate::{Result, error::Error, resource_no_drop, traits::Ref};
 use super::device::GPUDevice;
 
 #[doc(alias = "SDL_GPUTransferBufferLocation")]
+#[derive(Clone, Copy)]
 pub struct TransferBufferLocation(pub(crate) SDL_GPUTransferBufferLocation);
 impl TransferBufferLocation {
     pub fn new(tb: Ref<GPUTransferBuffer>, offset: u32) -> Self {
@@ -33,6 +34,7 @@ pub enum TransferBufferUsage {
 }
 
 #[doc(alias = "SDL_GPUTransferBufferCreateInfo")]
+#[derive(Clone, Copy)]
 pub struct TransferBufferCreateInfo(SDL_GPUTransferBufferCreateInfo);
 impl TransferBufferCreateInfo {
     pub const fn new(usage: TransferBufferUsage, size: u32) -> Self {

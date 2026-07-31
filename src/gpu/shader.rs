@@ -18,6 +18,7 @@ pub enum ShaderStage {
 }
 
 #[doc(alias = "SDL_GPUShaderCreateInfo")]
+#[derive(Clone, Copy)]
 pub struct ShaderCreateInfo(SDL_GPUShaderCreateInfo);
 impl ShaderCreateInfo {
     pub const fn new(
