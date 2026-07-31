@@ -1,5 +1,7 @@
 use std::{fmt::Display, ops::Mul};
 
+use sdl3_sys::rect::*;
+
 /// Wrapper around `SDL_(F)Point`, can be transmuted.
 #[repr(C)]
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -73,6 +75,10 @@ impl RectI32 {
     pub fn as_f32(self) -> RectF32 {
         self.into()
     }
+
+    pub fn as_sdl_ptr(&self) -> *const SDL_Rect {
+        std::ptr::from_ref(self).cast()
+    }
 }
 
 pub type RectF32 = Rect<f32>;
@@ -81,6 +87,10 @@ impl RectF32 {
 
     pub fn as_i32(self) -> RectI32 {
         self.into()
+    }
+
+    pub fn as_sdl_ptr(&self) -> *const SDL_FRect {
+        std::ptr::from_ref(self).cast()
     }
 }
 
