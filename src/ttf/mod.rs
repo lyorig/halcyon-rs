@@ -138,19 +138,16 @@ use crate::{
     util::{c_ptr_to_str, to_result},
 };
 
-/// A "render text str".
+/// A string that the `TTF_RenderText*` functions can safely read.
 ///
-/// # Why does this exist?
-/// The `TTF_RenderText*` family of functions take a pointer and a length
-/// to the text you wish to have rendered. A length of zero means the pointer
-/// refers to a nul-terminated string. As such, wrapping it with a `&str` would
-/// open up an edge case: what if it's empty? The function will think that it's
-/// dealing with a nul-terminated string, even though Rust's `&str` provides no
-/// such guarantees. All kinds of memory hilarity would then ensue.
+/// The `TTF_RenderText*` functions take a pointer and a byte length.
+/// A length of zero means that the pointer refers to a nul-terminated string.
+/// As Rust strings do not have a nul terminator, an empty `&str` would make the
+/// function read past the end of the string. This struct prevents that error.
 ///
-/// [`RtStr`] enables you to construct a "TTF-ready" string from a `&str`.
-/// - [`RtStr::new()`] checks the edge case, potentially setting the pointer to `c""`
-/// - [`RtStr::new_unchecked`] skips the check, in case you know your string isn't empty
+/// Construct a "TTF-ready" string from a `&str`:
+/// - [`RtStr::new()`] checks for an empty string. In that case, the pointer it set to `c""`.
+/// - [`RtStr::new_unchecked`] skips the check. Use when you know that the string is not empty.
 #[derive(Clone, Copy)]
 pub struct RtStr<'a> {
     ptr: *const i8,
