@@ -7,6 +7,7 @@ macro_rules! resource_impl {
     ($owned:ident, $library:ident) => {
         paste::paste! {
             #[derive(Clone, Copy)]
+            #[doc(alias = $library "_" $owned)]
             pub struct [<$owned Handle>] {
                 pub(crate) handle: std::ptr::NonNull<[<$library _ $owned>]>,
             }
@@ -93,7 +94,7 @@ macro_rules! resource {
 
         paste::paste! {
             impl Drop for $owned {
-                #[doc(alias = $library "_Destroy" $owned)]
+                #[doc(alias = $library "_" $dtor $owned)]
                 fn drop(&mut self) {
                     unsafe { [<$library _ $dtor $owned>](self.inner.handle.as_ptr()) }
                 }
@@ -106,12 +107,14 @@ macro_rules! resource {
 macro_rules! resource_tied {
     ($owned:ident, $library:ident, $dtor:ident, $tied:ident) => {
             paste::paste! {
+                #[doc(alias = $library "_" $owned)]
                 pub struct $owned<'a> {
                     pub(crate) inner: [<$owned Handle>],
                     marker: PhantomData<&'a $tied>,
                 }
 
                 #[derive(Clone, Copy)]
+                #[doc(alias = $library "_" $owned)]
                 pub struct [<$owned Handle>] {
                     pub(crate) handle: std::ptr::NonNull<[<$library _ $owned>]>,
                 }
@@ -156,7 +159,7 @@ macro_rules! resource_tied {
                 }
 
                 impl Drop for $owned<'_> {
-                    #[doc(alias = $library "_Destroy" $owned)]
+                    #[doc(alias = $library "_" $dtor $owned)]
                     fn drop(&mut self) {
                         unsafe { [<$library _ $dtor $owned>](self.inner.handle.as_ptr()) }
                     }
