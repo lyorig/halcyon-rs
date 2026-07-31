@@ -10,7 +10,7 @@ It combines the OS video and audio abstractions of SDL with the compile-time saf
 - Write self-documenting code. Comment only when the purpose is hard to deduce.
 - Comments must help new contributors understand the codebase.
 - Mark functions `const` whenever possible.
-- Every SDL function wrapper shall have `#[doc(alias = "...")]`.
+- Every SDL function/enum/struct wrapper shall have `#[doc(alias = "...")]`.
 - Each wrapper module starts with a commented `[x]` or `[ ]` checklist. This checklist tracks SDL API coverage. It comes from the official SDL wiki. For example, `src/surface.rs` contains a checklist with functions listed in [CategorySurface](https://wiki.libsdl.org/SDL3/CategorySurface/raw). If a module cannot map 1:1 to a SDL wiki category (for example, `src/window.rs` is a subset of [CategoryVideo](https://wiki.libsdl.org/SDL3/CategoryVideo/raw)), then only relevant functions go in the module checklist.
 
 # Other rules
