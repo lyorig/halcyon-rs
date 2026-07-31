@@ -1,6 +1,103 @@
 //! Minimal SDL_gpu wrapper, plus some convenience functions.
-//! TODO: Somehow put `#[must_use]` onto structs whose drop methods
-//! are implemented separately (e.g. [`GPUBuffer`]).
+//!
+//! Implementation checklist ([source](https://wiki.libsdl.org/SDL3/CategoryGPU)):
+//! - [x] SDL_AcquireGPUCommandBuffer
+//! - [ ] SDL_AcquireGPUSwapchainTexture
+//! - [ ] SDL_BeginGPUComputePass
+//! - [x] SDL_BeginGPUCopyPass
+//! - [x] SDL_BeginGPURenderPass
+//! - [x] SDL_BindGPUComputePipeline
+//! - [ ] SDL_BindGPUComputeSamplers
+//! - [ ] SDL_BindGPUComputeStorageBuffers
+//! - [ ] SDL_BindGPUComputeStorageTextures
+//! - [ ] SDL_BindGPUFragmentSamplers
+//! - [ ] SDL_BindGPUFragmentStorageBuffers
+//! - [ ] SDL_BindGPUFragmentStorageTextures
+//! - [x] SDL_BindGPUGraphicsPipeline
+//! - [ ] SDL_BindGPUIndexBuffer
+//! - [ ] SDL_BindGPUVertexBuffers
+//! - [ ] SDL_BindGPUVertexSamplers
+//! - [ ] SDL_BindGPUVertexStorageBuffers
+//! - [ ] SDL_BindGPUVertexStorageTextures
+//! - [ ] SDL_BlitGPUTexture
+//! - [ ] SDL_CalculateGPUTextureFormatSize
+//! - [ ] SDL_CancelGPUCommandBuffer
+//! - [x] SDL_ClaimWindowForGPUDevice
+//! - [ ] SDL_CopyGPUBufferToBuffer
+//! - [ ] SDL_CopyGPUTextureToTexture
+//! - [x] SDL_CreateGPUBuffer
+//! - [x] SDL_CreateGPUComputePipeline
+//! - [x] SDL_CreateGPUDevice
+//! - [ ] SDL_CreateGPUDeviceWithProperties
+//! - [x] SDL_CreateGPUGraphicsPipeline
+//! - [ ] SDL_CreateGPUSampler
+//! - [x] SDL_CreateGPUShader
+//! - [x] SDL_CreateGPUTexture
+//! - [ ] SDL_CreateGPUTransferBuffer
+//! - [x] SDL_DestroyGPUDevice
+//! - [x] SDL_DispatchGPUCompute
+//! - [ ] SDL_DispatchGPUComputeIndirect
+//! - [x] SDL_DownloadFromGPUBuffer
+//! - [ ] SDL_DownloadFromGPUTexture
+//! - [ ] SDL_DrawGPUIndexedPrimitives
+//! - [ ] SDL_DrawGPUIndexedPrimitivesIndirect
+//! - [ ] SDL_DrawGPUPrimitives
+//! - [ ] SDL_DrawGPUPrimitivesIndirect
+//! - [x] SDL_EndGPUComputePass
+//! - [x] SDL_EndGPUCopyPass
+//! - [x] SDL_EndGPURenderPass
+//! - [ ] SDL_GDKResumeGPU
+//! - [ ] SDL_GDKSuspendGPU
+//! - [ ] SDL_GenerateMipmapsForGPUTexture
+//! - [x] SDL_GetGPUDeviceDriver
+//! - [ ] SDL_GetGPUDeviceProperties
+//! - [ ] SDL_GetGPUDriver
+//! - [ ] SDL_GetGPUShaderFormats
+//! - [ ] SDL_GetGPUSwapchainTextureFormat
+//! - [ ] SDL_GetGPUTextureFormatFromPixelFormat
+//! - [ ] SDL_GetNumGPUDrivers
+//! - [ ] SDL_GetPixelFormatFromGPUTextureFormat
+//! - [ ] SDL_GPUSupportsProperties
+//! - [x] SDL_GPUSupportsShaderFormats
+//! - [ ] SDL_GPUTextureFormatTexelBlockSize
+//! - [ ] SDL_GPUTextureSupportsFormat
+//! - [ ] SDL_GPUTextureSupportsSampleCount
+//! - [ ] SDL_InsertGPUDebugLabel
+//! - [ ] SDL_MapGPUTransferBuffer
+//! - [ ] SDL_PopGPUDebugGroup
+//! - [ ] SDL_PushGPUComputeUniformData
+//! - [ ] SDL_PushGPUDebugGroup
+//! - [ ] SDL_PushGPUFragmentUniformData
+//! - [ ] SDL_PushGPUVertexUniformData
+//! - [ ] SDL_QueryGPUFence
+//! - [x] SDL_ReleaseGPUBuffer
+//! - [x] SDL_ReleaseGPUComputePipeline
+//! - [x] SDL_ReleaseGPUFence
+//! - [x] SDL_ReleaseGPUGraphicsPipeline
+//! - [ ] SDL_ReleaseGPUSampler
+//! - [x] SDL_ReleaseGPUShader
+//! - [x] SDL_ReleaseGPUTexture
+//! - [x] SDL_ReleaseGPUTransferBuffer
+//! - [ ] SDL_ReleaseWindowFromGPUDevice
+//! - [ ] SDL_SetGPUAllowedFramesInFlight
+//! - [ ] SDL_SetGPUBlendConstants
+//! - [ ] SDL_SetGPUBufferName
+//! - [ ] SDL_SetGPUScissor
+//! - [ ] SDL_SetGPUStencilReference
+//! - [ ] SDL_SetGPUSwapchainParameters
+//! - [ ] SDL_SetGPUTextureName
+//! - [ ] SDL_SetGPUViewport
+//! - [x] SDL_SubmitGPUCommandBuffer
+//! - [x] SDL_SubmitGPUCommandBufferAndAcquireFence
+//! - [ ] SDL_UnmapGPUTransferBuffer
+//! - [x] SDL_UploadToGPUBuffer
+//! - [x] SDL_UploadToGPUTexture
+//! - [x] SDL_WaitAndAcquireGPUSwapchainTexture
+//! - [ ] SDL_WaitForGPUFences
+//! - [ ] SDL_WaitForGPUIdle
+//! - [ ] SDL_WaitForGPUSwapchain
+//! - [ ] SDL_WindowSupportsGPUPresentMode
+//! - [ ] SDL_WindowSupportsGPUSwapchainComposition
 
 use std::{ffi::CStr, mem::MaybeUninit, ptr::NonNull};
 
@@ -41,11 +138,27 @@ pub fn are_formats_supported(fmts: ShaderFormats) -> bool {
     unsafe { SDL_GPUSupportsShaderFormats(fmts, std::ptr::null()) }
 }
 
+#[repr(u8)]
+#[derive(Clone, Copy)]
+pub enum DeviceDebug {
+    No = 0,
+    Yes = 1,
+}
+
+impl From<DeviceDebug> for bool {
+    fn from(value: DeviceDebug) -> Self {
+        match value {
+            DeviceDebug::No => false,
+            DeviceDebug::Yes => true,
+        }
+    }
+}
+
 resource!(GPUDevice);
 impl GPUDevice {
-    pub fn new(formats: ShaderFormats, debug_mode: bool) -> Result<Self> {
+    pub fn new(formats: ShaderFormats, debug: DeviceDebug) -> Result<Self> {
         let fmts = SDL_GPUShaderFormat::new(formats.bits());
-        let handle = unsafe { SDL_CreateGPUDevice(fmts, debug_mode, std::ptr::null()) };
+        let handle = unsafe { SDL_CreateGPUDevice(fmts, debug.into(), std::ptr::null()) };
         Self::from_ptr(handle)
     }
 }
@@ -295,9 +408,6 @@ impl GPURenderPass {
 }
 
 resource!(GPUComputePass, SDL, End);
-impl GPUComputePass {
-    // TODO: `SDL_BeginGPUComputePass`
-}
 
 impl GPUComputePassHandle {
     pub fn bind(&self, pipeline: Ref<GPUComputePipeline>) {
@@ -497,9 +607,4 @@ impl GPUTransferBuffer {
     pub fn drop(self, dev: Ref<GPUDevice>) {
         unsafe { SDL_ReleaseGPUTransferBuffer(dev.handle.as_ptr(), self.handle.as_ptr()) };
     }
-
-    // TODO:
-    // - SDL_CreateGPUTransferBuffer
-    // - SDL_MapGPUTransferBuffer
-    // - SDL_UnmapGPUTransferBuffer
 }
