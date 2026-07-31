@@ -168,6 +168,27 @@ macro_rules! resource_tied {
         }
 }
 
+#[macro_export]
+macro_rules! boolenum {
+    ($name:ident) => {
+        #[repr(u8)]
+        #[derive(Clone, Copy)]
+        pub enum $name {
+            No = 0,
+            Yes = 1,
+        }
+
+        impl From<$name> for bool {
+            fn from(value: $name) -> Self {
+                match value {
+                    $name::No => false,
+                    $name::Yes => true,
+                }
+            }
+        }
+    };
+}
+
 /// Converts an [`Option`] holding a reference to a pointer.
 /// As you would expect, `None` produces [`std::ptr::null()`], while
 /// `Some` returns `&T` as a pointer.

@@ -105,7 +105,7 @@ use bitmask_enum::bitmask;
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
 use crate::{
-    Result,
+    Result, boolenum,
     error::Error,
     rect::{Point, RectI32},
     resource, resource_no_drop,
@@ -141,38 +141,8 @@ pub fn are_formats_supported(fmts: ShaderFormats) -> bool {
     unsafe { SDL_GPUSupportsShaderFormats(fmts, std::ptr::null()) }
 }
 
-// TODO: Extract into boolenum-like macro
-#[repr(u8)]
-#[derive(Clone, Copy)]
-pub enum DeviceDebug {
-    No = 0,
-    Yes = 1,
-}
-
-impl From<DeviceDebug> for bool {
-    fn from(value: DeviceDebug) -> Self {
-        match value {
-            DeviceDebug::No => false,
-            DeviceDebug::Yes => true,
-        }
-    }
-}
-
-#[repr(u8)]
-#[derive(Clone, Copy)]
-pub enum WaitAll {
-    No = 0,
-    Yes = 1,
-}
-
-impl From<WaitAll> for bool {
-    fn from(value: WaitAll) -> Self {
-        match value {
-            WaitAll::No => false,
-            WaitAll::Yes => true,
-        }
-    }
-}
+boolenum!(DeviceDebug);
+boolenum!(WaitAll);
 
 resource!(GPUDevice);
 impl GPUDevice {
