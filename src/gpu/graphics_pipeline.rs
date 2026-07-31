@@ -31,6 +31,7 @@ pub enum PrimitiveType {
 #[derive(Clone, Copy)]
 pub struct GraphicsPipelineCreateInfo(SDL_GPUGraphicsPipelineCreateInfo);
 impl GraphicsPipelineCreateInfo {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         vertex_shader: Ref<GPUShader>,
         fragment_shader: Ref<GPUShader>,

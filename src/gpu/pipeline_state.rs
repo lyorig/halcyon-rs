@@ -183,7 +183,7 @@ impl RasterizerState {
     // The padding fields are only needed for alignment; sdl3-sys marks them
     // deprecated and recommends `..Default::default()`, which is not implemented
     // for this struct.
-    #[allow(deprecated)]
+    #[allow(deprecated, clippy::too_many_arguments)]
     pub fn new(
         fill_mode: FillMode,
         cull_mode: CullMode,
@@ -255,7 +255,7 @@ impl DepthStencilState {
     // The padding fields are only needed for alignment; sdl3-sys marks them
     // deprecated and recommends `..Default::default()`, which is not implemented
     // for this struct.
-    #[allow(deprecated)]
+    #[allow(deprecated, clippy::too_many_arguments)]
     pub fn new(
         compare_op: CompareOp,
         back_stencil_state: StencilOpState,
@@ -289,7 +289,7 @@ impl ColorTargetBlendState {
     // The padding fields are only needed for alignment; sdl3-sys marks them
     // deprecated and recommends `..Default::default()`, which is not implemented
     // for this struct.
-    #[allow(deprecated)]
+    #[allow(deprecated, clippy::too_many_arguments)]
     pub fn new(
         (src_color_blendfactor, dst_color_blendfactor): (BlendFactor, BlendFactor),
         color_blend_op: BlendOp,
