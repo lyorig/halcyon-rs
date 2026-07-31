@@ -4,7 +4,6 @@
 //! Only free functions and functionality that fits no submodule belong here;
 //! everything else is covered by the submodule checklists.
 //! - [x] SDL_CalculateGPUTextureFormatSize
-//! - [ ] SDL_CreateGPUSampler
 //! - [ ] SDL_GDKResumeGPU — GDK (Xbox) only, makes no sense to implement here
 //! - [ ] SDL_GDKSuspendGPU — GDK (Xbox) only, makes no sense to implement here
 //! - [x] SDL_GetGPUDriver
@@ -14,7 +13,6 @@
 //! - [x] SDL_GPUSupportsProperties
 //! - [x] SDL_GPUSupportsShaderFormats
 //! - [x] SDL_GPUTextureFormatTexelBlockSize
-//! - [ ] SDL_ReleaseGPUSampler
 
 pub mod buffer;
 pub mod command_buffer;
@@ -25,6 +23,7 @@ pub mod device;
 pub mod fence;
 pub mod graphics_pipeline;
 pub mod render_pass;
+pub mod sampler;
 pub mod shader;
 pub mod texture;
 pub mod transfer_buffer;
@@ -38,6 +37,7 @@ pub use device::*;
 pub use fence::*;
 pub use graphics_pipeline::*;
 pub use render_pass::*;
+pub use sampler::*;
 pub use shader::*;
 pub use texture::*;
 pub use transfer_buffer::*;
