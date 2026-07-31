@@ -1,51 +1,51 @@
 //! Minimal SDL_gpu wrapper, plus some convenience functions.
 //!
 //! Implementation checklist ([source](https://wiki.libsdl.org/SDL3/CategoryGPU)):
-//! - [ ] SDL_AcquireGPUSwapchainTexture
-//! - [ ] SDL_BindGPUComputeSamplers
-//! - [ ] SDL_BindGPUComputeStorageBuffers
-//! - [ ] SDL_BindGPUComputeStorageTextures
-//! - [ ] SDL_BindGPUFragmentSamplers
-//! - [ ] SDL_BindGPUFragmentStorageBuffers
-//! - [ ] SDL_BindGPUFragmentStorageTextures
-//! - [ ] SDL_BindGPUIndexBuffer
-//! - [ ] SDL_BindGPUVertexBuffers
-//! - [ ] SDL_BindGPUVertexSamplers
-//! - [ ] SDL_BindGPUVertexStorageBuffers
-//! - [ ] SDL_BindGPUVertexStorageTextures
-//! - [ ] SDL_CalculateGPUTextureFormatSize
-//! - [ ] SDL_CopyGPUBufferToBuffer
-//! - [ ] SDL_CopyGPUTextureToTexture
-//! - [ ] SDL_CreateGPUDeviceWithProperties
+//! - [x] SDL_AcquireGPUSwapchainTexture
+//! - [x] SDL_BindGPUComputeSamplers
+//! - [x] SDL_BindGPUComputeStorageBuffers
+//! - [x] SDL_BindGPUComputeStorageTextures
+//! - [x] SDL_BindGPUFragmentSamplers
+//! - [x] SDL_BindGPUFragmentStorageBuffers
+//! - [x] SDL_BindGPUFragmentStorageTextures
+//! - [x] SDL_BindGPUIndexBuffer
+//! - [x] SDL_BindGPUVertexBuffers
+//! - [x] SDL_BindGPUVertexSamplers
+//! - [x] SDL_BindGPUVertexStorageBuffers
+//! - [x] SDL_BindGPUVertexStorageTextures
+//! - [x] SDL_CalculateGPUTextureFormatSize
+//! - [x] SDL_CopyGPUBufferToBuffer
+//! - [x] SDL_CopyGPUTextureToTexture
+//! - [x] SDL_CreateGPUDeviceWithProperties
 //! - [ ] SDL_CreateGPUSampler
-//! - [ ] SDL_DispatchGPUComputeIndirect
-//! - [ ] SDL_DrawGPUIndexedPrimitives
-//! - [ ] SDL_DrawGPUIndexedPrimitivesIndirect
+//! - [x] SDL_DispatchGPUComputeIndirect
+//! - [x] SDL_DrawGPUIndexedPrimitives
+//! - [x] SDL_DrawGPUIndexedPrimitivesIndirect
 //! - [ ] SDL_GDKResumeGPU
 //! - [ ] SDL_GDKSuspendGPU
-//! - [ ] SDL_GenerateMipmapsForGPUTexture
-//! - [ ] SDL_GetGPUDeviceProperties
+//! - [x] SDL_GenerateMipmapsForGPUTexture
+//! - [x] SDL_GetGPUDeviceProperties
 //! - [x] SDL_GetGPUDriver
-//! - [ ] SDL_GetGPUSwapchainTextureFormat
-//! - [ ] SDL_GetGPUTextureFormatFromPixelFormat
+//! - [x] SDL_GetGPUSwapchainTextureFormat
+//! - [x] SDL_GetGPUTextureFormatFromPixelFormat
 //! - [x] SDL_GetNumGPUDrivers
-//! - [ ] SDL_GetPixelFormatFromGPUTextureFormat
-//! - [ ] SDL_GPUSupportsProperties
+//! - [x] SDL_GetPixelFormatFromGPUTextureFormat
+//! - [x] SDL_GPUSupportsProperties
 //! - [x] SDL_GPUSupportsShaderFormats
-//! - [ ] SDL_GPUTextureFormatTexelBlockSize
-//! - [ ] SDL_GPUTextureSupportsFormat
-//! - [ ] SDL_GPUTextureSupportsSampleCount
-//! - [ ] SDL_InsertGPUDebugLabel
-//! - [ ] SDL_PopGPUDebugGroup
-//! - [ ] SDL_PushGPUComputeUniformData
-//! - [ ] SDL_PushGPUDebugGroup
-//! - [ ] SDL_PushGPUFragmentUniformData
-//! - [ ] SDL_PushGPUVertexUniformData
+//! - [x] SDL_GPUTextureFormatTexelBlockSize
+//! - [x] SDL_GPUTextureSupportsFormat
+//! - [x] SDL_GPUTextureSupportsSampleCount
+//! - [x] SDL_InsertGPUDebugLabel
+//! - [x] SDL_PopGPUDebugGroup
+//! - [x] SDL_PushGPUComputeUniformData
+//! - [x] SDL_PushGPUDebugGroup
+//! - [x] SDL_PushGPUFragmentUniformData
+//! - [x] SDL_PushGPUVertexUniformData
 //! - [ ] SDL_ReleaseGPUSampler
-//! - [ ] SDL_SetGPUBlendConstants
-//! - [ ] SDL_SetGPUStencilReference
-//! - [ ] SDL_SetGPUSwapchainParameters
-//! - [ ] SDL_SetGPUViewport
+//! - [x] SDL_SetGPUBlendConstants
+//! - [x] SDL_SetGPUStencilReference
+//! - [x] SDL_SetGPUSwapchainParameters
+//! - [x] SDL_SetGPUViewport
 
 pub mod buffer;
 pub mod command_buffer;
@@ -74,7 +74,7 @@ pub use texture::*;
 pub use transfer_buffer::*;
 
 use bitmask_enum::bitmask;
-use sdl3_sys::gpu::*;
+use sdl3_sys::{gpu::*, pixels::SDL_PixelFormat, properties::SDL_PropertiesID};
 
 use crate::util::c_ptr_to_str;
 
@@ -118,4 +118,34 @@ pub fn driver(i: i32) -> Option<&'static str> {
     } else {
         Some(unsafe { c_ptr_to_str(ptr) })
     }
+}
+
+#[doc(alias = "SDL_CalculateGPUTextureFormatSize")]
+pub fn calculate_texture_format_size(
+    format: SDL_GPUTextureFormat,
+    width: u32,
+    height: u32,
+    depth_or_layer_count: u32,
+) -> u32 {
+    unsafe { SDL_CalculateGPUTextureFormatSize(format, width, height, depth_or_layer_count) }
+}
+
+#[doc(alias = "SDL_GPUTextureFormatTexelBlockSize")]
+pub fn texture_format_texel_block_size(format: SDL_GPUTextureFormat) -> u32 {
+    unsafe { SDL_GPUTextureFormatTexelBlockSize(format) }
+}
+
+#[doc(alias = "SDL_GetGPUTextureFormatFromPixelFormat")]
+pub fn texture_format_from_pixel_format(pixel_format: SDL_PixelFormat) -> SDL_GPUTextureFormat {
+    SDL_GetGPUTextureFormatFromPixelFormat(pixel_format)
+}
+
+#[doc(alias = "SDL_GetPixelFormatFromGPUTextureFormat")]
+pub fn pixel_format_from_texture_format(format: SDL_GPUTextureFormat) -> SDL_PixelFormat {
+    SDL_GetPixelFormatFromGPUTextureFormat(format)
+}
+
+#[doc(alias = "SDL_GPUSupportsProperties")]
+pub fn supports_properties(props: SDL_PropertiesID) -> bool {
+    unsafe { SDL_GPUSupportsProperties(props) }
 }

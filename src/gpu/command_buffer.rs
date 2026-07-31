@@ -1,12 +1,20 @@
 //! Implementation checklist ([source](https://wiki.libsdl.org/SDL3/CategoryGPU)):
 //! - [x] SDL_AcquireGPUCommandBuffer
+//! - [x] SDL_AcquireGPUSwapchainTexture
 //! - [x] SDL_SubmitGPUCommandBuffer
 //! - [x] SDL_SubmitGPUCommandBufferAndAcquireFence
 //! - [x] SDL_WaitAndAcquireGPUSwapchainTexture
 //! - [x] SDL_CancelGPUCommandBuffer
 //! - [x] SDL_BlitGPUTexture
+//! - [x] SDL_GenerateMipmapsForGPUTexture
+//! - [x] SDL_InsertGPUDebugLabel
+//! - [x] SDL_PopGPUDebugGroup
+//! - [x] SDL_PushGPUDebugGroup
+//! - [x] SDL_PushGPUComputeUniformData
+//! - [x] SDL_PushGPUFragmentUniformData
+//! - [x] SDL_PushGPUVertexUniformData
 
-use std::{mem::MaybeUninit, ptr::NonNull};
+use std::{ffi::CStr, mem::MaybeUninit, ptr::NonNull};
 
 use sdl3_sys::gpu::*;
 
@@ -22,6 +30,14 @@ use super::{
     fence::GPUFence,
     texture::{GPUTexture, GPUTextureHandle},
 };
+
+/// Converts a raw swapchain texture pointer into a reference.
+/// A null pointer (e.g. too many frames in flight) yields `None`.
+fn swapchain_texture<'a>(ptr: *mut SDL_GPUTexture) -> Option<Ref<'a, GPUTexture>> {
+    let handle = NonNull::new(ptr)?;
+    let inner = GPUTextureHandle { handle };
+    Some(unsafe { Ref::from_handle(inner) })
+}
 
 resource_no_drop!(GPUCommandBuffer);
 impl GPUCommandBuffer {
@@ -49,6 +65,26 @@ impl GPUCommandBuffer {
 }
 
 impl GPUCommandBufferHandle {
+    #[doc(alias = "SDL_AcquireGPUSwapchainTexture")]
+    pub fn acquire_swapchain_texture(
+        &self,
+        wnd: Ref<Window>,
+        (tex_x, tex_y): (Option<&mut u32>, Option<&mut u32>),
+    ) -> Result<Option<Ref<'_, GPUTexture>>> {
+        let mut tex = MaybeUninit::uninit();
+        let res = unsafe {
+            SDL_AcquireGPUSwapchainTexture(
+                self.handle.as_ptr(),
+                wnd.handle.as_ptr(),
+                tex.as_mut_ptr(),
+                opt2ptr_mut(tex_x),
+                opt2ptr_mut(tex_y),
+            )
+        };
+
+        to_result(res).map(|()| swapchain_texture(unsafe { tex.assume_init() }))
+    }
+
     #[doc(alias = "SDL_WaitAndAcquireGPUSwapchainTexture")]
     pub fn wait_for_swapchain_texture(
         &self,
@@ -66,13 +102,63 @@ impl GPUCommandBufferHandle {
             )
         };
 
-        fn m<'a>(ptr: *mut SDL_GPUTexture) -> Option<Ref<'a, GPUTexture>> {
-            let handle = NonNull::new(ptr)?;
-            let inner = GPUTextureHandle { handle };
-            Some(unsafe { Ref::from_handle(inner) })
-        }
+        to_result(res).map(|()| swapchain_texture(unsafe { tex.assume_init() }))
+    }
 
-        to_result(res).map(|()| m(unsafe { tex.assume_init() }))
+    #[doc(alias = "SDL_GenerateMipmapsForGPUTexture")]
+    pub fn generate_mipmaps(&self, texture: Ref<GPUTexture>) {
+        unsafe { SDL_GenerateMipmapsForGPUTexture(self.handle.as_ptr(), texture.handle.as_ptr()) }
+    }
+
+    #[doc(alias = "SDL_InsertGPUDebugLabel")]
+    pub fn insert_debug_label(&self, text: &CStr) {
+        unsafe { SDL_InsertGPUDebugLabel(self.handle.as_ptr(), text.as_ptr()) }
+    }
+
+    #[doc(alias = "SDL_PushGPUDebugGroup")]
+    pub fn push_debug_group(&self, name: &CStr) {
+        unsafe { SDL_PushGPUDebugGroup(self.handle.as_ptr(), name.as_ptr()) }
+    }
+
+    #[doc(alias = "SDL_PopGPUDebugGroup")]
+    pub fn pop_debug_group(&self) {
+        unsafe { SDL_PopGPUDebugGroup(self.handle.as_ptr()) }
+    }
+
+    #[doc(alias = "SDL_PushGPUVertexUniformData")]
+    pub fn push_vertex_uniform_data(&self, slot_index: u32, data: &[u8]) {
+        unsafe {
+            SDL_PushGPUVertexUniformData(
+                self.handle.as_ptr(),
+                slot_index,
+                data.as_ptr().cast(),
+                data.len() as _,
+            )
+        }
+    }
+
+    #[doc(alias = "SDL_PushGPUFragmentUniformData")]
+    pub fn push_fragment_uniform_data(&self, slot_index: u32, data: &[u8]) {
+        unsafe {
+            SDL_PushGPUFragmentUniformData(
+                self.handle.as_ptr(),
+                slot_index,
+                data.as_ptr().cast(),
+                data.len() as _,
+            )
+        }
+    }
+
+    #[doc(alias = "SDL_PushGPUComputeUniformData")]
+    pub fn push_compute_uniform_data(&self, slot_index: u32, data: &[u8]) {
+        unsafe {
+            SDL_PushGPUComputeUniformData(
+                self.handle.as_ptr(),
+                slot_index,
+                data.as_ptr().cast(),
+                data.len() as _,
+            )
+        }
     }
 
     #[doc(alias = "SDL_BlitGPUTexture")]

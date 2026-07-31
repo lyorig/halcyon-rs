@@ -1,14 +1,21 @@
 //! Implementation checklist ([source](https://wiki.libsdl.org/SDL3/CategoryGPU)):
 //! - [x] SDL_BeginGPUComputePass
 //! - [x] SDL_BindGPUComputePipeline
+//! - [x] SDL_BindGPUComputeSamplers
+//! - [x] SDL_BindGPUComputeStorageBuffers
+//! - [x] SDL_BindGPUComputeStorageTextures
 //! - [x] SDL_DispatchGPUCompute
+//! - [x] SDL_DispatchGPUComputeIndirect
 //! - [x] SDL_EndGPUComputePass
 
 use sdl3_sys::gpu::*;
 
 use crate::{Result, resource, traits::Ref};
 
-use super::{command_buffer::GPUCommandBuffer, compute_pipeline::GPUComputePipeline};
+use super::{
+    buffer::GPUBuffer, command_buffer::GPUCommandBuffer, compute_pipeline::GPUComputePipeline,
+    texture::GPUTexture,
+};
 
 resource!(GPUComputePass, SDL, End);
 impl GPUComputePass {
@@ -37,8 +44,51 @@ impl GPUComputePassHandle {
         unsafe { SDL_BindGPUComputePipeline(self.handle.as_ptr(), pipeline.handle.as_ptr()) };
     }
 
+    #[doc(alias = "SDL_BindGPUComputeSamplers")]
+    pub fn bind_samplers(&self, first_slot: u32, bindings: &[SDL_GPUTextureSamplerBinding]) {
+        unsafe {
+            SDL_BindGPUComputeSamplers(
+                self.handle.as_ptr(),
+                first_slot,
+                bindings.as_ptr(),
+                bindings.len() as _,
+            )
+        }
+    }
+
+    #[doc(alias = "SDL_BindGPUComputeStorageTextures")]
+    pub fn bind_storage_textures(&self, first_slot: u32, textures: &[Ref<GPUTexture>]) {
+        unsafe {
+            SDL_BindGPUComputeStorageTextures(
+                self.handle.as_ptr(),
+                first_slot,
+                textures.as_ptr().cast(),
+                textures.len() as _,
+            )
+        }
+    }
+
+    #[doc(alias = "SDL_BindGPUComputeStorageBuffers")]
+    pub fn bind_storage_buffers(&self, first_slot: u32, buffers: &[Ref<GPUBuffer>]) {
+        unsafe {
+            SDL_BindGPUComputeStorageBuffers(
+                self.handle.as_ptr(),
+                first_slot,
+                buffers.as_ptr().cast(),
+                buffers.len() as _,
+            )
+        }
+    }
+
     #[doc(alias = "SDL_DispatchGPUCompute")]
     pub fn dispatch(&self, (x, y, z): (u32, u32, u32)) {
         unsafe { SDL_DispatchGPUCompute(self.handle.as_ptr(), x, y, z) }
+    }
+
+    #[doc(alias = "SDL_DispatchGPUComputeIndirect")]
+    pub fn dispatch_indirect(&self, buffer: Ref<GPUBuffer>, offset: u32) {
+        unsafe {
+            SDL_DispatchGPUComputeIndirect(self.handle.as_ptr(), buffer.handle.as_ptr(), offset)
+        }
     }
 }

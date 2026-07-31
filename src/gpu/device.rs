@@ -1,10 +1,16 @@
 //! Implementation checklist ([source](https://wiki.libsdl.org/SDL3/CategoryGPU)):
 //! - [x] SDL_ClaimWindowForGPUDevice
 //! - [x] SDL_CreateGPUDevice
+//! - [x] SDL_CreateGPUDeviceWithProperties
 //! - [x] SDL_DestroyGPUDevice
 //! - [x] SDL_GetGPUDeviceDriver
+//! - [x] SDL_GetGPUDeviceProperties
+//! - [x] SDL_GetGPUSwapchainTextureFormat
+//! - [x] SDL_GPUTextureSupportsFormat
+//! - [x] SDL_GPUTextureSupportsSampleCount
 //! - [x] SDL_ReleaseWindowFromGPUDevice
 //! - [x] SDL_SetGPUAllowedFramesInFlight
+//! - [x] SDL_SetGPUSwapchainParameters
 //! - [x] SDL_WaitForGPUFences
 //! - [x] SDL_WaitForGPUIdle
 //! - [x] SDL_WaitForGPUSwapchain
@@ -14,13 +20,17 @@
 
 use std::ffi::CStr;
 
-use sdl3_sys::gpu::*;
+use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
 use crate::{
     Result, boolenum, error::Error, resource, traits::Ref, util::to_result, window::Window,
 };
 
-use super::{ShaderFormats, fence::GPUFence};
+use super::{
+    ShaderFormats,
+    fence::GPUFence,
+    texture::{SampleCount, TextureType, TextureUsageFlags},
+};
 
 boolenum!(DeviceDebug);
 boolenum!(WaitAll);
@@ -31,6 +41,12 @@ impl GPUDevice {
     pub fn new(formats: ShaderFormats, debug: DeviceDebug) -> Result<Self> {
         let fmts = SDL_GPUShaderFormat::new(formats.bits());
         let handle = unsafe { SDL_CreateGPUDevice(fmts, debug.into(), std::ptr::null()) };
+        Self::from_ptr(handle)
+    }
+
+    #[doc(alias = "SDL_CreateGPUDeviceWithProperties")]
+    pub fn with_properties(props: SDL_PropertiesID) -> Result<Self> {
+        let handle = unsafe { SDL_CreateGPUDeviceWithProperties(props) };
         Self::from_ptr(handle)
     }
 }
@@ -105,6 +121,65 @@ impl GPUDeviceHandle {
             let cstr = unsafe { CStr::from_ptr(raw) };
             Ok(unsafe { str::from_utf8_unchecked(cstr.to_bytes()) })
         }
+    }
+
+    #[doc(alias = "SDL_GetGPUDeviceProperties")]
+    pub fn properties(&self) -> SDL_PropertiesID {
+        unsafe { SDL_GetGPUDeviceProperties(self.handle.as_ptr()) }
+    }
+
+    #[doc(alias = "SDL_GetGPUSwapchainTextureFormat")]
+    pub fn swapchain_texture_format(&self, window: Ref<Window>) -> SDL_GPUTextureFormat {
+        unsafe { SDL_GetGPUSwapchainTextureFormat(self.handle.as_ptr(), window.handle.as_ptr()) }
+    }
+
+    #[doc(alias = "SDL_GPUTextureSupportsFormat")]
+    pub fn texture_supports_format(
+        &self,
+        format: SDL_GPUTextureFormat,
+        kind: TextureType,
+        usage: TextureUsageFlags,
+    ) -> bool {
+        unsafe {
+            SDL_GPUTextureSupportsFormat(
+                self.handle.as_ptr(),
+                format,
+                SDL_GPUTextureType::new(kind as _),
+                SDL_GPUTextureUsageFlags::new(usage.bits()),
+            )
+        }
+    }
+
+    #[doc(alias = "SDL_GPUTextureSupportsSampleCount")]
+    pub fn texture_supports_sample_count(
+        &self,
+        format: SDL_GPUTextureFormat,
+        sample_count: SampleCount,
+    ) -> bool {
+        unsafe {
+            SDL_GPUTextureSupportsSampleCount(
+                self.handle.as_ptr(),
+                format,
+                SDL_GPUSampleCount::new(sample_count as _),
+            )
+        }
+    }
+
+    #[doc(alias = "SDL_SetGPUSwapchainParameters")]
+    pub fn set_swapchain_parameters(
+        &self,
+        window: Ref<Window>,
+        composition: SDL_GPUSwapchainComposition,
+        present_mode: SDL_GPUPresentMode,
+    ) -> Result {
+        to_result(unsafe {
+            SDL_SetGPUSwapchainParameters(
+                self.handle.as_ptr(),
+                window.handle.as_ptr(),
+                composition,
+                present_mode,
+            )
+        })
     }
 
     #[doc(alias = "SDL_GetGPUShaderFormats")]
