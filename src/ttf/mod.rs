@@ -138,6 +138,19 @@ use crate::{
     util::{c_ptr_to_str, to_result},
 };
 
+/// A "render text str".
+///
+/// # Why does this exist?
+/// The `TTF_RenderText*` family of functions take a pointer and a length
+/// to the text you wish to have rendered. A length of zero means the pointer
+/// refers to a nul-terminated string. As such, wrapping it with a `&str` would
+/// open up an edge case: what if it's empty? The function will think that it's
+/// dealing with a nul-terminated string, even though Rust's `&str` provides no
+/// such guarantees. All kinds of memory hilarity would then ensue.
+///
+/// [`RtStr`] enables you to construct a "TTF-ready" string from a `&str`.
+/// - [`RtStr::new()`] checks the edge case, potentially setting the pointer to `c""`
+/// - [`RtStr::new_unchecked`] skips the check, in case you know your string isn't empty
 #[derive(Clone, Copy)]
 pub struct RtStr<'a> {
     ptr: *const i8,
@@ -161,6 +174,8 @@ impl RtStr<'_> {
         }
     }
 
+    /// # Safety
+    /// `s` must not be empty.
     pub unsafe fn new_unchecked<'a>(s: &'a str) -> RtStr<'a> {
         unsafe { std::mem::transmute(s) }
     }
