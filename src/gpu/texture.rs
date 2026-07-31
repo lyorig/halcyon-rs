@@ -296,6 +296,29 @@ impl StorageTextureReadWriteBinding {
     }
 }
 
+#[doc(alias = "SDL_GPUBlitRegion")]
+#[derive(Clone, Copy)]
+pub struct BlitRegion(pub(crate) SDL_GPUBlitRegion);
+impl BlitRegion {
+    pub fn new(
+        tex: Ref<GPUTexture>,
+        mip_level: u32,
+        layer_or_depth_plane: u32,
+        (x, y, w, h): (u32, u32, u32, u32),
+    ) -> Self {
+        let texture = tex.handle.as_ptr();
+        Self(SDL_GPUBlitRegion {
+            texture,
+            mip_level,
+            layer_or_depth_plane,
+            x,
+            y,
+            w,
+            h,
+        })
+    }
+}
+
 resource_no_drop!(GPUTexture);
 impl GPUTexture {
     #[doc(alias = "SDL_CreateGPUTexture")]

@@ -16,10 +16,12 @@
 
 use std::{ffi::CStr, mem::MaybeUninit, ptr::NonNull};
 
-use sdl3_sys::gpu::*;
+use sdl3_sys::{gpu::*, surface::SDL_FlipMode};
 
 use crate::{
-    Result, resource_no_drop,
+    Result,
+    color::RgbaF32,
+    resource_no_drop,
     traits::Ref,
     util::{opt2ptr_mut, to_result},
     window::Window,
@@ -28,7 +30,9 @@ use crate::{
 use super::{
     device::GPUDevice,
     fence::GPUFence,
-    texture::{GPUTexture, GPUTextureHandle},
+    render_pass::LoadOp,
+    sampler::Filter,
+    texture::{BlitRegion, GPUTexture, GPUTextureHandle},
 };
 
 /// Converts a raw swapchain texture pointer into a reference.
@@ -37,6 +41,42 @@ fn swapchain_texture<'a>(ptr: *mut SDL_GPUTexture) -> Option<Ref<'a, GPUTexture>
     let handle = NonNull::new(ptr)?;
     let inner = GPUTextureHandle { handle };
     Some(unsafe { Ref::from_handle(inner) })
+}
+
+#[repr(i32)]
+#[doc(alias = "SDL_FlipMode")]
+pub enum FlipMode {
+    None = SDL_FlipMode::NONE.0,
+    Horizontal = SDL_FlipMode::HORIZONTAL.0,
+    Vertical = SDL_FlipMode::VERTICAL.0,
+    HorizontalAndVertical = SDL_FlipMode::HORIZONTAL_AND_VERTICAL.0,
+}
+
+#[doc(alias = "SDL_GPUBlitInfo")]
+#[derive(Clone, Copy)]
+pub struct BlitInfo(SDL_GPUBlitInfo);
+impl BlitInfo {
+    pub fn new(
+        source: BlitRegion,
+        destination: BlitRegion,
+        load_op: LoadOp,
+        clear_color: RgbaF32,
+        flip_mode: FlipMode,
+        filter: Filter,
+        cycle: bool,
+    ) -> Self {
+        // SAFETY: `RgbaF32` is `#[repr(C)]` and layout-identical to `SDL_FColor`.
+        Self(SDL_GPUBlitInfo {
+            source: source.0,
+            destination: destination.0,
+            load_op: SDL_GPULoadOp::new(load_op as _),
+            clear_color: clear_color.into(),
+            flip_mode: SDL_FlipMode::new(flip_mode as _),
+            filter: SDL_GPUFilter::new(filter as _),
+            cycle,
+            ..Default::default()
+        })
+    }
 }
 
 resource_no_drop!(GPUCommandBuffer);
@@ -162,7 +202,7 @@ impl GPUCommandBufferHandle {
     }
 
     #[doc(alias = "SDL_BlitGPUTexture")]
-    pub fn blit(&self, info: &SDL_GPUBlitInfo) {
-        unsafe { SDL_BlitGPUTexture(self.handle.as_ptr(), info) }
+    pub fn blit(&self, info: &BlitInfo) {
+        unsafe { SDL_BlitGPUTexture(self.handle.as_ptr(), &info.0) }
     }
 }

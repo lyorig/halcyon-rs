@@ -82,6 +82,7 @@ pub enum StoreOp {
 #[derive(Clone, Copy)]
 pub struct ColorTargetInfo(SDL_GPUColorTargetInfo);
 impl ColorTargetInfo {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         tex: Ref<GPUTexture>,
         mip_level: u32,
@@ -171,8 +172,8 @@ impl GPURenderPassHandle {
     }
 
     #[doc(alias = "SDL_SetGPUBlendConstants")]
-    pub fn set_blend_constants(&self, blend_constants: SDL_FColor) {
-        unsafe { SDL_SetGPUBlendConstants(self.handle.as_ptr(), blend_constants) }
+    pub fn set_blend_constants(&self, blend_constants: RgbaF32) {
+        unsafe { SDL_SetGPUBlendConstants(self.handle.as_ptr(), blend_constants.into()) }
     }
 
     #[doc(alias = "SDL_SetGPUStencilReference")]
