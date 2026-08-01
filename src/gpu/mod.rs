@@ -72,6 +72,19 @@ pub enum ShaderFormats {
     Metallib = SDL_GPUShaderFormat::METALLIB.0,
 }
 
+impl ShaderFormat {
+    /// Returns [`ShaderFormats`] with only this bit set.
+    pub const fn as_mask(self) -> ShaderFormats {
+        ShaderFormats { bits: self as u32 }
+    }
+}
+
+impl From<ShaderFormat> for ShaderFormats {
+    fn from(value: ShaderFormat) -> Self {
+        value.as_mask()
+    }
+}
+
 #[doc(alias = "SDL_GPUSupportsShaderFormats")]
 pub fn are_formats_supported(fmts: ShaderFormats) -> bool {
     let fmts = SDL_GPUShaderFormat::new(fmts.bits());

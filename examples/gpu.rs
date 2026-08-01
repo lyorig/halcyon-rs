@@ -13,31 +13,20 @@ use halcyon::{
     window::Window,
 };
 
-const SHADER_FMTS: ShaderFormats = cfg_select! {
-    target_os = "macos" => ShaderFormats::Msl,
-    target_os = "windows" => ShaderFormats::Dxil
-};
-
-const SHADER_FMT: ShaderFormat = cfg_select! {
-    target_os = "macos" => ShaderFormat::Msl,
-    target_os = "windows" => ShaderFormat::Dxil
-};
-
-// Metal shaders, compiled at runtime by SDL.
 cfg_select! {
     target_os = "macos" => {
         const VS_MSL: &[u8] = include_bytes!("shaders/vs.msl");
         const FS_MSL: &[u8] = include_bytes!("shaders/fs.msl");
-    }
+        const SHADER_FMT: ShaderFormat = ShaderFormat::Msl;
+    },
     target_os = "windows" => {
         const VS_MSL: &[u8] = include_bytes!("shaders/triangle_vs.dxil");
         const FS_MSL: &[u8] = include_bytes!("shaders/triangle_fs.dxil");
+        const SHADER_FMT: ShaderFormat = ShaderFormat::Dxil;
     }
 }
 
-fn log(msg: &std::ffi::CStr) {
-    unsafe { sdl3_sys::log::SDL_Log(msg.as_ptr()) };
-}
+const SHADER_FMTS: ShaderFormats = SHADER_FMT.as_mask();
 
 fn run() -> Result {
     let ctx = Context::new();
@@ -132,8 +121,6 @@ fn run() -> Result {
         ),
         target_info,
     );
-
-    log(c"Creating pipeline");
 
     let pipeline = GraphicsPipeline::new(device.as_ref(), &pipeline_info)?;
 
