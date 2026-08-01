@@ -1,16 +1,13 @@
 # halcyon-rs
 
-This is an attempt at porting my [Halcyon](https://github.com/lyorig/halcyon) C++ SDL3 wrapper to Rust.
-As I'm primarily a C++ developer, this library is currently **not safe**. My primary vision is getting as close to a zero-cost wrapper as possible, even if that means offloading safety guarantees to the library consumer.
+An SDL3[^1] wrapper. Aims for as close to 100% API coverage, while making it neater & safer to use via various Rust mechanisms (i.e. lifetimes).
+As I'm primarily a C++ developer, this library is probably unsound in various places. These ought to be weeded out over time after reaching full API coverage.
 
 ## Concepts
 SDL works with raw pointers and ownership rules are mostly described via function documentation, halcyon-rs aims
-to disambiguate with *handles*, *owned objects* and *reference objects*. The latter two objects both consist of only a handle;
-the only differences are that owned objects implement `Drop`, and references are tied to a lifetime of an owned object.
+to disambiguate with *handles*, *owned objects* and *references*. For an arbitrary type `Foo`:
+- The handle `FooHandle` is where the API is actually implemented.
+- The owned object `Foo` contain a handle and are responsible for `Drop`ping it.
+- The reference `Ref<'a, Foo>` contain a handle, are lifetime-bound to an owned object, and don't drop anything.
 
-> [!NOTE]
-> The reason for custom reference objects instead of using Rust's built-in references is simple: this would cause unnecessary
-> double indirection, since SDL objects are only exposed via pointers (with the exception of `SDL_Surface`, for some reason),
-> so it's more efficient to pass them around just like you would in C, yet ensuring lifetime safety via Rust's mechanics.
-> If you see a method returning a handle, it'll most likely be marked `unsafe`, since I couldn't find a way to explain its lifetime
-> via the language itself.
+[^1]: Technically [sdl3-sys](https://docs.rs/sdl3-sys/latest/sdl3_sys/), since it's nice to use existing bindings.
