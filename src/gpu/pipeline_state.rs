@@ -293,20 +293,20 @@ impl ColorTargetBlendState {
     // for this struct.
     #[allow(deprecated, clippy::too_many_arguments)]
     pub fn new(
-        (src_color_blendfactor, dst_color_blendfactor): (BlendFactor, BlendFactor),
+        (src_color_bf, dst_color_bf): (BlendFactor, BlendFactor),
         color_blend_op: BlendOp,
-        (src_alpha_blendfactor, dst_alpha_blendfactor): (BlendFactor, BlendFactor),
+        (src_alpha_bf, dst_alpha_bf): (BlendFactor, BlendFactor),
         alpha_blend_op: BlendOp,
         color_write_mask: ColorComponentFlags,
         eb: EnableBlend,
         ecwm: EnableColorWriteMask,
     ) -> Self {
         Self(SDL_GPUColorTargetBlendState {
-            src_color_blendfactor: SDL_GPUBlendFactor::new(src_color_blendfactor as _),
-            dst_color_blendfactor: SDL_GPUBlendFactor::new(dst_color_blendfactor as _),
+            src_color_blendfactor: SDL_GPUBlendFactor::new(src_color_bf as _),
+            dst_color_blendfactor: SDL_GPUBlendFactor::new(dst_color_bf as _),
             color_blend_op: SDL_GPUBlendOp::new(color_blend_op as _),
-            src_alpha_blendfactor: SDL_GPUBlendFactor::new(src_alpha_blendfactor as _),
-            dst_alpha_blendfactor: SDL_GPUBlendFactor::new(dst_alpha_blendfactor as _),
+            src_alpha_blendfactor: SDL_GPUBlendFactor::new(src_alpha_bf as _),
+            dst_alpha_blendfactor: SDL_GPUBlendFactor::new(dst_alpha_bf as _),
             alpha_blend_op: SDL_GPUBlendOp::new(alpha_blend_op as _),
             color_write_mask: SDL_GPUColorComponentFlags::new(color_write_mask.bits()),
             enable_blend: eb.into(),
