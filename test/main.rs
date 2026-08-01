@@ -16,7 +16,7 @@ mod ttf;
 
 /// Basic initialization stuff.
 #[test]
-fn init() {
+fn main_init() {
     let _ctx = Context::new();
 
     const WINDOW_SIZE: Point<i32> = Point::new(128, 128);
@@ -42,7 +42,7 @@ fn init() {
 }
 
 #[test]
-fn subsystems() {
+fn main_subsystems() {
     let ctx = Context::new();
 
     {
@@ -54,7 +54,7 @@ fn subsystems() {
 }
 
 #[test]
-fn manually_drop() {
+fn main_manually_drop() {
     {
         let ctx = Context::new();
 

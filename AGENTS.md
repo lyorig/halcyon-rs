@@ -78,7 +78,7 @@ Tests should focus on what Halcyon does differently from SDL. Avoid writing test
 ## Creating a test
 
 1. Find the correct module for the test. For example, tests for the `Color` struct go in `test/color.rs`.
-2. Create a function with the `#[rustest::test]` attribute.
+2. Create a function with the `#[rustest::test]` attribute. The function shall be prefixed with the module name (test "foo" in `test/color.rs` shall be named `color_foo`).
 
 ## Test coding guidelines
 

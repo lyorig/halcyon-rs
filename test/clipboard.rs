@@ -10,13 +10,13 @@ use rustest::test;
 
 /// `set_text` fails before the video subsystem is initialized.
 #[test]
-fn set_text_fails_before_video_init() {
+fn clipboard_set_text_fails_before_video_init() {
     assert_matches!(set_text(c"hello"), Err(_));
 }
 
 /// `set_text` succeeds after the video subsystem is initialized.
 #[test]
-fn set_text_succeeds_after_video_init() {
+fn clipboard_set_text_succeeds_after_video_init() {
     let ctx = Context::new();
     let _video = Video::new(&ctx).unwrap();
 
@@ -28,7 +28,7 @@ fn set_text_succeeds_after_video_init() {
 
 /// `has_text` reflects clipboard state after init.
 #[test]
-fn has_text_after_video_init() {
+fn clipboard_has_text_after_video_init() {
     let ctx = Context::new();
     let _video = Video::new(&ctx).unwrap();
 
