@@ -1,4 +1,4 @@
-use halcyon::error::Error;
+use halcyon::{Result, error::Error};
 use rustest::test;
 use sdl3_sys::error::{SDL_ClearError, SDL_SetError};
 
@@ -27,7 +27,6 @@ fn error_snapshot() {
 #[test]
 fn error_empty_after_clear() {
     SDL_ClearError();
-
     assert_eq!(Error::current().as_str(), "");
 }
 
@@ -35,7 +34,6 @@ fn error_empty_after_clear() {
 #[test]
 fn error_display() {
     unsafe { SDL_SetError(c"a displayable error".as_ptr()) };
-
     assert_eq!(Error::current().to_string(), "a displayable error");
 }
 
@@ -45,7 +43,7 @@ fn error_into_cstring() {
     unsafe { SDL_SetError(c"an error for C".as_ptr()) };
 
     let cstr = Error::current().into_cstring();
-    assert_eq!(cstr, c"an error for C".to_owned());
+    assert_eq!(cstr, c"an error for C");
     assert_eq!(cstr.to_bytes_with_nul(), b"an error for C\0");
 
     // The SDL error itself is unaffected.
@@ -56,14 +54,13 @@ fn error_into_cstring() {
 #[test]
 fn error_utf8() {
     unsafe { SDL_SetError(c"blåbær 日本語 🦀".as_ptr()) };
-
     assert_eq!(Error::current().as_str(), "blåbær 日本語 🦀");
 }
 
 /// [`Error`] implements [`std::error::Error`], so it works with `?` and `Box<dyn Error>`.
 #[test]
 fn error_std_error() {
-    fn propagate() -> halcyon::Result<()> {
+    fn propagate() -> Result<()> {
         unsafe { SDL_SetError(c"propagated".as_ptr()) };
         Err(Error::current())
     }
