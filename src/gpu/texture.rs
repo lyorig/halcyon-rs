@@ -48,6 +48,7 @@ pub enum SampleCount {
 }
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUTextureFormat")]
 pub enum TextureFormat {
     Invalid = SDL_GPUTextureFormat::INVALID.0,
