@@ -60,14 +60,11 @@ fn run() -> Result {
     let ctx = Context::new();
     let _video = ManuallyDrop::new(Video::new(&ctx)?);
 
-    let device = Device::new(ShaderFormats::Msl, DeviceDebug::Yes)?;
+    let device = Device::new(ShaderFormats::Msl, EnableDebug::Yes)?;
     println!("GPU driver: {}", device.driver()?);
 
     let wnd = Window::new(c"Halcyon GPU", Point::new(800, 600), Default::default())?;
     device.claim_window(wnd.as_ref())?;
-
-    // The pipeline's color target format must match the swapchain's.
-    let swapchain_format = device.swapchain_texture_format(wnd.as_ref());
 
     let vs = Shader::new(
         device.as_ref(),
@@ -106,11 +103,12 @@ fn run() -> Result {
         EnableColorWriteMask::No,
     );
 
-    let target_info = GraphicsPipelineTargetInfo::new(
-        &[ColorTargetDescription::new(swapchain_format, blend)],
-        TextureFormat::D24Unorm,
-        HasDepthStencilTarget::No,
-    );
+    // The pipeline's color target format must match the swapchain's.
+    let swapchain_format = device.swapchain_texture_format(wnd.as_ref());
+    let ctd = [ColorTargetDescription::new(swapchain_format, blend)];
+
+    let target_info =
+        GraphicsPipelineTargetInfo::new(&ctd, TextureFormat::D24Unorm, HasDepthStencilTarget::No);
 
     let stencil = StencilOpState::new(
         StencilOp::Keep,

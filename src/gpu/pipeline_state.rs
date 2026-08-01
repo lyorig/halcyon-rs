@@ -333,6 +333,7 @@ impl ColorTargetDescription {
 #[derive(Clone, Copy)]
 pub struct GraphicsPipelineTargetInfo(pub(crate) SDL_GPUGraphicsPipelineTargetInfo);
 impl GraphicsPipelineTargetInfo {
+    // FIXME: Passing `descriptions` as a temporary causes a UAF.
     pub fn new(
         descriptions: &[ColorTargetDescription],
         depth_stencil_format: TextureFormat,

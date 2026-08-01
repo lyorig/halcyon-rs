@@ -25,7 +25,7 @@ use sdl3_sys::gpu::*;
 use crate::{
     Result,
     error::Error,
-    gpu::{DeviceDebug, WaitAll},
+    gpu::{EnableDebug, WaitAll},
     properties::{Properties, PropertiesHandle},
     resource::Ref,
     resource_new,
@@ -59,7 +59,7 @@ pub enum SwapchainComposition {
 resource_new!(SDL_GPUDevice, Device, SDL_DestroyGPUDevice);
 impl Device {
     #[doc(alias = "SDL_CreateGPUDevice")]
-    pub fn new(formats: ShaderFormats, debug: DeviceDebug) -> Result<Self> {
+    pub fn new(formats: ShaderFormats, debug: EnableDebug) -> Result<Self> {
         let fmts = SDL_GPUShaderFormat::new(formats.bits());
         let handle = unsafe { SDL_CreateGPUDevice(fmts, debug.into(), std::ptr::null()) };
         Self::from_ptr(handle)

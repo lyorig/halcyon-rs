@@ -5,12 +5,12 @@ use crate::boolenum;
 
 boolenum!(Cycle);
 boolenum!(CycleResolveTexture);
-boolenum!(DeviceDebug);
 boolenum!(EnableAlphaToCoverage);
 boolenum!(EnableAnisotropy);
 boolenum!(EnableBlend);
 boolenum!(EnableColorWriteMask);
 boolenum!(EnableCompare);
+boolenum!(EnableDebug);
 boolenum!(EnableDepthBias);
 boolenum!(EnableDepthClip);
 boolenum!(EnableDepthTest);
