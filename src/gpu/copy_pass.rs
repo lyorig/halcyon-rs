@@ -6,11 +6,11 @@
 
 use sdl3_sys::gpu::*;
 
-use crate::{Result, resource, traits::Ref};
+use crate::{Result, resource::Ref, resource_new};
 
 use super::{buffer::BufferLocation, command_buffer::GPUCommandBuffer, texture::TextureLocation};
 
-resource!(GPUCopyPass, SDL, End);
+resource_new!(GPUCopyPass, SDL, End);
 impl GPUCopyPass {
     #[doc(alias = "SDL_BeginGPUCopyPass")]
     pub fn new(cmdbuf: Ref<GPUCommandBuffer>) -> Result<Self> {

@@ -4,8 +4,8 @@ use halcyon::{
     event::{Event, EventIter},
     rect::{Point, Rect},
     renderer::RendererBuilder,
+    resource::Resource,
     subsystem::Video,
-    traits::Resource,
     window::{Window, WindowBuilder},
 };
 

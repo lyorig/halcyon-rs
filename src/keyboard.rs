@@ -33,7 +33,7 @@ use sdl3_sys::{
     scancode::{SDL_SCANCODE_COUNT, SDL_Scancode},
 };
 
-use crate::{Result, traits::Ref, util::to_result, window::Window};
+use crate::{Result, resource::Ref, util::to_result, window::Window};
 
 const NUM_SCANCODES: usize = SDL_SCANCODE_COUNT.0 as usize;
 

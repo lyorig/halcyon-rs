@@ -10,7 +10,7 @@ use std::ffi::CStr;
 use bitmask_enum::bitmask;
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
-use crate::{Result, rect::Point, resource_no_drop, traits::Ref};
+use crate::{Result, rect::Point, resource::Ref, resource_new_no_drop};
 
 use super::{
     copy_pass::GPUCopyPass, device::GPUDevice, sampler::GPUSampler,
@@ -319,7 +319,7 @@ impl BlitRegion {
     }
 }
 
-resource_no_drop!(GPUTexture);
+resource_new_no_drop!(GPUTexture);
 impl GPUTexture {
     #[doc(alias = "SDL_CreateGPUTexture")]
     pub fn new(device: Ref<GPUDevice>, create_info: &TextureCreateInfo) -> Result<Self> {

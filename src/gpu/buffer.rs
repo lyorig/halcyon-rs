@@ -10,7 +10,7 @@ use std::ffi::CStr;
 use bitmask_enum::bitmask;
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
-use crate::{Result, resource_no_drop, traits::Ref};
+use crate::{Result, resource::Ref, resource_new_no_drop};
 
 use super::{copy_pass::GPUCopyPass, device::GPUDevice, transfer_buffer::TransferBufferLocation};
 
@@ -92,7 +92,7 @@ impl StorageBufferReadWriteBinding {
     }
 }
 
-resource_no_drop!(GPUBuffer);
+resource_new_no_drop!(GPUBuffer);
 impl GPUBuffer {
     #[doc(alias = "SDL_CreateGPUBuffer")]
     pub fn new(device: Ref<GPUDevice>, create_info: &BufferCreateInfo) -> Result<Self> {

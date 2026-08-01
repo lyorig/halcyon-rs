@@ -84,10 +84,11 @@ use crate::{
     color::{RgbaF32, RgbaU8},
     properties::Properties,
     rect::{PointF32, PointI32, RectF32, RectI32},
-    resource,
+    resource::Ref,
+    resource_new,
     surface::Surface,
     texture::{Texture, TextureHandle},
-    traits::{BlendMode, Ref},
+    traits::BlendMode,
     util::{opt2ptr, to_result},
     window::{Window, WindowHandle},
 };
@@ -161,7 +162,7 @@ impl RendererBuilder {
     }
 }
 
-resource!(Renderer);
+resource_new!(Renderer);
 
 impl RendererHandle {
     #[doc(alias = "SDL_GetRendererName")]
@@ -183,6 +184,7 @@ impl RendererHandle {
     /// for more specific info.
     #[doc(alias = "SDL_GetRenderWindow")]
     pub unsafe fn window(&self) -> WindowHandle {
+        // TODO: Return a `Ref<Window>`.
         WindowHandle::from_ptr(unsafe { SDL_GetRenderWindow(self.handle.as_ptr()) })
             .expect("Renderer has no associated window")
     }
@@ -193,6 +195,7 @@ impl RendererHandle {
     /// for more specific info.
     #[doc(alias = "SDL_GetRenderTarget")]
     pub unsafe fn target(&self) -> Option<Ref<'_, Texture>> {
+        // TODO: Update docs, since this function doesn't return a handle anymore.
         TextureHandle::from_ptr(unsafe { SDL_GetRenderTarget(self.handle.as_ptr()) })
             .map(|h| unsafe { Ref::from_handle(h) })
     }

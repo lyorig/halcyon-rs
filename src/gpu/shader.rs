@@ -6,7 +6,7 @@ use std::ffi::CStr;
 
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
-use crate::{Result, resource_no_drop, traits::Ref};
+use crate::{Result, resource::Ref, resource_new_no_drop};
 
 use super::{ShaderFormat, device::GPUDevice};
 
@@ -45,7 +45,7 @@ impl ShaderCreateInfo {
     }
 }
 
-resource_no_drop!(GPUShader);
+resource_new_no_drop!(GPUShader);
 impl GPUShader {
     #[doc(alias = "SDL_CreateGPUShader")]
     pub fn new(device: Ref<GPUDevice>, create_info: &ShaderCreateInfo) -> Result<Self> {

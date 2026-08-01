@@ -10,7 +10,7 @@
 
 use sdl3_sys::gpu::*;
 
-use crate::{Result, resource, traits::Ref};
+use crate::{Result, resource::Ref, resource_new};
 
 use super::{
     buffer::{GPUBuffer, StorageBufferReadWriteBinding},
@@ -19,7 +19,7 @@ use super::{
     texture::{GPUTexture, StorageTextureReadWriteBinding, TextureSamplerBinding},
 };
 
-resource!(GPUComputePass, SDL, End);
+resource_new!(GPUComputePass, SDL, End);
 impl GPUComputePass {
     #[doc(alias = "SDL_BeginGPUComputePass")]
     pub fn new(

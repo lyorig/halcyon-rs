@@ -109,8 +109,8 @@ use crate::{
     properties::Properties,
     rect::PointI32,
     renderer::{Renderer, RendererHandle},
-    resource,
-    traits::Ref,
+    resource::Ref,
+    resource_new,
     util::to_result,
 };
 use bitmask_enum::bitmask;
@@ -335,7 +335,7 @@ impl WindowId {
     }
 }
 
-resource!(Window);
+resource_new!(Window);
 
 impl WindowHandle {
     #[doc(alias = "SDL_SyncWindow")]

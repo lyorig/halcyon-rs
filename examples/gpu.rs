@@ -1,7 +1,7 @@
 use std::mem::ManuallyDrop;
 
 use halcyon::{
-    Context, Result, gpu::*, rect::Point, subsystem::Video, traits::Resource, window::Window,
+    Context, Result, gpu::*, rect::Point, resource::Resource, subsystem::Video, window::Window,
 };
 
 const BUFFER_CREATE_INFO: BufferCreateInfo =

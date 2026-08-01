@@ -24,6 +24,7 @@ pub mod keyboard;
 pub mod msgbox;
 pub mod rect;
 pub mod renderer;
+pub mod resource;
 pub mod sdl_string;
 pub mod subsystem;
 pub mod surface;

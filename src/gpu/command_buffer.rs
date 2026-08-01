@@ -21,8 +21,8 @@ use sdl3_sys::{gpu::*, surface::SDL_FlipMode};
 use crate::{
     Result,
     color::RgbaF32,
-    resource_no_drop,
-    traits::Ref,
+    resource::Ref,
+    resource_new_no_drop,
     util::{opt2ptr_mut, to_result},
     window::Window,
 };
@@ -79,7 +79,7 @@ impl BlitInfo {
     }
 }
 
-resource_no_drop!(GPUCommandBuffer);
+resource_new_no_drop!(GPUCommandBuffer);
 impl GPUCommandBuffer {
     #[doc(alias = "SDL_AcquireGPUCommandBuffer")]
     pub fn new(device: Ref<GPUDevice>) -> Result<Self> {

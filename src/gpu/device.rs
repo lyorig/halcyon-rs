@@ -26,8 +26,8 @@ use crate::{
     Result, boolenum,
     error::Error,
     properties::{Properties, PropertiesHandle},
-    resource,
-    traits::Ref,
+    resource::Ref,
+    resource_new,
     util::to_result,
     window::Window,
 };
@@ -58,7 +58,7 @@ pub enum SwapchainComposition {
     Hdr10St2084 = SDL_GPUSwapchainComposition::HDR10_ST2084.0,
 }
 
-resource!(GPUDevice);
+resource_new!(GPUDevice);
 impl GPUDevice {
     #[doc(alias = "SDL_CreateGPUDevice")]
     pub fn new(formats: ShaderFormats, debug: DeviceDebug) -> Result<Self> {

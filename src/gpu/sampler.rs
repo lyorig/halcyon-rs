@@ -4,7 +4,7 @@
 
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
-use crate::{Result, resource_no_drop, traits::Ref};
+use crate::{Result, resource::Ref, resource_new_no_drop};
 
 use super::device::GPUDevice;
 
@@ -83,7 +83,7 @@ impl SamplerCreateInfo {
     }
 }
 
-resource_no_drop!(GPUSampler);
+resource_new_no_drop!(GPUSampler);
 impl GPUSampler {
     #[doc(alias = "SDL_CreateGPUSampler")]
     pub fn new(device: Ref<GPUDevice>, create_info: &SamplerCreateInfo) -> Result<Self> {

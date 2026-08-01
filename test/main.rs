@@ -4,8 +4,8 @@ use rustest::{main, test};
 use sdl3_sys::{pixels::SDL_PixelFormat, render::SDL_TextureAccess};
 
 use halcyon::{
-    Context, rect::Point, renderer::RendererBuilder, subsystem::Video, texture::Texture,
-    traits::Resource, window::WindowBuilder,
+    Context, rect::Point, renderer::RendererBuilder, resource::Resource, subsystem::Video,
+    texture::Texture, window::WindowBuilder,
 };
 
 mod clipboard;

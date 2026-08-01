@@ -40,12 +40,13 @@ use crate::{
     color::{RgbF32, RgbU8},
     rect::{PointF32, PointI32},
     renderer::{Renderer, RendererHandle},
-    resource,
+    resource::Ref,
+    resource_new,
     surface::Surface,
-    traits::{BlendMode, ColorModF32, ColorModU8, Ref},
+    traits::{BlendMode, ColorModF32, ColorModU8},
 };
 
-resource!(Texture);
+resource_new!(Texture);
 
 impl TextureHandle {
     #[doc(alias = "SDL_GetTextureSize")]

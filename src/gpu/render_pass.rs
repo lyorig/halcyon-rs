@@ -25,8 +25,8 @@ use crate::{
     color::RgbaF32,
     gpu::GPUBuffer,
     rect::{PointF32, RectI32},
-    resource,
-    traits::Ref,
+    resource::Ref,
+    resource_new,
     util::opt2ptr,
 };
 
@@ -142,7 +142,7 @@ impl DepthStencilTargetInfo {
     }
 }
 
-resource!(GPURenderPass, SDL, End);
+resource_new!(GPURenderPass, SDL, End);
 impl GPURenderPass {
     #[doc(alias = "SDL_BeginGPURenderPass")]
     pub fn new(

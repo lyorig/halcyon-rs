@@ -64,14 +64,15 @@ use crate::{
     Result,
     color::{RgbU8, RgbaF32, RgbaU8},
     rect::{PointI32, RectI32},
-    resource,
-    traits::{BlendMode, ColorModU8, Ref},
+    resource::Ref,
+    resource_new,
+    traits::{BlendMode, ColorModU8},
     util::{opt2ptr, to_result},
 };
 
 use sdl3_sys::{blendmode::SDL_BlendMode, pixels::SDL_PixelFormat, surface::*};
 
-resource!(Surface);
+resource_new!(Surface);
 
 impl SurfaceHandle {
     pub fn size(&self) -> PointI32 {

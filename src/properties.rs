@@ -5,7 +5,7 @@ use std::{
 
 use sdl3_sys::properties::*;
 
-use crate::{Result, error::Error, traits::Resource, util::to_result};
+use crate::{Result, error::Error, resource::Resource, util::to_result};
 
 pub struct Properties {
     pub(crate) inner: PropertiesHandle,

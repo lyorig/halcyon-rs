@@ -17,6 +17,10 @@ impl PointI32 {
     pub fn as_f32(self) -> PointF32 {
         self.into()
     }
+
+    pub fn as_sdl_ptr(&self) -> *const SDL_Point {
+        std::ptr::from_ref(self).cast()
+    }
 }
 
 pub type PointF32 = Point<f32>;
@@ -25,6 +29,10 @@ impl PointF32 {
 
     pub fn as_i32(self) -> PointI32 {
         self.into()
+    }
+
+    pub fn as_sdl_ptr(&self) -> *const SDL_FPoint {
+        std::ptr::from_ref(self).cast()
     }
 }
 

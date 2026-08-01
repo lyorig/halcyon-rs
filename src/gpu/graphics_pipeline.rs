@@ -5,7 +5,7 @@
 
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
-use crate::{Result, resource_no_drop, traits::Ref};
+use crate::{Result, resource::Ref, resource_new_no_drop};
 
 use super::{
     device::GPUDevice,
@@ -56,7 +56,7 @@ impl GraphicsPipelineCreateInfo {
     }
 }
 
-resource_no_drop!(GPUGraphicsPipeline);
+resource_new_no_drop!(GPUGraphicsPipeline);
 impl GPUGraphicsPipeline {
     #[doc(alias = "SDL_CreateGPUGraphicsPipeline")]
     pub fn new(device: Ref<GPUDevice>, create_info: &GraphicsPipelineCreateInfo) -> Result<Self> {

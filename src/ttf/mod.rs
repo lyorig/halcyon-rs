@@ -132,9 +132,9 @@ use crate::{
     color::RgbaU8,
     error::Error,
     rect::{PointF32, PointI32},
-    resource, resource_tied,
+    resource::Ref,
+    resource_new, resource_new_tied,
     surface::Surface,
-    traits::Ref,
     util::{c_ptr_to_str, to_result},
 };
 
@@ -231,7 +231,7 @@ impl Drop for Context {
     }
 }
 
-resource_tied!(Font, TTF, Close, Context);
+resource_new_tied!(Font, TTF, Close, Context);
 
 impl Clone for Font<'_> {
     #[doc(alias = "TTF_CopyFont")]
@@ -424,7 +424,7 @@ impl Font<'_> {
     }
 }
 
-resource!(Text, TTF);
+resource_new!(Text, TTF);
 
 impl TextHandle {
     #[doc(alias = "TTF_GetTextSize")]

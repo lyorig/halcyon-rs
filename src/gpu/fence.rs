@@ -4,11 +4,11 @@
 
 use sdl3_sys::gpu::*;
 
-use crate::{resource_no_drop, traits::Ref};
+use crate::{resource::Ref, resource_new_no_drop};
 
 use super::device::GPUDevice;
 
-resource_no_drop!(GPUFence);
+resource_new_no_drop!(GPUFence);
 impl GPUFence {
     #[doc(alias = "SDL_ReleaseGPUFence")]
     pub fn drop(self, device: Ref<GPUDevice>) {

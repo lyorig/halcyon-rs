@@ -8,7 +8,7 @@ use std::ptr::NonNull;
 
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
-use crate::{Result, error::Error, resource_no_drop, traits::Ref};
+use crate::{Result, error::Error, resource::Ref, resource_new_no_drop};
 
 use super::device::GPUDevice;
 
@@ -46,7 +46,7 @@ impl TransferBufferCreateInfo {
     }
 }
 
-resource_no_drop!(GPUTransferBuffer, SDL);
+resource_new_no_drop!(GPUTransferBuffer, SDL);
 impl GPUTransferBuffer {
     #[doc(alias = "SDL_CreateGPUTransferBuffer")]
     pub fn new(device: Ref<GPUDevice>, create_info: &TransferBufferCreateInfo) -> Result<Self> {

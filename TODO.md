@@ -1,5 +1,1 @@
-# SDL features
-- Lifetimes
-
-# Nice-to-haves
-- RAII guards (for "safely" temporarily setting renderer colors etc.)
+- Ability to have a separate owned and SDL object name in `resource_new!`
