@@ -12,7 +12,11 @@ impl Error {
         // SAFETY: SDL's error strings are UTF-8.
         let cstr = unsafe { CStr::from_ptr(SDL_GetError()) };
         let str = unsafe { str::from_utf8_unchecked(cstr.to_bytes()) };
-        let reason = String::from(str);
+
+        // Speculatively reserve capacity for a null byte,
+        // in case Self::into_cstring() is called.
+        let mut reason = String::with_capacity(str.len() + 1);
+        reason.push_str(str);
 
         Self { reason }
     }
@@ -26,8 +30,10 @@ impl Error {
     /// expect nul-terminated strings.
     pub fn into_cstring(self) -> CString {
         // SAFETY: The stored SDL string contains no nul bytes.
-        let vec = self.reason.into_bytes();
-        unsafe { CString::from_vec_unchecked(vec) }
+        let mut vec = self.reason.into_bytes();
+        vec.push(b'\0');
+
+        unsafe { CString::from_vec_with_nul_unchecked(vec) }
     }
 }
 
