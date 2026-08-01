@@ -14,53 +14,33 @@ use halcyon::{
     window::Window,
 };
 
+const SHADER_FMTS: ShaderFormats = cfg_select! {
+    target_os = "macos" => ShaderFormats::Msl,
+    target_os = "windows" => ShaderFormats::Dxil
+};
+
+const SHADER_FMT: ShaderFormat = cfg_select! {
+    target_os = "macos" => ShaderFormat::Msl,
+    target_os = "windows" => ShaderFormat::Dxil
+};
+
 // Metal shaders, compiled at runtime by SDL.
-const VS_MSL: &[u8] = br#"
-#include <metal_stdlib>
-using namespace metal;
-
-struct V2F {
-    float4 position [[position]];
-    float4 color;
-};
-
-vertex V2F vs_main(uint vid [[vertex_id]]) {
-    const float2 pos[3] = {
-        float2(-0.5, -0.5),
-        float2( 0.5, -0.5),
-        float2( 0.0,  0.5),
-    };
-    const float3 col[3] = {
-        float3(1.0, 0.0, 0.0),
-        float3(0.0, 1.0, 0.0),
-        float3(0.0, 0.0, 1.0),
-    };
-    V2F out;
-    out.position = float4(pos[vid], 0.0, 1.0);
-    out.color = float4(col[vid], 1.0);
-    return out;
+cfg_select! {
+    target_os = "macos" => {
+        const VS_MSL: &[u8] = include_bytes!("shaders/vs.msl");
+        const FS_MSL: &[u8] = include_bytes!("shaders/fs.msl");
+    }
+    target_os = "windows" => {
+        const VS_MSL: &[u8] = include_bytes!("shaders/triangle.dxil");
+        const FS_MSL: &[u8] = VS_MSL;
+    }
 }
-"#;
-
-const FS_MSL: &[u8] = br#"
-#include <metal_stdlib>
-using namespace metal;
-
-struct V2F {
-    float4 position [[position]];
-    float4 color;
-};
-
-fragment float4 fs_main(V2F in [[stage_in]]) {
-    return in.color;
-}
-"#;
 
 fn run() -> Result {
     let ctx = Context::new();
     let _video = ManuallyDrop::new(Video::new(&ctx)?);
 
-    let device = Device::new(ShaderFormats::Msl, EnableDebug::Yes)?;
+    let device = Device::new(SHADER_FMTS, EnableDebug::Yes)?;
     println!("GPU driver: {}", device.driver().unwrap_or("[unknown]"));
 
     let wnd = Window::new(c"Halcyon GPU", Point::new(800, 600), Default::default())?;
@@ -69,29 +49,26 @@ fn run() -> Result {
     // According to the SDL docs, this combination is always supported.
     device.set_swapchain_parameters(wnd.as_ref(), SwapchainComposition::Sdr, PresentMode::Vsync)?;
 
-    let vs = Shader::new(
-        device.as_ref(),
-        &ShaderCreateInfo::new(
-            VS_MSL,
-            c"vs_main",
-            ShaderFormat::Msl,
-            ShaderStage::Vertex,
-            0,
-            (0, 0, 0),
-        ),
-    )?;
+    let sci_vs = ShaderCreateInfo::new(
+        VS_MSL,
+        c"vs_main",
+        SHADER_FMT,
+        ShaderStage::Vertex,
+        0,
+        (0, 0, 0),
+    );
 
-    let fs = Shader::new(
-        device.as_ref(),
-        &ShaderCreateInfo::new(
-            FS_MSL,
-            c"fs_main",
-            ShaderFormat::Msl,
-            ShaderStage::Fragment,
-            0,
-            (0, 0, 0),
-        ),
-    )?;
+    let sci_fs = ShaderCreateInfo::new(
+        FS_MSL,
+        c"fs_main",
+        SHADER_FMT,
+        ShaderStage::Fragment,
+        0,
+        (0, 0, 0),
+    );
+
+    let vs = Shader::new(device.as_ref(), &sci_vs)?;
+    let fs = Shader::new(device.as_ref(), &sci_fs)?;
 
     let blend = ColorTargetBlendState::new(
         (BlendFactor::One, BlendFactor::Zero),
