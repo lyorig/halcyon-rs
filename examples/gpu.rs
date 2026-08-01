@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 use std::mem::ManuallyDrop;
 
 use halcyon::{
@@ -28,9 +30,13 @@ cfg_select! {
         const FS_MSL: &[u8] = include_bytes!("shaders/fs.msl");
     }
     target_os = "windows" => {
-        const VS_MSL: &[u8] = include_bytes!("shaders/triangle.dxil");
-        const FS_MSL: &[u8] = VS_MSL;
+        const VS_MSL: &[u8] = include_bytes!("shaders/triangle_vs.dxil");
+        const FS_MSL: &[u8] = include_bytes!("shaders/triangle_fs.dxil");
     }
+}
+
+fn log(msg: &std::ffi::CStr) {
+    unsafe { sdl3_sys::log::SDL_Log(msg.as_ptr()) };
 }
 
 fn run() -> Result {
@@ -42,9 +48,6 @@ fn run() -> Result {
 
     let wnd = Window::new(c"Halcyon GPU", Point::new(800, 600), Default::default())?;
     device.claim_window(wnd.as_ref())?;
-
-    // According to the SDL docs, this combination is always supported.
-    device.set_swapchain_parameters(wnd.as_ref(), SwapchainComposition::Sdr, PresentMode::Vsync)?;
 
     let sci_vs = ShaderCreateInfo::new(
         VS_MSL,
@@ -130,6 +133,8 @@ fn run() -> Result {
         target_info,
     );
 
+    log(c"Creating pipeline");
+
     let pipeline = GraphicsPipeline::new(device.as_ref(), &pipeline_info)?;
 
     let cmdbuf = CommandBuffer::new(device.as_ref())?;
@@ -189,6 +194,6 @@ fn run() -> Result {
 
 fn main() {
     if let Err(e) = run() {
-        eprintln!("An unexpected error occurred: {e}");
+        eprintln!("An unexpected error occurred: \"{e}\"");
     }
 }
