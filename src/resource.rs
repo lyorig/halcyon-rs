@@ -11,10 +11,7 @@ pub trait Resource: Sized {
     unsafe fn as_handle(&self) -> Self::Handle;
 
     fn as_ref<'a>(&'a self) -> Ref<'a, Self> {
-        Ref {
-            handle: unsafe { self.as_handle() },
-            _marker: std::marker::PhantomData,
-        }
+        unsafe { Ref::from_handle(self.as_handle()) }
     }
 }
 
