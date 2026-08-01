@@ -6,6 +6,8 @@
 use bitmask_enum::bitmask;
 use sdl3_sys::gpu::*;
 
+use crate::gpu::enums::*;
+
 use super::{
     sampler::CompareOp,
     texture::{SampleCount, TextureFormat},
@@ -191,8 +193,8 @@ impl RasterizerState {
         depth_bias_constant_factor: f32,
         depth_bias_clamp: f32,
         depth_bias_slope_factor: f32,
-        enable_depth_bias: bool,
-        enable_depth_clip: bool,
+        db: EnableDepthBias,
+        dc: EnableDepthClip,
     ) -> Self {
         Self(SDL_GPURasterizerState {
             fill_mode: SDL_GPUFillMode::new(fill_mode as _),
@@ -201,8 +203,8 @@ impl RasterizerState {
             depth_bias_constant_factor,
             depth_bias_clamp,
             depth_bias_slope_factor,
-            enable_depth_bias,
-            enable_depth_clip,
+            enable_depth_bias: db.into(),
+            enable_depth_clip: dc.into(),
             padding1: 0,
             padding2: 0,
         })
@@ -216,14 +218,14 @@ impl MultisampleState {
     pub fn new(
         sample_count: SampleCount,
         sample_mask: u32,
-        enable_mask: bool,
-        enable_alpha_to_coverage: bool,
+        em: EnableMask,
+        eatc: EnableAlphaToCoverage,
     ) -> Self {
         Self(SDL_GPUMultisampleState {
             sample_count: SDL_GPUSampleCount::new(sample_count as _),
             sample_mask,
-            enable_mask,
-            enable_alpha_to_coverage,
+            enable_mask: em.into(),
+            enable_alpha_to_coverage: eatc.into(),
             ..Default::default()
         })
     }
@@ -262,9 +264,9 @@ impl DepthStencilState {
         front_stencil_state: StencilOpState,
         compare_mask: u8,
         write_mask: u8,
-        enable_depth_test: bool,
-        enable_depth_write: bool,
-        enable_stencil_test: bool,
+        edt: EnableDepthTest,
+        edw: EnableDepthWrite,
+        est: EnableStencilTest,
     ) -> Self {
         Self(SDL_GPUDepthStencilState {
             compare_op: SDL_GPUCompareOp::new(compare_op as _),
@@ -272,9 +274,9 @@ impl DepthStencilState {
             front_stencil_state: front_stencil_state.0,
             compare_mask,
             write_mask,
-            enable_depth_test,
-            enable_depth_write,
-            enable_stencil_test,
+            enable_depth_test: edt.into(),
+            enable_depth_write: edw.into(),
+            enable_stencil_test: est.into(),
             padding1: 0,
             padding2: 0,
             padding3: 0,
@@ -296,8 +298,8 @@ impl ColorTargetBlendState {
         (src_alpha_blendfactor, dst_alpha_blendfactor): (BlendFactor, BlendFactor),
         alpha_blend_op: BlendOp,
         color_write_mask: ColorComponentFlags,
-        enable_blend: bool,
-        enable_color_write_mask: bool,
+        eb: EnableBlend,
+        ecwm: EnableColorWriteMask,
     ) -> Self {
         Self(SDL_GPUColorTargetBlendState {
             src_color_blendfactor: SDL_GPUBlendFactor::new(src_color_blendfactor as _),
@@ -307,8 +309,8 @@ impl ColorTargetBlendState {
             dst_alpha_blendfactor: SDL_GPUBlendFactor::new(dst_alpha_blendfactor as _),
             alpha_blend_op: SDL_GPUBlendOp::new(alpha_blend_op as _),
             color_write_mask: SDL_GPUColorComponentFlags::new(color_write_mask.bits()),
-            enable_blend,
-            enable_color_write_mask,
+            enable_blend: eb.into(),
+            enable_color_write_mask: ecwm.into(),
             padding1: 0,
             padding2: 0,
         })
@@ -334,13 +336,13 @@ impl GraphicsPipelineTargetInfo {
     pub fn new(
         descriptions: &[ColorTargetDescription],
         depth_stencil_format: TextureFormat,
-        has_depth_stencil_target: bool,
+        hdst: HasDepthStencilTarget,
     ) -> Self {
         Self(SDL_GPUGraphicsPipelineTargetInfo {
             color_target_descriptions: descriptions.as_ptr().cast(),
             num_color_targets: descriptions.len() as _,
             depth_stencil_format: SDL_GPUTextureFormat::new(depth_stencil_format as _),
-            has_depth_stencil_target,
+            has_depth_stencil_target: hdst.into(),
             ..Default::default()
         })
     }

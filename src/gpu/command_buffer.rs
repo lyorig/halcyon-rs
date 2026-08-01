@@ -21,6 +21,7 @@ use sdl3_sys::{gpu::*, surface::SDL_FlipMode};
 use crate::{
     Result,
     color::RgbaF32,
+    gpu::Cycle,
     resource::Ref,
     resource_new_no_drop,
     util::{opt2ptr_mut, to_result},
@@ -63,7 +64,7 @@ impl BlitInfo {
         clear_color: RgbaF32,
         flip_mode: FlipMode,
         filter: Filter,
-        cycle: bool,
+        cycle: Cycle,
     ) -> Self {
         Self(SDL_GPUBlitInfo {
             source: source.0,
@@ -72,7 +73,7 @@ impl BlitInfo {
             clear_color: clear_color.into(),
             flip_mode: SDL_FlipMode::new(flip_mode as _),
             filter: SDL_GPUFilter::new(filter as _),
-            cycle,
+            cycle: cycle.into(),
             ..Default::default()
         })
     }

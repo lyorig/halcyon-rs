@@ -23,8 +23,9 @@ use std::ffi::CStr;
 use sdl3_sys::gpu::*;
 
 use crate::{
-    Result, boolenum,
+    Result,
     error::Error,
+    gpu::{DeviceDebug, WaitAll},
     properties::{Properties, PropertiesHandle},
     resource::Ref,
     resource_new,
@@ -37,9 +38,6 @@ use super::{
     fence::Fence,
     texture::{SampleCount, TextureFormat, TextureType, TextureUsageFlags},
 };
-
-boolenum!(DeviceDebug);
-boolenum!(WaitAll);
 
 #[repr(i32)]
 #[doc(alias = "SDL_GPUPresentMode")]

@@ -8,7 +8,7 @@ use std::ptr::NonNull;
 
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
-use crate::{Result, error::Error, resource::Ref, resource_new_no_drop};
+use crate::{Result, error::Error, gpu::Cycle, resource::Ref, resource_new_no_drop};
 
 use super::device::Device;
 
@@ -60,9 +60,9 @@ impl TransferBuffer {
     }
 
     #[doc(alias = "SDL_MapGPUTransferBuffer")]
-    pub fn map(&self, device: Ref<Device>, cycle: bool) -> Result<NonNull<u8>> {
+    pub fn map(&self, device: Ref<Device>, cycle: Cycle) -> Result<NonNull<u8>> {
         let ptr = unsafe {
-            SDL_MapGPUTransferBuffer(device.handle.as_ptr(), self.handle.as_ptr(), cycle)
+            SDL_MapGPUTransferBuffer(device.handle.as_ptr(), self.handle.as_ptr(), cycle.into())
         };
         NonNull::new(ptr.cast()).ok_or_else(Error::current)
     }

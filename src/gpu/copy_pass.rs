@@ -6,7 +6,7 @@
 
 use sdl3_sys::gpu::*;
 
-use crate::{Result, resource::Ref, resource_new};
+use crate::{Result, gpu::Cycle, resource::Ref, resource_new};
 
 use super::{buffer::BufferLocation, command_buffer::CommandBuffer, texture::TextureLocation};
 
@@ -26,7 +26,7 @@ impl CopyPassHandle {
         source: &TextureLocation,
         destination: &TextureLocation,
         (w, h, d): (u32, u32, u32),
-        cycle: bool,
+        cycle: Cycle,
     ) {
         unsafe {
             SDL_CopyGPUTextureToTexture(
@@ -36,7 +36,7 @@ impl CopyPassHandle {
                 w,
                 h,
                 d,
-                cycle,
+                cycle.into(),
             )
         }
     }
@@ -47,10 +47,16 @@ impl CopyPassHandle {
         source: &BufferLocation,
         destination: &BufferLocation,
         size: u32,
-        cycle: bool,
+        cycle: Cycle,
     ) {
         unsafe {
-            SDL_CopyGPUBufferToBuffer(self.handle.as_ptr(), &source.0, &destination.0, size, cycle)
+            SDL_CopyGPUBufferToBuffer(
+                self.handle.as_ptr(),
+                &source.0,
+                &destination.0,
+                size,
+                cycle.into(),
+            )
         }
     }
 }

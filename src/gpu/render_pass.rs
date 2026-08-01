@@ -23,7 +23,7 @@ use sdl3_sys::gpu::*;
 use crate::{
     Result,
     color::RgbaF32,
-    gpu::Buffer,
+    gpu::{Buffer, Cycle, CycleResolveTexture},
     rect::{PointF32, RectI32},
     resource::Ref,
     resource_new,
@@ -92,8 +92,8 @@ impl ColorTargetInfo {
         store_op: StoreOp,
         resolve_texture: Option<Ref<Texture>>,
         (resolve_mip_level, resolve_layer): (u32, u32),
-        cycle: bool,
-        cycle_resolve_texture: bool,
+        cycle: Cycle,
+        crt: CycleResolveTexture,
     ) -> Self {
         let resolve_texture = resolve_texture.map_or(std::ptr::null_mut(), |t| t.handle.as_ptr());
         Self(SDL_GPUColorTargetInfo {
@@ -106,8 +106,8 @@ impl ColorTargetInfo {
             resolve_texture,
             resolve_mip_level,
             resolve_layer,
-            cycle,
-            cycle_resolve_texture,
+            cycle: cycle.into(),
+            cycle_resolve_texture: crt.into(),
             ..Default::default()
         })
     }
@@ -122,7 +122,7 @@ impl DepthStencilTargetInfo {
         clear_depth: f32,
         (load_op, store_op): (LoadOp, StoreOp),
         (stencil_load_op, stencil_store_op): (LoadOp, StoreOp),
-        cycle: bool,
+        cycle: Cycle,
         clear_stencil: u8,
         (mip_level, layer): (u8, u8),
     ) -> Self {
@@ -134,7 +134,7 @@ impl DepthStencilTargetInfo {
             store_op: SDL_GPUStoreOp::new(store_op as _),
             stencil_load_op: SDL_GPULoadOp::new(stencil_load_op as _),
             stencil_store_op: SDL_GPUStoreOp::new(stencil_store_op as _),
-            cycle,
+            cycle: cycle.into(),
             clear_stencil,
             mip_level,
             layer,

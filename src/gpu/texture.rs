@@ -10,7 +10,7 @@ use std::ffi::CStr;
 use bitmask_enum::bitmask;
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
-use crate::{Result, rect::Point, resource::Ref, resource_new_no_drop};
+use crate::{Result, gpu::Cycle, rect::Point, resource::Ref, resource_new_no_drop};
 
 use super::{
     copy_pass::CopyPass, device::Device, sampler::Sampler, transfer_buffer::TransferBuffer,
@@ -280,12 +280,12 @@ impl TextureSamplerBinding {
 #[derive(Clone, Copy)]
 pub struct StorageTextureReadWriteBinding(SDL_GPUStorageTextureReadWriteBinding);
 impl StorageTextureReadWriteBinding {
-    pub fn new(texture: Ref<Texture>, mip_level: u32, layer: u32, cycle: bool) -> Self {
+    pub fn new(texture: Ref<Texture>, mip_level: u32, layer: u32, cycle: Cycle) -> Self {
         Self(SDL_GPUStorageTextureReadWriteBinding {
             texture: texture.handle.as_ptr(),
             mip_level,
             layer,
-            cycle,
+            cycle: cycle.into(),
             ..Default::default()
         })
     }
@@ -345,10 +345,10 @@ impl TextureHandle {
         copy_pass: Ref<CopyPass>,
         src: &TextureTransferInfo,
         dst: &TextureRegion,
-        cycle: bool,
+        cycle: Cycle,
     ) {
         unsafe {
-            SDL_UploadToGPUTexture(copy_pass.handle.as_ptr(), &src.0, &dst.0, cycle);
+            SDL_UploadToGPUTexture(copy_pass.handle.as_ptr(), &src.0, &dst.0, cycle.into());
         }
     }
 

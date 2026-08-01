@@ -4,7 +4,12 @@
 
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
-use crate::{Result, resource::Ref, resource_new_no_drop};
+use crate::{
+    Result,
+    gpu::{EnableAnisotropy, EnableCompare},
+    resource::Ref,
+    resource_new_no_drop,
+};
 
 use super::device::Device;
 
@@ -59,8 +64,8 @@ impl SamplerCreateInfo {
         compare_op: CompareOp,
         min_lod: f32,
         max_lod: f32,
-        enable_anisotropy: bool,
-        enable_compare: bool,
+        ea: EnableAnisotropy,
+        ec: EnableCompare,
     ) -> Self {
         let inner = SDL_GPUSamplerCreateInfo {
             min_filter: SDL_GPUFilter::new(min_filter as _),
@@ -74,8 +79,8 @@ impl SamplerCreateInfo {
             compare_op: SDL_GPUCompareOp::new(compare_op as _),
             min_lod,
             max_lod,
-            enable_anisotropy,
-            enable_compare,
+            enable_anisotropy: ea.into(),
+            enable_compare: ec.into(),
             props: SDL_PropertiesID::new(0),
             ..Default::default()
         };

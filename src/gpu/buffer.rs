@@ -10,7 +10,7 @@ use std::ffi::CStr;
 use bitmask_enum::bitmask;
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
-use crate::{Result, resource::Ref, resource_new_no_drop};
+use crate::{Result, gpu::Cycle, resource::Ref, resource_new_no_drop};
 
 use super::{copy_pass::CopyPass, device::Device, transfer_buffer::TransferBufferLocation};
 
@@ -83,10 +83,10 @@ impl BufferLocation {
 #[derive(Clone, Copy)]
 pub struct StorageBufferReadWriteBinding(SDL_GPUStorageBufferReadWriteBinding);
 impl StorageBufferReadWriteBinding {
-    pub fn new(buffer: Ref<Buffer>, cycle: bool) -> Self {
+    pub fn new(buffer: Ref<Buffer>, cycle: Cycle) -> Self {
         Self(SDL_GPUStorageBufferReadWriteBinding {
             buffer: buffer.handle.as_ptr(),
-            cycle,
+            cycle: cycle.into(),
             ..Default::default()
         })
     }
@@ -113,9 +113,9 @@ impl BufferHandle {
         copy_pass: Ref<CopyPass>,
         src: &TransferBufferLocation,
         dst: &BufferRegion,
-        cycle: bool,
+        cycle: Cycle,
     ) {
-        unsafe { SDL_UploadToGPUBuffer(copy_pass.handle.as_ptr(), &src.0, &dst.0, cycle) }
+        unsafe { SDL_UploadToGPUBuffer(copy_pass.handle.as_ptr(), &src.0, &dst.0, cycle.into()) }
     }
 
     #[doc(alias = "SDL_DownloadFromGPUBuffer")]
