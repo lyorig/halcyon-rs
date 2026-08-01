@@ -10,13 +10,13 @@ use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
 use crate::{Result, error::Error, resource::Ref, resource_new_no_drop};
 
-use super::device::GPUDevice;
+use super::device::Device;
 
 #[doc(alias = "SDL_GPUTransferBufferLocation")]
 #[derive(Clone, Copy)]
 pub struct TransferBufferLocation(pub(crate) SDL_GPUTransferBufferLocation);
 impl TransferBufferLocation {
-    pub fn new(tb: Ref<GPUTransferBuffer>, offset: u32) -> Self {
+    pub fn new(tb: Ref<TransferBuffer>, offset: u32) -> Self {
         let transfer_buffer = tb.handle.as_ptr();
         let inner = SDL_GPUTransferBufferLocation {
             transfer_buffer,
@@ -46,21 +46,21 @@ impl TransferBufferCreateInfo {
     }
 }
 
-resource_new_no_drop!(GPUTransferBuffer, SDL);
-impl GPUTransferBuffer {
+resource_new_no_drop!(SDL_GPUTransferBuffer, TransferBuffer);
+impl TransferBuffer {
     #[doc(alias = "SDL_CreateGPUTransferBuffer")]
-    pub fn new(device: Ref<GPUDevice>, create_info: &TransferBufferCreateInfo) -> Result<Self> {
+    pub fn new(device: Ref<Device>, create_info: &TransferBufferCreateInfo) -> Result<Self> {
         let handle = unsafe { SDL_CreateGPUTransferBuffer(device.handle.as_ptr(), &create_info.0) };
         Self::from_ptr(handle)
     }
 
     #[doc(alias = "SDL_ReleaseGPUTransferBuffer")]
-    pub fn drop(self, dev: Ref<GPUDevice>) {
+    pub fn drop(self, dev: Ref<Device>) {
         unsafe { SDL_ReleaseGPUTransferBuffer(dev.handle.as_ptr(), self.handle.as_ptr()) };
     }
 
     #[doc(alias = "SDL_MapGPUTransferBuffer")]
-    pub fn map(&self, device: Ref<GPUDevice>, cycle: bool) -> Result<NonNull<u8>> {
+    pub fn map(&self, device: Ref<Device>, cycle: bool) -> Result<NonNull<u8>> {
         let ptr = unsafe {
             SDL_MapGPUTransferBuffer(device.handle.as_ptr(), self.handle.as_ptr(), cycle)
         };
@@ -68,7 +68,7 @@ impl GPUTransferBuffer {
     }
 
     #[doc(alias = "SDL_UnmapGPUTransferBuffer")]
-    pub fn unmap(&self, device: Ref<GPUDevice>) {
+    pub fn unmap(&self, device: Ref<Device>) {
         unsafe { SDL_UnmapGPUTransferBuffer(device.handle.as_ptr(), self.handle.as_ptr()) };
     }
 }

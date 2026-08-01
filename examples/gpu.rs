@@ -17,14 +17,14 @@ const TCI: TextureCreateInfo = TextureCreateInfo::new(
     SampleCount::One,
 );
 
-fn foo() -> Result {
+fn run() -> Result {
     let ctx = Context::new();
     let _video = ManuallyDrop::new(Video::new(&ctx)?);
 
-    let device = GPUDevice::new(ShaderFormats::Msl, DeviceDebug::Yes)?;
-    let cmdbuf = GPUCommandBuffer::new(device.as_ref())?;
-    let _copy = GPUCopyPass::new(cmdbuf.as_ref())?;
-    let buffer = GPUBuffer::new(device.as_ref(), &BUFFER_CREATE_INFO)?;
+    let device = Device::new(ShaderFormats::Msl, DeviceDebug::Yes)?;
+    let cmdbuf = CommandBuffer::new(device.as_ref())?;
+    let _copy = CopyPass::new(cmdbuf.as_ref())?;
+    let buffer = Buffer::new(device.as_ref(), &BUFFER_CREATE_INFO)?;
 
     let wnd1 = Window::new(c"W1", Point::new(20, 20), Default::default())?;
     let wnd2 = Window::new(c"W2", Point::new(20, 20), Default::default())?;
@@ -32,7 +32,7 @@ fn foo() -> Result {
     device.claim_window(wnd1.as_ref())?;
     device.claim_window(wnd2.as_ref())?;
 
-    let tex = GPUTexture::new(device.as_ref(), &TCI)?;
+    let tex = Texture::new(device.as_ref(), &TCI)?;
     tex.drop(device.as_ref());
 
     buffer.drop(device.as_ref());
@@ -41,7 +41,7 @@ fn foo() -> Result {
 }
 
 fn main() {
-    if let Err(e) = foo() {
+    if let Err(e) = run() {
         eprintln!("An unexpected error occurred: {e}");
     }
 }

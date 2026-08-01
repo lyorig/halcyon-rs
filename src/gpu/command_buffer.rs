@@ -28,18 +28,18 @@ use crate::{
 };
 
 use super::{
-    device::GPUDevice,
+    device::Device,
     fence::GPUFence,
     render_pass::LoadOp,
     sampler::Filter,
-    texture::{BlitRegion, GPUTexture, GPUTextureHandle},
+    texture::{BlitRegion, Texture, TextureHandle},
 };
 
 /// Converts a raw swapchain texture pointer into a reference.
 /// A null pointer (e.g. too many frames in flight) yields `None`.
-fn swapchain_texture<'a>(ptr: *mut SDL_GPUTexture) -> Option<Ref<'a, GPUTexture>> {
+fn swapchain_texture<'a>(ptr: *mut SDL_GPUTexture) -> Option<Ref<'a, Texture>> {
     let handle = NonNull::new(ptr)?;
-    let inner = GPUTextureHandle { handle };
+    let inner = TextureHandle { handle };
     Some(unsafe { Ref::from_handle(inner) })
 }
 
@@ -79,10 +79,10 @@ impl BlitInfo {
     }
 }
 
-resource_new_no_drop!(GPUCommandBuffer);
-impl GPUCommandBuffer {
+resource_new_no_drop!(SDL_GPUCommandBuffer, CommandBuffer);
+impl CommandBuffer {
     #[doc(alias = "SDL_AcquireGPUCommandBuffer")]
-    pub fn new(device: Ref<GPUDevice>) -> Result<Self> {
+    pub fn new(device: Ref<Device>) -> Result<Self> {
         let handle = unsafe { SDL_AcquireGPUCommandBuffer(device.handle.as_ptr()) };
         Self::from_ptr(handle)
     }
@@ -104,13 +104,13 @@ impl GPUCommandBuffer {
     }
 }
 
-impl GPUCommandBufferHandle {
+impl CommandBufferHandle {
     #[doc(alias = "SDL_AcquireGPUSwapchainTexture")]
     pub fn acquire_swapchain_texture(
         &self,
         wnd: Ref<Window>,
         (tex_x, tex_y): (Option<&mut u32>, Option<&mut u32>),
-    ) -> Result<Option<Ref<'_, GPUTexture>>> {
+    ) -> Result<Option<Ref<'_, Texture>>> {
         let mut tex = MaybeUninit::uninit();
         let res = unsafe {
             SDL_AcquireGPUSwapchainTexture(
@@ -130,7 +130,7 @@ impl GPUCommandBufferHandle {
         &self,
         wnd: Ref<Window>,
         (tex_x, tex_y): (Option<&mut u32>, Option<&mut u32>),
-    ) -> Result<Option<Ref<'_, GPUTexture>>> {
+    ) -> Result<Option<Ref<'_, Texture>>> {
         let mut tex = MaybeUninit::uninit();
         let res = unsafe {
             SDL_WaitAndAcquireGPUSwapchainTexture(
@@ -146,7 +146,7 @@ impl GPUCommandBufferHandle {
     }
 
     #[doc(alias = "SDL_GenerateMipmapsForGPUTexture")]
-    pub fn generate_mipmaps(&self, texture: Ref<GPUTexture>) {
+    pub fn generate_mipmaps(&self, texture: Ref<Texture>) {
         unsafe { SDL_GenerateMipmapsForGPUTexture(self.handle.as_ptr(), texture.handle.as_ptr()) }
     }
 

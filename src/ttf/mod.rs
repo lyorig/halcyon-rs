@@ -231,7 +231,7 @@ impl Drop for Context {
     }
 }
 
-resource_new_tied!(Font, TTF, Close, Context);
+resource_new_tied!(TTF_Font, Font, TTF_CloseFont, Context);
 
 impl Clone for Font<'_> {
     #[doc(alias = "TTF_CopyFont")]
@@ -424,7 +424,7 @@ impl Font<'_> {
     }
 }
 
-resource_new!(Text, TTF);
+resource_new!(TTF_Text, Text, TTF_DestroyText);
 
 impl TextHandle {
     #[doc(alias = "TTF_GetTextSize")]

@@ -58,8 +58,8 @@ pub enum SwapchainComposition {
     Hdr10St2084 = SDL_GPUSwapchainComposition::HDR10_ST2084.0,
 }
 
-resource_new!(GPUDevice);
-impl GPUDevice {
+resource_new!(SDL_GPUDevice, Device, SDL_DestroyGPUDevice);
+impl Device {
     #[doc(alias = "SDL_CreateGPUDevice")]
     pub fn new(formats: ShaderFormats, debug: DeviceDebug) -> Result<Self> {
         let fmts = SDL_GPUShaderFormat::new(formats.bits());
@@ -74,7 +74,7 @@ impl GPUDevice {
     }
 }
 
-impl GPUDeviceHandle {
+impl DeviceHandle {
     #[doc(alias = "SDL_ClaimWindowForGPUDevice")]
     pub fn claim_window(&self, window: Ref<Window>) -> Result {
         to_result(unsafe {

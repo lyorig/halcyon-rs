@@ -6,7 +6,7 @@ use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
 use crate::{Result, resource::Ref, resource_new_no_drop};
 
-use super::device::GPUDevice;
+use super::device::Device;
 
 #[repr(i32)]
 #[doc(alias = "SDL_GPUFilter")]
@@ -83,16 +83,16 @@ impl SamplerCreateInfo {
     }
 }
 
-resource_new_no_drop!(GPUSampler);
+resource_new_no_drop!(SDL_GPUSampler, GPUSampler);
 impl GPUSampler {
     #[doc(alias = "SDL_CreateGPUSampler")]
-    pub fn new(device: Ref<GPUDevice>, create_info: &SamplerCreateInfo) -> Result<Self> {
+    pub fn new(device: Ref<Device>, create_info: &SamplerCreateInfo) -> Result<Self> {
         let handle = unsafe { SDL_CreateGPUSampler(device.handle.as_ptr(), &create_info.0) };
         Self::from_ptr(handle)
     }
 
     #[doc(alias = "SDL_ReleaseGPUSampler")]
-    pub fn drop(self, device: Ref<GPUDevice>) {
+    pub fn drop(self, device: Ref<Device>) {
         unsafe { SDL_ReleaseGPUSampler(device.handle.as_ptr(), self.handle.as_ptr()) };
     }
 }

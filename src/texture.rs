@@ -46,7 +46,7 @@ use crate::{
     traits::{BlendMode, ColorModF32, ColorModU8},
 };
 
-resource_new!(Texture);
+resource_new!(SDL_Texture, Texture, SDL_DestroyTexture);
 
 impl TextureHandle {
     #[doc(alias = "SDL_GetTextureSize")]

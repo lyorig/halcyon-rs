@@ -335,7 +335,7 @@ impl WindowId {
     }
 }
 
-resource_new!(Window);
+resource_new!(SDL_Window, Window, SDL_DestroyWindow);
 
 impl WindowHandle {
     #[doc(alias = "SDL_SyncWindow")]

@@ -13,8 +13,7 @@ use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 use crate::{Result, rect::Point, resource::Ref, resource_new_no_drop};
 
 use super::{
-    copy_pass::GPUCopyPass, device::GPUDevice, sampler::GPUSampler,
-    transfer_buffer::GPUTransferBuffer,
+    copy_pass::CopyPass, device::Device, sampler::GPUSampler, transfer_buffer::TransferBuffer,
 };
 
 #[repr(i32)]
@@ -203,7 +202,7 @@ impl TextureCreateInfo {
 pub struct TextureTransferInfo(SDL_GPUTextureTransferInfo);
 impl TextureTransferInfo {
     pub fn new(
-        tb: Ref<GPUTransferBuffer>,
+        tb: Ref<TransferBuffer>,
         offset: u32,
         pixels_per_row: u32,
         rows_per_layer: u32,
@@ -224,7 +223,7 @@ impl TextureTransferInfo {
 pub struct TextureRegion(SDL_GPUTextureRegion);
 impl TextureRegion {
     pub fn new(
-        tex: Ref<GPUTexture>,
+        tex: Ref<Texture>,
         mip_level: u32,
         layer: u32,
         (x, y, z): (u32, u32, u32),
@@ -250,12 +249,7 @@ impl TextureRegion {
 #[derive(Clone, Copy)]
 pub struct TextureLocation(pub(crate) SDL_GPUTextureLocation);
 impl TextureLocation {
-    pub fn new(
-        tex: Ref<GPUTexture>,
-        mip_level: u32,
-        layer: u32,
-        (x, y, z): (u32, u32, u32),
-    ) -> Self {
+    pub fn new(tex: Ref<Texture>, mip_level: u32, layer: u32, (x, y, z): (u32, u32, u32)) -> Self {
         let texture = tex.handle.as_ptr();
         let inner = SDL_GPUTextureLocation {
             texture,
@@ -273,7 +267,7 @@ impl TextureLocation {
 #[derive(Clone, Copy)]
 pub struct TextureSamplerBinding(SDL_GPUTextureSamplerBinding);
 impl TextureSamplerBinding {
-    pub fn new(texture: Ref<GPUTexture>, sampler: Ref<GPUSampler>) -> Self {
+    pub fn new(texture: Ref<Texture>, sampler: Ref<GPUSampler>) -> Self {
         Self(SDL_GPUTextureSamplerBinding {
             texture: texture.handle.as_ptr(),
             sampler: sampler.handle.as_ptr(),
@@ -285,7 +279,7 @@ impl TextureSamplerBinding {
 #[derive(Clone, Copy)]
 pub struct StorageTextureReadWriteBinding(SDL_GPUStorageTextureReadWriteBinding);
 impl StorageTextureReadWriteBinding {
-    pub fn new(texture: Ref<GPUTexture>, mip_level: u32, layer: u32, cycle: bool) -> Self {
+    pub fn new(texture: Ref<Texture>, mip_level: u32, layer: u32, cycle: bool) -> Self {
         Self(SDL_GPUStorageTextureReadWriteBinding {
             texture: texture.handle.as_ptr(),
             mip_level,
@@ -301,7 +295,7 @@ impl StorageTextureReadWriteBinding {
 pub struct BlitRegion(pub(crate) SDL_GPUBlitRegion);
 impl BlitRegion {
     pub fn new(
-        tex: Ref<GPUTexture>,
+        tex: Ref<Texture>,
         mip_level: u32,
         layer_or_depth_plane: u32,
         (x, y, w, h): (u32, u32, u32, u32),
@@ -319,25 +313,25 @@ impl BlitRegion {
     }
 }
 
-resource_new_no_drop!(GPUTexture);
-impl GPUTexture {
+resource_new_no_drop!(SDL_GPUTexture, Texture);
+impl Texture {
     #[doc(alias = "SDL_CreateGPUTexture")]
-    pub fn new(device: Ref<GPUDevice>, create_info: &TextureCreateInfo) -> Result<Self> {
+    pub fn new(device: Ref<Device>, create_info: &TextureCreateInfo) -> Result<Self> {
         let handle = unsafe { SDL_CreateGPUTexture(device.handle.as_ptr(), &create_info.0) };
         Self::from_ptr(handle)
     }
 
     #[doc(alias = "SDL_ReleaseGPUTexture")]
-    pub fn drop(self, device: Ref<GPUDevice>) {
+    pub fn drop(self, device: Ref<Device>) {
         unsafe { SDL_ReleaseGPUTexture(device.handle.as_ptr(), self.handle.as_ptr()) };
     }
 }
 
-impl GPUTextureHandle {
+impl TextureHandle {
     #[doc(alias = "SDL_DownloadFromGPUTexture")]
     pub fn download(
         &self,
-        copy_pass: Ref<GPUCopyPass>,
+        copy_pass: Ref<CopyPass>,
         src: &TextureRegion,
         dst: &TextureTransferInfo,
     ) {
@@ -347,7 +341,7 @@ impl GPUTextureHandle {
     #[doc(alias = "SDL_UploadToGPUTexture")]
     pub fn upload(
         &self,
-        copy_pass: Ref<GPUCopyPass>,
+        copy_pass: Ref<CopyPass>,
         src: &TextureTransferInfo,
         dst: &TextureRegion,
         cycle: bool,
@@ -358,7 +352,7 @@ impl GPUTextureHandle {
     }
 
     #[doc(alias = "SDL_SetGPUTextureName")]
-    pub fn set_name(&self, device: Ref<GPUDevice>, name: &CStr) {
+    pub fn set_name(&self, device: Ref<Device>, name: &CStr) {
         unsafe {
             SDL_SetGPUTextureName(device.handle.as_ptr(), self.handle.as_ptr(), name.as_ptr())
         }

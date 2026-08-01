@@ -8,18 +8,18 @@ use sdl3_sys::gpu::*;
 
 use crate::{Result, resource::Ref, resource_new};
 
-use super::{buffer::BufferLocation, command_buffer::GPUCommandBuffer, texture::TextureLocation};
+use super::{buffer::BufferLocation, command_buffer::CommandBuffer, texture::TextureLocation};
 
-resource_new!(GPUCopyPass, SDL, End);
-impl GPUCopyPass {
+resource_new!(SDL_GPUCopyPass, CopyPass, SDL_EndGPUCopyPass);
+impl CopyPass {
     #[doc(alias = "SDL_BeginGPUCopyPass")]
-    pub fn new(cmdbuf: Ref<GPUCommandBuffer>) -> Result<Self> {
+    pub fn new(cmdbuf: Ref<CommandBuffer>) -> Result<Self> {
         let handle = unsafe { SDL_BeginGPUCopyPass(cmdbuf.handle.as_ptr()) };
         Self::from_ptr(handle)
     }
 }
 
-impl GPUCopyPassHandle {
+impl CopyPassHandle {
     #[doc(alias = "SDL_CopyGPUTextureToTexture")]
     pub fn copy_texture_to_texture(
         &self,

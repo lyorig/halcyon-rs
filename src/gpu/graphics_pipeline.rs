@@ -8,13 +8,13 @@ use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 use crate::{Result, resource::Ref, resource_new_no_drop};
 
 use super::{
-    device::GPUDevice,
+    device::Device,
     pipeline_state::{
         DepthStencilState, GraphicsPipelineTargetInfo, MultisampleState, RasterizerState,
         VertexInputState,
     },
-    render_pass::GPURenderPass,
-    shader::GPUShader,
+    render_pass::RenderPass,
+    shader::Shader,
 };
 
 #[repr(i32)]
@@ -33,8 +33,8 @@ pub struct GraphicsPipelineCreateInfo(SDL_GPUGraphicsPipelineCreateInfo);
 impl GraphicsPipelineCreateInfo {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
-        vertex_shader: Ref<GPUShader>,
-        fragment_shader: Ref<GPUShader>,
+        vertex_shader: Ref<Shader>,
+        fragment_shader: Ref<Shader>,
         vertex_input_state: VertexInputState,
         primitive_type: PrimitiveType,
         rasterizer_state: RasterizerState,
@@ -56,24 +56,24 @@ impl GraphicsPipelineCreateInfo {
     }
 }
 
-resource_new_no_drop!(GPUGraphicsPipeline);
+resource_new_no_drop!(SDL_GPUGraphicsPipeline, GPUGraphicsPipeline);
 impl GPUGraphicsPipeline {
     #[doc(alias = "SDL_CreateGPUGraphicsPipeline")]
-    pub fn new(device: Ref<GPUDevice>, create_info: &GraphicsPipelineCreateInfo) -> Result<Self> {
+    pub fn new(device: Ref<Device>, create_info: &GraphicsPipelineCreateInfo) -> Result<Self> {
         let handle =
             unsafe { SDL_CreateGPUGraphicsPipeline(device.handle.as_ptr(), &create_info.0) };
         Self::from_ptr(handle)
     }
 
     #[doc(alias = "SDL_ReleaseGPUGraphicsPipeline")]
-    pub fn drop(self, device: Ref<GPUDevice>) {
+    pub fn drop(self, device: Ref<Device>) {
         unsafe { SDL_ReleaseGPUGraphicsPipeline(device.handle.as_ptr(), self.handle.as_ptr()) };
     }
 }
 
 impl GPUGraphicsPipelineHandle {
     #[doc(alias = "SDL_BindGPUGraphicsPipeline")]
-    pub fn bind(&self, render_pass: Ref<GPURenderPass>) {
+    pub fn bind(&self, render_pass: Ref<RenderPass>) {
         unsafe { SDL_BindGPUGraphicsPipeline(render_pass.handle.as_ptr(), self.handle.as_ptr()) };
     }
 }

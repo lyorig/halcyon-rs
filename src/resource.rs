@@ -47,22 +47,22 @@ impl<T: Resource> Deref for Ref<'_, T> {
 
 #[macro_export]
 macro_rules! resource_new_impl {
-    ($owned:ident, $library:ident) => {
+    ($sdl:ident, $owned:ident) => {
         paste::paste! {
             #[derive(Clone, Copy)]
-            #[doc(alias = $library "_" $owned)]
+            #[doc(alias = "" $sdl "")]
             pub struct [<$owned Handle>] {
-                pub(crate) handle: std::ptr::NonNull<[<$library _ $owned>]>,
+                pub(crate) handle: std::ptr::NonNull<$sdl>,
             }
 
             impl [<$owned Handle>] {
-                pub(crate) fn from_ptr(handle: *mut [<$library _ $owned>]) -> Option<Self> {
+                pub(crate) fn from_ptr(handle: *mut $sdl) -> Option<Self> {
                     std::ptr::NonNull::new(handle).map(|handle| Self { handle })
                 }
             }
 
             impl $owned {
-                pub(crate) fn from_ptr(handle: *mut [<$library _ $owned>]) -> $crate::Result<Self> {
+                pub(crate) fn from_ptr(handle: *mut $sdl) -> $crate::Result<Self> {
                     match std::ptr::NonNull::new(handle) {
                         Some(handle) => Ok(Self {
                             inner: [<$owned Handle>] { handle },
@@ -98,48 +98,35 @@ macro_rules! resource_new_impl {
 
 #[macro_export]
 macro_rules! resource_new_no_drop {
-    ($owned:ident) => {
-        resource_new_no_drop!($owned, SDL);
-    };
-
-    ($owned:ident, $library:ident) => {
+    ($sdl:ident, $owned:ident) => {
         paste::paste! {
             #[must_use = "This struct has to be manually dropped via an associated `drop()` method."]
             pub struct $owned {
                 pub(crate) inner: [<$owned Handle>],
             }
 
+            $crate::resource_new_impl!($sdl, $owned);
         }
-
-        $crate::resource_new_impl!($owned, $library);
     };
 }
 
 /// Define a resource and implement shared traits and member functions.
 #[macro_export]
 macro_rules! resource_new {
-    ($owned:ident) => {
-        resource_new!($owned, SDL);
-    };
-
-    ($owned:ident, $library:ident) => {
-        resource_new!($owned, $library, Destroy);
-    };
-
-    ($owned:ident, $library:ident, $dtor: ident) => {
+    ($sdl:ident, $owned:ident, $dtor:ident) => {
         paste::paste! {
             pub struct $owned {
                 pub(crate) inner: [<$owned Handle>],
             }
         }
 
-        $crate::resource_new_impl!($owned, $library);
-
         paste::paste! {
+            $crate::resource_new_impl!($sdl, $owned);
+
             impl Drop for $owned {
-                #[doc(alias = $library "_" $dtor $owned)]
+                #[doc(alias = "" $sdl "")]
                 fn drop(&mut self) {
-                    unsafe { [<$library _ $dtor $owned>](self.inner.handle.as_ptr()) }
+                    unsafe { $dtor(self.inner.handle.as_ptr()) }
                 }
             }
         }
@@ -148,28 +135,28 @@ macro_rules! resource_new {
 
 #[macro_export]
 macro_rules! resource_new_tied {
-    ($owned:ident, $library:ident, $dtor:ident, $tied:ident) => {
+    ($sdl:ident, $owned:ident, $dtor:ident, $tied:ident) => {
         paste::paste! {
-            #[doc(alias = $library "_" $owned)]
+            #[doc(alias = "" $sdl "")]
             pub struct $owned<'a> {
                 pub(crate) inner: [<$owned Handle>],
                 marker: PhantomData<&'a $tied>,
             }
 
             #[derive(Clone, Copy)]
-            #[doc(alias = $library "_" $owned)]
+            #[doc(alias = "" $sdl "")]
             pub struct [<$owned Handle>] {
-                pub(crate) handle: std::ptr::NonNull<[<$library _ $owned>]>,
+                pub(crate) handle: std::ptr::NonNull<$sdl>,
             }
 
             impl [<$owned Handle>] {
-                pub(crate) fn from_ptr(handle: *mut [<$library _ $owned>]) -> Option<Self> {
+                pub(crate) fn from_ptr(handle: *mut $sdl) -> Option<Self> {
                     std::ptr::NonNull::new(handle).map(|handle| Self { handle })
                 }
             }
 
             impl $owned<'_> {
-                pub(crate) fn from_ptr<'a>(handle: *mut [<$library _ $owned>]) -> $crate::Result<$owned<'a>> {
+                pub(crate) fn from_ptr<'a>(handle: *mut $sdl) -> $crate::Result<$owned<'a>> {
                     match std::ptr::NonNull::new(handle) {
                         Some(handle) => Ok($owned {
                             inner: [<$owned Handle>] { handle },
@@ -202,11 +189,11 @@ macro_rules! resource_new_tied {
             }
 
             impl Drop for $owned<'_> {
-                #[doc(alias = $library "_" $dtor $owned)]
+                #[doc(alias = "" $dtor "")]
                 fn drop(&mut self) {
-                    unsafe { [<$library _ $dtor $owned>](self.inner.handle.as_ptr()) }
+                    unsafe { $dtor(self.inner.handle.as_ptr()) }
                 }
             }
         }
-    }
+    };
 }

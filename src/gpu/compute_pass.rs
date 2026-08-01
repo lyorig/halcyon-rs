@@ -13,17 +13,17 @@ use sdl3_sys::gpu::*;
 use crate::{Result, resource::Ref, resource_new};
 
 use super::{
-    buffer::{GPUBuffer, StorageBufferReadWriteBinding},
-    command_buffer::GPUCommandBuffer,
+    buffer::{Buffer, StorageBufferReadWriteBinding},
+    command_buffer::CommandBuffer,
     compute_pipeline::GPUComputePipeline,
-    texture::{GPUTexture, StorageTextureReadWriteBinding, TextureSamplerBinding},
+    texture::{StorageTextureReadWriteBinding, Texture, TextureSamplerBinding},
 };
 
-resource_new!(GPUComputePass, SDL, End);
-impl GPUComputePass {
+resource_new!(SDL_GPUComputePass, ComputePass, SDL_EndGPUComputePass);
+impl ComputePass {
     #[doc(alias = "SDL_BeginGPUComputePass")]
     pub fn new(
-        cmdbuf: Ref<GPUCommandBuffer>,
+        cmdbuf: Ref<CommandBuffer>,
         storage_texture_bindings: &[StorageTextureReadWriteBinding],
         storage_buffer_bindings: &[StorageBufferReadWriteBinding],
     ) -> Result<Self> {
@@ -40,7 +40,7 @@ impl GPUComputePass {
     }
 }
 
-impl GPUComputePassHandle {
+impl ComputePassHandle {
     #[doc(alias = "SDL_BindGPUComputePipeline")]
     pub fn bind(&self, pipeline: Ref<GPUComputePipeline>) {
         unsafe { SDL_BindGPUComputePipeline(self.handle.as_ptr(), pipeline.handle.as_ptr()) };
@@ -59,7 +59,7 @@ impl GPUComputePassHandle {
     }
 
     #[doc(alias = "SDL_BindGPUComputeStorageTextures")]
-    pub fn bind_storage_textures(&self, first_slot: u32, textures: &[Ref<GPUTexture>]) {
+    pub fn bind_storage_textures(&self, first_slot: u32, textures: &[Ref<Texture>]) {
         unsafe {
             SDL_BindGPUComputeStorageTextures(
                 self.handle.as_ptr(),
@@ -71,7 +71,7 @@ impl GPUComputePassHandle {
     }
 
     #[doc(alias = "SDL_BindGPUComputeStorageBuffers")]
-    pub fn bind_storage_buffers(&self, first_slot: u32, buffers: &[Ref<GPUBuffer>]) {
+    pub fn bind_storage_buffers(&self, first_slot: u32, buffers: &[Ref<Buffer>]) {
         unsafe {
             SDL_BindGPUComputeStorageBuffers(
                 self.handle.as_ptr(),
@@ -88,7 +88,7 @@ impl GPUComputePassHandle {
     }
 
     #[doc(alias = "SDL_DispatchGPUComputeIndirect")]
-    pub fn dispatch_indirect(&self, buffer: Ref<GPUBuffer>, offset: u32) {
+    pub fn dispatch_indirect(&self, buffer: Ref<Buffer>, offset: u32) {
         unsafe {
             SDL_DispatchGPUComputeIndirect(self.handle.as_ptr(), buffer.handle.as_ptr(), offset)
         }

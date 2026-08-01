@@ -23,7 +23,7 @@ use sdl3_sys::gpu::*;
 use crate::{
     Result,
     color::RgbaF32,
-    gpu::GPUBuffer,
+    gpu::Buffer,
     rect::{PointF32, RectI32},
     resource::Ref,
     resource_new,
@@ -32,8 +32,8 @@ use crate::{
 
 use super::{
     buffer::BufferBinding,
-    command_buffer::GPUCommandBuffer,
-    texture::{GPUTexture, TextureSamplerBinding},
+    command_buffer::CommandBuffer,
+    texture::{Texture, TextureSamplerBinding},
 };
 
 #[repr(i32)]
@@ -84,13 +84,13 @@ pub struct ColorTargetInfo(SDL_GPUColorTargetInfo);
 impl ColorTargetInfo {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
-        tex: Ref<GPUTexture>,
+        tex: Ref<Texture>,
         mip_level: u32,
         layer_or_depth_plane: u32,
         clear_color: RgbaF32,
         load_op: LoadOp,
         store_op: StoreOp,
-        resolve_texture: Option<Ref<GPUTexture>>,
+        resolve_texture: Option<Ref<Texture>>,
         (resolve_mip_level, resolve_layer): (u32, u32),
         cycle: bool,
         cycle_resolve_texture: bool,
@@ -118,7 +118,7 @@ impl ColorTargetInfo {
 pub struct DepthStencilTargetInfo(SDL_GPUDepthStencilTargetInfo);
 impl DepthStencilTargetInfo {
     pub fn new(
-        tex: Ref<GPUTexture>,
+        tex: Ref<Texture>,
         clear_depth: f32,
         (load_op, store_op): (LoadOp, StoreOp),
         (stencil_load_op, stencil_store_op): (LoadOp, StoreOp),
@@ -142,11 +142,11 @@ impl DepthStencilTargetInfo {
     }
 }
 
-resource_new!(GPURenderPass, SDL, End);
-impl GPURenderPass {
+resource_new!(SDL_GPURenderPass, RenderPass, SDL_EndGPURenderPass);
+impl RenderPass {
     #[doc(alias = "SDL_BeginGPURenderPass")]
     pub fn new(
-        cmdbuf: Ref<GPUCommandBuffer>,
+        cmdbuf: Ref<CommandBuffer>,
         color_targets: &[ColorTargetInfo],
         depth_stencil_target: Option<&DepthStencilTargetInfo>,
     ) -> Result<Self> {
@@ -163,7 +163,7 @@ impl GPURenderPass {
     }
 }
 
-impl GPURenderPassHandle {
+impl RenderPassHandle {
     #[doc(alias = "SDL_SetGPUViewport")]
     pub fn set_viewport(&self, viewport: &Viewport) {
         unsafe { SDL_SetGPUViewport(self.handle.as_ptr(), &viewport.0) }
@@ -220,7 +220,7 @@ impl GPURenderPassHandle {
     }
 
     #[doc(alias = "SDL_BindGPUVertexStorageTextures")]
-    pub fn bind_vertex_storage_textures(&self, first_slot: u32, textures: &[Ref<GPUTexture>]) {
+    pub fn bind_vertex_storage_textures(&self, first_slot: u32, textures: &[Ref<Texture>]) {
         unsafe {
             SDL_BindGPUVertexStorageTextures(
                 self.handle.as_ptr(),
@@ -232,7 +232,7 @@ impl GPURenderPassHandle {
     }
 
     #[doc(alias = "SDL_BindGPUVertexStorageBuffers")]
-    pub fn bind_vertex_storage_buffers(&self, first_slot: u32, buffers: &[Ref<GPUBuffer>]) {
+    pub fn bind_vertex_storage_buffers(&self, first_slot: u32, buffers: &[Ref<Buffer>]) {
         unsafe {
             SDL_BindGPUVertexStorageBuffers(
                 self.handle.as_ptr(),
@@ -256,7 +256,7 @@ impl GPURenderPassHandle {
     }
 
     #[doc(alias = "SDL_BindGPUFragmentStorageTextures")]
-    pub fn bind_fragment_storage_textures(&self, first_slot: u32, textures: &[Ref<GPUTexture>]) {
+    pub fn bind_fragment_storage_textures(&self, first_slot: u32, textures: &[Ref<Texture>]) {
         unsafe {
             SDL_BindGPUFragmentStorageTextures(
                 self.handle.as_ptr(),
@@ -268,7 +268,7 @@ impl GPURenderPassHandle {
     }
 
     #[doc(alias = "SDL_BindGPUFragmentStorageBuffers")]
-    pub fn bind_fragment_storage_buffers(&self, first_slot: u32, buffers: &[Ref<GPUBuffer>]) {
+    pub fn bind_fragment_storage_buffers(&self, first_slot: u32, buffers: &[Ref<Buffer>]) {
         unsafe {
             SDL_BindGPUFragmentStorageBuffers(
                 self.handle.as_ptr(),
@@ -293,7 +293,7 @@ impl GPURenderPassHandle {
     }
 
     #[doc(alias = "SDL_DrawGPUPrimitivesIndirect")]
-    pub fn draw_primitives_indirect(&self, buffer: Ref<GPUBuffer>, offset: u32, draw_count: u32) {
+    pub fn draw_primitives_indirect(&self, buffer: Ref<Buffer>, offset: u32, draw_count: u32) {
         unsafe {
             SDL_DrawGPUPrimitivesIndirect(
                 self.handle.as_ptr(),
@@ -328,7 +328,7 @@ impl GPURenderPassHandle {
     #[doc(alias = "SDL_DrawGPUIndexedPrimitivesIndirect")]
     pub fn draw_indexed_primitives_indirect(
         &self,
-        buffer: Ref<GPUBuffer>,
+        buffer: Ref<Buffer>,
         offset: u32,
         draw_count: u32,
     ) {

@@ -72,7 +72,7 @@ use crate::{
 
 use sdl3_sys::{blendmode::SDL_BlendMode, pixels::SDL_PixelFormat, surface::*};
 
-resource_new!(Surface);
+resource_new!(SDL_Surface, Surface, SDL_DestroySurface);
 
 impl SurfaceHandle {
     pub fn size(&self) -> PointI32 {

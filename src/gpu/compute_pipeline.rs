@@ -8,7 +8,7 @@ use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
 use crate::{Result, resource::Ref, resource_new_no_drop};
 
-use super::{ShaderFormat, device::GPUDevice};
+use super::{ShaderFormat, device::Device};
 
 #[doc(alias = "SDL_GPUComputePipelineCreateInfo")]
 #[derive(Clone, Copy)]
@@ -49,17 +49,17 @@ impl ComputePipelineCreateInfo {
     }
 }
 
-resource_new_no_drop!(GPUComputePipeline);
+resource_new_no_drop!(SDL_GPUComputePipeline, GPUComputePipeline);
 impl GPUComputePipeline {
     #[doc(alias = "SDL_CreateGPUComputePipeline")]
-    pub fn new(device: Ref<GPUDevice>, create_info: &ComputePipelineCreateInfo) -> Result<Self> {
+    pub fn new(device: Ref<Device>, create_info: &ComputePipelineCreateInfo) -> Result<Self> {
         let handle =
             unsafe { SDL_CreateGPUComputePipeline(device.handle.as_ptr(), &create_info.0) };
         Self::from_ptr(handle)
     }
 
     #[doc(alias = "SDL_ReleaseGPUComputePipeline")]
-    pub fn drop(self, device: Ref<GPUDevice>) {
+    pub fn drop(self, device: Ref<Device>) {
         unsafe { SDL_ReleaseGPUComputePipeline(device.handle.as_ptr(), self.handle.as_ptr()) };
     }
 }

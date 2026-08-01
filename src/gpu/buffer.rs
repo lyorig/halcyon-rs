@@ -12,7 +12,7 @@ use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
 use crate::{Result, resource::Ref, resource_new_no_drop};
 
-use super::{copy_pass::GPUCopyPass, device::GPUDevice, transfer_buffer::TransferBufferLocation};
+use super::{copy_pass::CopyPass, device::Device, transfer_buffer::TransferBufferLocation};
 
 #[bitmask(u32)]
 #[doc(alias = "SDL_GPUBufferUsageFlags")]
@@ -44,7 +44,7 @@ impl BufferCreateInfo {
 #[derive(Clone, Copy)]
 pub struct BufferRegion(SDL_GPUBufferRegion);
 impl BufferRegion {
-    pub fn new(buffer: Ref<GPUBuffer>, offset: u32, size: u32) -> Self {
+    pub fn new(buffer: Ref<Buffer>, offset: u32, size: u32) -> Self {
         let buffer = buffer.handle.as_ptr();
         let inner = SDL_GPUBufferRegion {
             buffer,
@@ -59,7 +59,7 @@ impl BufferRegion {
 #[derive(Clone, Copy)]
 pub struct BufferBinding(pub(crate) SDL_GPUBufferBinding);
 impl BufferBinding {
-    pub fn new(buffer: Ref<GPUBuffer>, offset: u32) -> Self {
+    pub fn new(buffer: Ref<Buffer>, offset: u32) -> Self {
         Self(SDL_GPUBufferBinding {
             buffer: buffer.handle.as_ptr(),
             offset,
@@ -71,7 +71,7 @@ impl BufferBinding {
 #[derive(Clone, Copy)]
 pub struct BufferLocation(pub(crate) SDL_GPUBufferLocation);
 impl BufferLocation {
-    pub fn new(buffer: Ref<GPUBuffer>, offset: u32) -> Self {
+    pub fn new(buffer: Ref<Buffer>, offset: u32) -> Self {
         Self(SDL_GPUBufferLocation {
             buffer: buffer.handle.as_ptr(),
             offset,
@@ -83,7 +83,7 @@ impl BufferLocation {
 #[derive(Clone, Copy)]
 pub struct StorageBufferReadWriteBinding(SDL_GPUStorageBufferReadWriteBinding);
 impl StorageBufferReadWriteBinding {
-    pub fn new(buffer: Ref<GPUBuffer>, cycle: bool) -> Self {
+    pub fn new(buffer: Ref<Buffer>, cycle: bool) -> Self {
         Self(SDL_GPUStorageBufferReadWriteBinding {
             buffer: buffer.handle.as_ptr(),
             cycle,
@@ -92,25 +92,25 @@ impl StorageBufferReadWriteBinding {
     }
 }
 
-resource_new_no_drop!(GPUBuffer);
-impl GPUBuffer {
+resource_new_no_drop!(SDL_GPUBuffer, Buffer);
+impl Buffer {
     #[doc(alias = "SDL_CreateGPUBuffer")]
-    pub fn new(device: Ref<GPUDevice>, create_info: &BufferCreateInfo) -> Result<Self> {
+    pub fn new(device: Ref<Device>, create_info: &BufferCreateInfo) -> Result<Self> {
         let handle = unsafe { SDL_CreateGPUBuffer(device.handle.as_ptr(), &create_info.0) };
         Self::from_ptr(handle)
     }
 
     #[doc(alias = "SDL_ReleaseGPUBuffer")]
-    pub fn drop(self, device: Ref<GPUDevice>) {
+    pub fn drop(self, device: Ref<Device>) {
         unsafe { SDL_ReleaseGPUBuffer(device.handle.as_ptr(), self.handle.as_ptr()) };
     }
 }
 
-impl GPUBufferHandle {
+impl BufferHandle {
     #[doc(alias = "SDL_UploadToGPUBuffer")]
     pub fn upload(
         &self,
-        copy_pass: Ref<GPUCopyPass>,
+        copy_pass: Ref<CopyPass>,
         src: &TransferBufferLocation,
         dst: &BufferRegion,
         cycle: bool,
@@ -121,7 +121,7 @@ impl GPUBufferHandle {
     #[doc(alias = "SDL_DownloadFromGPUBuffer")]
     pub fn download(
         &self,
-        copy_pass: Ref<GPUCopyPass>,
+        copy_pass: Ref<CopyPass>,
         src: &BufferRegion,
         dst: &TransferBufferLocation,
     ) {
@@ -129,7 +129,7 @@ impl GPUBufferHandle {
     }
 
     #[doc(alias = "SDL_SetGPUBufferName")]
-    pub fn set_name(&self, device: Ref<GPUDevice>, name: &CStr) {
+    pub fn set_name(&self, device: Ref<Device>, name: &CStr) {
         unsafe {
             SDL_SetGPUBufferName(device.handle.as_ptr(), self.handle.as_ptr(), name.as_ptr())
         };
