@@ -18,7 +18,7 @@
 //! - [x] SDL_GetPrimaryDisplay
 
 use crate::{
-    Result,
+    Result, boolenum,
     error::Error,
     rect::{PointI32, RectI32},
     sdl_box::SdlBoxArr,
@@ -27,6 +27,8 @@ use crate::{
 
 use sdl3_sys::video::*;
 use std::{ffi::c_char, mem::MaybeUninit, num::NonZero, ptr::NonNull};
+
+boolenum!(IncludeHighDensityModes);
 
 #[derive(Clone, Copy, PartialEq)]
 pub struct DisplayId {
@@ -187,7 +189,7 @@ impl DisplayHandle {
         &self,
         size: PointI32,
         refresh_rate: f32,
-        include_high_density_modes: bool,
+        ihdm: IncludeHighDensityModes,
     ) -> Result<SDL_DisplayMode> {
         let mut ret = MaybeUninit::uninit();
 
@@ -197,7 +199,7 @@ impl DisplayHandle {
                 size.x,
                 size.y,
                 refresh_rate,
-                include_high_density_modes,
+                ihdm.into(),
                 ret.as_mut_ptr(),
             ) {
                 Ok(ret.assume_init())
