@@ -56,8 +56,8 @@ impl GraphicsPipelineCreateInfo {
     }
 }
 
-resource_new_no_drop!(SDL_GPUGraphicsPipeline, GPUGraphicsPipeline);
-impl GPUGraphicsPipeline {
+resource_new_no_drop!(SDL_GPUGraphicsPipeline, GraphicsPipeline);
+impl GraphicsPipeline {
     #[doc(alias = "SDL_CreateGPUGraphicsPipeline")]
     pub fn new(device: Ref<Device>, create_info: &GraphicsPipelineCreateInfo) -> Result<Self> {
         let handle =
@@ -71,7 +71,7 @@ impl GPUGraphicsPipeline {
     }
 }
 
-impl GPUGraphicsPipelineHandle {
+impl GraphicsPipelineHandle {
     #[doc(alias = "SDL_BindGPUGraphicsPipeline")]
     pub fn bind(&self, render_pass: Ref<RenderPass>) {
         unsafe { SDL_BindGPUGraphicsPipeline(render_pass.handle.as_ptr(), self.handle.as_ptr()) };

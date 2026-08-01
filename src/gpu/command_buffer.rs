@@ -29,7 +29,7 @@ use crate::{
 
 use super::{
     device::Device,
-    fence::GPUFence,
+    fence::Fence,
     render_pass::LoadOp,
     sampler::Filter,
     texture::{BlitRegion, Texture, TextureHandle},
@@ -65,7 +65,6 @@ impl BlitInfo {
         filter: Filter,
         cycle: bool,
     ) -> Self {
-        // SAFETY: `RgbaF32` is `#[repr(C)]` and layout-identical to `SDL_FColor`.
         Self(SDL_GPUBlitInfo {
             source: source.0,
             destination: destination.0,
@@ -93,9 +92,9 @@ impl CommandBuffer {
     }
 
     #[doc(alias = "SDL_SubmitGPUCommandBufferAndAcquireFence")]
-    pub fn submit_fence(self) -> Result<GPUFence> {
+    pub fn submit_fence(self) -> Result<Fence> {
         let fence = unsafe { SDL_SubmitGPUCommandBufferAndAcquireFence(self.handle.as_ptr()) };
-        GPUFence::from_ptr(fence)
+        Fence::from_ptr(fence)
     }
 
     #[doc(alias = "SDL_CancelGPUCommandBuffer")]

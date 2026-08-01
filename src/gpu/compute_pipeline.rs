@@ -49,8 +49,8 @@ impl ComputePipelineCreateInfo {
     }
 }
 
-resource_new_no_drop!(SDL_GPUComputePipeline, GPUComputePipeline);
-impl GPUComputePipeline {
+resource_new_no_drop!(SDL_GPUComputePipeline, ComputePipeline);
+impl ComputePipeline {
     #[doc(alias = "SDL_CreateGPUComputePipeline")]
     pub fn new(device: Ref<Device>, create_info: &ComputePipelineCreateInfo) -> Result<Self> {
         let handle =

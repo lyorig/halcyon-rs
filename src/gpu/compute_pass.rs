@@ -15,7 +15,7 @@ use crate::{Result, resource::Ref, resource_new};
 use super::{
     buffer::{Buffer, StorageBufferReadWriteBinding},
     command_buffer::CommandBuffer,
-    compute_pipeline::GPUComputePipeline,
+    compute_pipeline::ComputePipeline,
     texture::{StorageTextureReadWriteBinding, Texture, TextureSamplerBinding},
 };
 
@@ -42,7 +42,7 @@ impl ComputePass {
 
 impl ComputePassHandle {
     #[doc(alias = "SDL_BindGPUComputePipeline")]
-    pub fn bind(&self, pipeline: Ref<GPUComputePipeline>) {
+    pub fn bind(&self, pipeline: Ref<ComputePipeline>) {
         unsafe { SDL_BindGPUComputePipeline(self.handle.as_ptr(), pipeline.handle.as_ptr()) };
     }
 

@@ -34,7 +34,7 @@ use crate::{
 
 use super::{
     ShaderFormats,
-    fence::GPUFence,
+    fence::Fence,
     texture::{SampleCount, TextureFormat, TextureType, TextureUsageFlags},
 };
 
@@ -124,7 +124,7 @@ impl DeviceHandle {
     }
 
     #[doc(alias = "SDL_WaitForGPUFences")]
-    pub fn wait_fences(&self, wait_all: WaitAll, fences: &[Ref<GPUFence>]) -> Result {
+    pub fn wait_fences(&self, wait_all: WaitAll, fences: &[Ref<Fence>]) -> Result {
         to_result(unsafe {
             SDL_WaitForGPUFences(
                 self.handle.as_ptr(),

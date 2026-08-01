@@ -13,7 +13,7 @@ use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 use crate::{Result, rect::Point, resource::Ref, resource_new_no_drop};
 
 use super::{
-    copy_pass::CopyPass, device::Device, sampler::GPUSampler, transfer_buffer::TransferBuffer,
+    copy_pass::CopyPass, device::Device, sampler::Sampler, transfer_buffer::TransferBuffer,
 };
 
 #[repr(i32)]
@@ -267,7 +267,7 @@ impl TextureLocation {
 #[derive(Clone, Copy)]
 pub struct TextureSamplerBinding(SDL_GPUTextureSamplerBinding);
 impl TextureSamplerBinding {
-    pub fn new(texture: Ref<Texture>, sampler: Ref<GPUSampler>) -> Self {
+    pub fn new(texture: Ref<Texture>, sampler: Ref<Sampler>) -> Self {
         Self(SDL_GPUTextureSamplerBinding {
             texture: texture.handle.as_ptr(),
             sampler: sampler.handle.as_ptr(),

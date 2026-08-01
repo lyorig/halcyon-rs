@@ -83,8 +83,8 @@ impl SamplerCreateInfo {
     }
 }
 
-resource_new_no_drop!(SDL_GPUSampler, GPUSampler);
-impl GPUSampler {
+resource_new_no_drop!(SDL_GPUSampler, Sampler);
+impl Sampler {
     #[doc(alias = "SDL_CreateGPUSampler")]
     pub fn new(device: Ref<Device>, create_info: &SamplerCreateInfo) -> Result<Self> {
         let handle = unsafe { SDL_CreateGPUSampler(device.handle.as_ptr(), &create_info.0) };
