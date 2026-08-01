@@ -29,7 +29,7 @@ use crate::{
     properties::{Properties, PropertiesHandle},
     resource::Ref,
     resource_new,
-    util::to_result,
+    util::{c_ptr_to_str, to_result},
     window::Window,
 };
 
@@ -54,6 +54,43 @@ pub enum SwapchainComposition {
     SdrLinear = SDL_GPUSwapchainComposition::SDR_LINEAR.0,
     HdrExtendedLinear = SDL_GPUSwapchainComposition::HDR_EXTENDED_LINEAR.0,
     Hdr10St2084 = SDL_GPUSwapchainComposition::HDR10_ST2084.0,
+}
+
+#[derive(Clone, Copy)]
+pub struct DeviceProperties<'a> {
+    inner: Ref<'a, Properties>,
+}
+
+impl<'a> DeviceProperties<'a> {
+    fn new(inner: Ref<'a, Properties>) -> Self {
+        Self { inner }
+    }
+
+    fn get(&self, key: *const i8) -> Option<&str> {
+        let s = self.inner.pointer(key, std::ptr::null_mut());
+
+        if s.is_null() {
+            return None;
+        }
+
+        Some(unsafe { c_ptr_to_str(s.cast()) })
+    }
+
+    pub fn device_name(&self) -> Option<&str> {
+        self.get(SDL_PROP_GPU_BUFFER_CREATE_NAME_STRING)
+    }
+
+    pub fn driver_name(&self) -> Option<&str> {
+        self.get(SDL_PROP_GPU_DEVICE_DRIVER_NAME_STRING)
+    }
+
+    pub fn driver_version(&self) -> Option<&str> {
+        self.get(SDL_PROP_GPU_DEVICE_DRIVER_VERSION_STRING)
+    }
+
+    pub fn driver_info(&self) -> Option<&str> {
+        self.get(SDL_PROP_GPU_DEVICE_DRIVER_INFO_STRING)
+    }
 }
 
 resource_new!(SDL_GPUDevice, Device, SDL_DestroyGPUDevice);
@@ -145,12 +182,13 @@ impl DeviceHandle {
     }
 
     #[doc(alias = "SDL_GetGPUDeviceProperties")]
-    pub fn properties(&'_ self) -> Ref<'_, Properties> {
+    pub fn properties(&'_ self) -> DeviceProperties<'_> {
         let id = unsafe { SDL_GetGPUDeviceProperties(self.handle.as_ptr()) };
         let handle =
             PropertiesHandle::from_id(id).expect("A valid GPU device should have properties");
 
-        unsafe { Ref::from_handle(handle) }
+        let foo = unsafe { Ref::from_handle(handle) };
+        DeviceProperties::new(foo)
     }
 
     #[doc(alias = "SDL_GetGPUSwapchainTextureFormat")]
