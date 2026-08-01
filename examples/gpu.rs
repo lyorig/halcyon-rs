@@ -61,10 +61,13 @@ fn run() -> Result {
     let _video = ManuallyDrop::new(Video::new(&ctx)?);
 
     let device = Device::new(ShaderFormats::Msl, EnableDebug::Yes)?;
-    println!("GPU driver: {}", device.driver()?);
+    println!("GPU driver: {}", device.driver().unwrap_or("[unknown]"));
 
     let wnd = Window::new(c"Halcyon GPU", Point::new(800, 600), Default::default())?;
     device.claim_window(wnd.as_ref())?;
+
+    // According to the SDL docs, this combination is always supported.
+    device.set_swapchain_parameters(wnd.as_ref(), SwapchainComposition::Sdr, PresentMode::Vsync)?;
 
     let vs = Shader::new(
         device.as_ref(),
@@ -155,6 +158,39 @@ fn run() -> Result {
 
     let pipeline = GraphicsPipeline::new(device.as_ref(), &pipeline_info)?;
 
+    let cmdbuf = CommandBuffer::new(device.as_ref())?;
+    let (mut width, mut height) = (0u32, 0u32);
+    if let Some(tex) =
+        cmdbuf.wait_for_swapchain_texture(wnd.as_ref(), (Some(&mut width), Some(&mut height)))?
+    {
+        let color_target = ColorTargetInfo::new(
+            tex,
+            0,
+            0,
+            RgbaF32::new(0.0, 0.0, 0.0, 1.0),
+            LoadOp::Clear,
+            StoreOp::Store,
+            None,
+            (0, 0),
+            Cycle::No,
+            CycleResolveTexture::No,
+        );
+
+        let render_pass = RenderPass::new(cmdbuf.as_ref(), &[color_target], None)?;
+
+        pipeline.bind(render_pass.as_ref());
+        render_pass.set_viewport(&Viewport::new(
+            Point::new(0.0, 0.0),
+            Point::new(width as f32, height as f32),
+            (0.0, 1.0),
+        ));
+        render_pass.draw_primitives(3, 1, 0, 0);
+        // `render_pass` is dropped here, ending the render pass.
+    }
+
+    // Submitting the command buffer also presents the swapchain texture.
+    cmdbuf.submit()?;
+
     'frames: loop {
         for event in EventIter::new() {
             if let Event::Quit = event {
@@ -162,38 +198,9 @@ fn run() -> Result {
             }
         }
 
-        let cmdbuf = CommandBuffer::new(device.as_ref())?;
-        let (mut width, mut height) = (0u32, 0u32);
-        if let Some(tex) = cmdbuf
-            .wait_for_swapchain_texture(wnd.as_ref(), (Some(&mut width), Some(&mut height)))?
-        {
-            let color_target = ColorTargetInfo::new(
-                tex,
-                0,
-                0,
-                RgbaF32::new(0.0, 0.0, 0.0, 1.0),
-                LoadOp::Clear,
-                StoreOp::Store,
-                None,
-                (0, 0),
-                Cycle::No,
-                CycleResolveTexture::No,
-            );
-
-            let render_pass = RenderPass::new(cmdbuf.as_ref(), &[color_target], None)?;
-
-            pipeline.bind(render_pass.as_ref());
-            render_pass.set_viewport(&Viewport::new(
-                Point::new(0.0, 0.0),
-                Point::new(width as f32, height as f32),
-                (0.0, 1.0),
-            ));
-            render_pass.draw_primitives(3, 1, 0, 0);
-            // `render_pass` is dropped here, ending the render pass.
-        }
-
-        // Submitting the command buffer also presents the swapchain texture.
-        cmdbuf.submit()?;
+        // Poor man's VSync.
+        use std::{thread::sleep, time::Duration};
+        sleep(Duration::from_millis(10));
     }
 
     device.wait_idle()?;
