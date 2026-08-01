@@ -1,4 +1,4 @@
-#![windows_subsystem = "windows"]
+// #![windows_subsystem = "windows"]
 
 use std::mem::ManuallyDrop;
 
@@ -34,20 +34,20 @@ fn run() -> Result {
     let props = device.properties();
 
     println!(
-        "Device name:\t{}",
+        "Device name:    {}",
         props.device_name().unwrap_or("[unavailable]")
     );
 
     println!(
-        "Driver name:\t{}",
+        "Driver name:    {}",
         props.driver_name().unwrap_or("[unavailable]")
     );
     println!(
-        "Driver version:\t{}",
+        "Driver version: {}",
         props.driver_version().unwrap_or("[unavailable]")
     );
     println!(
-        "Driver info:\t{}",
+        "Driver info:    {}",
         props.driver_info().unwrap_or("[unavailable]")
     );
 

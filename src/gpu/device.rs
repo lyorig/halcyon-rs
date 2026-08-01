@@ -77,7 +77,7 @@ impl<'a> DeviceProperties<'a> {
     }
 
     pub fn device_name(&self) -> Option<&str> {
-        self.get(SDL_PROP_GPU_BUFFER_CREATE_NAME_STRING)
+        self.get(SDL_PROP_GPU_DEVICE_NAME_STRING)
     }
 
     pub fn driver_name(&self) -> Option<&str> {
