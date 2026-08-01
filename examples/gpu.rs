@@ -26,13 +26,11 @@ cfg_select! {
     }
 }
 
-const SHADER_FMTS: ShaderFormats = SHADER_FMT.as_mask();
-
 fn run() -> Result {
     let ctx = Context::new();
     let _video = ManuallyDrop::new(Video::new(&ctx)?);
 
-    let device = Device::new(SHADER_FMTS, EnableDebug::Yes)?;
+    let device = Device::new(SHADER_FMT.as_mask(), EnableDebug::Yes)?;
     println!("GPU driver: {}", device.driver().unwrap_or("[unknown]"));
 
     let wnd = Window::new(c"Halcyon GPU", Point::new(800, 600), Default::default())?;
@@ -151,7 +149,6 @@ fn run() -> Result {
             (0.0, 1.0),
         ));
         render_pass.draw_primitives(3, 1, 0, 0);
-        // `render_pass` is dropped here, ending the render pass.
     }
 
     // Submitting the command buffer also presents the swapchain texture.
@@ -181,6 +178,12 @@ fn run() -> Result {
 
 fn main() {
     if let Err(e) = run() {
-        eprintln!("An unexpected error occurred: \"{e}\"");
+        // println!() isn't enough, since #![windows_subsystem = "windows"]
+        // prevents your usual methods of console output from working.
+        // SDL's logging API seemingly works, though.
+        use sdl3_sys::log::SDL_Log;
+
+        let err = e.into_cstring();
+        unsafe { SDL_Log(c"An unexpected error occurred: %s".as_ptr(), err.as_ptr()) };
     }
 }
