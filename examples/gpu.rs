@@ -1,6 +1,3 @@
-#[cfg(not(target_os = "macos"))]
-compile_error!("Sorry, this example currently only works on macOS.");
-
 use std::mem::ManuallyDrop;
 
 use halcyon::{
