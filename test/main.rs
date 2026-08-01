@@ -10,6 +10,7 @@ use halcyon::{
 
 mod clipboard;
 mod color;
+mod error;
 mod event;
 mod ttf;
 
