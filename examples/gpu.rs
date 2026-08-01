@@ -1,3 +1,6 @@
+#[cfg(not(target_os = "macos"))]
+compile_error!("Sorry, this example currently only works on macOS.");
+
 use std::mem::ManuallyDrop;
 
 use halcyon::{
@@ -11,8 +14,7 @@ use halcyon::{
     window::Window,
 };
 
-// Metal shaders, compiled at runtime by SDL (the device is created with the
-// Metal backend below).
+// Metal shaders, compiled at runtime by SDL.
 const VS_MSL: &[u8] = br#"
 #include <metal_stdlib>
 using namespace metal;
@@ -78,6 +80,7 @@ fn run() -> Result {
             (0, 0, 0),
         ),
     )?;
+
     let fs = Shader::new(
         device.as_ref(),
         &ShaderCreateInfo::new(
@@ -153,98 +156,6 @@ fn run() -> Result {
     );
 
     let pipeline = GraphicsPipeline::new(device.as_ref(), &pipeline_info)?;
-
-    // Render one frame offscreen and read the pixels back, as a deterministic
-    // check that the pipeline actually draws the triangle.
-    const OFFSCREEN_W: u32 = 320;
-    const OFFSCREEN_H: u32 = 240;
-
-    let offscreen = Texture::new(
-        device.as_ref(),
-        &TextureCreateInfo::new(
-            TextureType::_2d,
-            device.swapchain_texture_format(wnd.as_ref()),
-            TextureUsageFlags::ColorTarget,
-            Point::new(OFFSCREEN_W, OFFSCREEN_H),
-            1,
-            1,
-            SampleCount::One,
-        ),
-    )?;
-    let tb = TransferBuffer::new(
-        device.as_ref(),
-        &TransferBufferCreateInfo::new(
-            TransferBufferUsage::Download,
-            OFFSCREEN_W * OFFSCREEN_H * 4,
-        ),
-    )?;
-
-    {
-        let cmdbuf = CommandBuffer::new(device.as_ref())?;
-        let color_target = ColorTargetInfo::new(
-            offscreen.as_ref(),
-            0,
-            0,
-            RgbaF32::new(0.0, 0.0, 0.0, 1.0),
-            LoadOp::Clear,
-            StoreOp::Store,
-            None,
-            (0, 0),
-            Cycle::No,
-            CycleResolveTexture::No,
-        );
-        {
-            let render_pass = RenderPass::new(cmdbuf.as_ref(), &[color_target], None)?;
-            pipeline.bind(render_pass.as_ref());
-            render_pass.set_viewport(&Viewport::new(
-                Point::new(0.0, 0.0),
-                Point::new(OFFSCREEN_W as f32, OFFSCREEN_H as f32),
-                (0.0, 1.0),
-            ));
-            render_pass.draw_primitives(3, 1, 0, 0);
-            // `render_pass` is dropped here, ending the render pass.
-        }
-
-        {
-            let copy_pass = CopyPass::new(cmdbuf.as_ref())?;
-            offscreen.download(
-                copy_pass.as_ref(),
-                &TextureRegion::new(
-                    offscreen.as_ref(),
-                    0,
-                    0,
-                    (0, 0, 0),
-                    (OFFSCREEN_W, OFFSCREEN_H, 1),
-                ),
-                &TextureTransferInfo::new(tb.as_ref(), 0, OFFSCREEN_W, OFFSCREEN_H),
-            );
-            // `copy_pass` is dropped here, ending the copy pass.
-        }
-
-        let fence = cmdbuf.submit_fence()?;
-        device.wait_fences(WaitAll::Yes, &[fence.as_ref()])?;
-        fence.drop(device.as_ref());
-    }
-
-    let ptr = tb.map(device.as_ref(), Cycle::No)?;
-    let data = unsafe {
-        std::slice::from_raw_parts(ptr.as_ptr(), (OFFSCREEN_W * OFFSCREEN_H * 4) as usize)
-    };
-
-    let colored = data
-        .chunks_exact(4)
-        .filter(|px| (px[0] | px[1] | px[2]) > 0)
-        .count();
-    println!(
-        "Offscreen check: wrote target/triangle.ppm ({}x{}), {colored}/{} colored pixels",
-        OFFSCREEN_W,
-        OFFSCREEN_H,
-        data.len() / 4,
-    );
-
-    tb.unmap(device.as_ref());
-    tb.drop(device.as_ref());
-    offscreen.drop(device.as_ref());
 
     'frames: loop {
         for event in EventIter::new() {
