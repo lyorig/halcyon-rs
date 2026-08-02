@@ -7,12 +7,8 @@ use sdl3_sys::properties::*;
 
 use crate::{Result, error::Error, resource::Resource, util::to_result};
 
-pub struct Properties {
-    pub(crate) inner: PropertiesHandle,
-}
-
 #[derive(Clone, Copy)]
-#[doc(alias = "SDL_Properties")]
+#[doc(alias = "SDL_PropertiesID")]
 pub struct PropertiesHandle {
     pub(crate) handle: NonZero<u32>,
 }
@@ -21,58 +17,7 @@ impl PropertiesHandle {
     pub(crate) fn from_id(handle: SDL_PropertiesID) -> Option<Self> {
         NonZero::new(handle.0).map(|handle| Self { handle })
     }
-}
 
-impl Properties {
-    pub(crate) fn from_id(handle: SDL_PropertiesID) -> Result<Self> {
-        match NonZero::new(handle.0) {
-            Some(handle) => Ok(Self {
-                inner: PropertiesHandle { handle },
-            }),
-            None => Err(Error::current()),
-        }
-    }
-}
-
-impl std::ops::Deref for Properties {
-    type Target = PropertiesHandle;
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-impl std::ops::DerefMut for Properties {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.inner
-    }
-}
-
-impl Resource for Properties {
-    type Handle = PropertiesHandle;
-    unsafe fn as_handle(&self) -> Self::Handle {
-        self.inner
-    }
-}
-
-impl Drop for Properties {
-    #[doc(alias = "SDL_DestroyProperties")]
-    fn drop(&mut self) {
-        let id = SDL_PropertiesID::new(self.inner.handle.get());
-        unsafe { SDL_DestroyProperties(id) }
-    }
-}
-
-impl Properties {
-    #[doc(alias = "SDL_CreateProperties")]
-    pub(crate) fn new() -> Result<Self> {
-        match PropertiesHandle::from_id(unsafe { SDL_CreateProperties() }) {
-            Some(inner) => Ok(Self { inner }),
-            None => Err(Error::current()),
-        }
-    }
-}
-
-impl PropertiesHandle {
     pub fn id(&self) -> SDL_PropertiesID {
         SDL_PropertiesID::new(self.handle.get())
     }
@@ -125,5 +70,56 @@ impl PropertiesHandle {
     #[doc(alias = "SDL_SetBooleanProperty")]
     pub fn set_bool(&mut self, key: *const c_char, value: bool) -> Result {
         to_result(unsafe { SDL_SetBooleanProperty(self.id(), key, value) })
+    }
+}
+
+#[doc(alias = "SDL_PropertiesID")]
+pub struct Properties {
+    pub(crate) inner: PropertiesHandle,
+}
+
+impl Properties {
+    pub(crate) fn from_id(handle: SDL_PropertiesID) -> Result<Self> {
+        match NonZero::new(handle.0) {
+            Some(handle) => Ok(Self {
+                inner: PropertiesHandle { handle },
+            }),
+            None => Err(Error::current()),
+        }
+    }
+
+    #[doc(alias = "SDL_CreateProperties")]
+    pub(crate) fn new() -> Result<Self> {
+        match PropertiesHandle::from_id(unsafe { SDL_CreateProperties() }) {
+            Some(inner) => Ok(Self { inner }),
+            None => Err(Error::current()),
+        }
+    }
+}
+
+impl std::ops::Deref for Properties {
+    type Target = PropertiesHandle;
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl std::ops::DerefMut for Properties {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
+
+impl Resource for Properties {
+    type Handle = PropertiesHandle;
+    unsafe fn as_handle(&self) -> Self::Handle {
+        self.inner
+    }
+}
+
+impl Drop for Properties {
+    #[doc(alias = "SDL_DestroyProperties")]
+    fn drop(&mut self) {
+        unsafe { SDL_DestroyProperties(self.id()) }
     }
 }
