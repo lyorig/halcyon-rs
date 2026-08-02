@@ -1,33 +1,31 @@
 //! Implementation checklist ([source](https://wiki.libsdl.org/SDL3/CategoryLog)):
-//! - [ ] SDL_GetDefaultLogOutputFunction
-//! - [ ] SDL_GetLogOutputFunction
 //! - [x] SDL_GetLogPriority
 //! - [x] SDL_Log
 //! - [x] SDL_LogCritical
 //! - [x] SDL_LogDebug
 //! - [x] SDL_LogError
 //! - [x] SDL_LogInfo
-//! - [x] SDL_LogMessage
-//! - [ ] SDL_LogMessageV
+//! - [ ] SDL_LogMessage
 //! - [x] SDL_LogTrace
 //! - [x] SDL_LogVerbose
 //! - [x] SDL_LogWarn
 //! - [x] SDL_ResetLogPriorities
-//! - [ ] SDL_SetLogOutputFunction
 //! - [x] SDL_SetLogPriorities
 //! - [x] SDL_SetLogPriority
-//! - [x] SDL_SetLogPriorityPrefix
+//! - [ ] SDL_SetLogPriorityPrefix
+//!
+//! Not planned for implementation:
+//! - SDL_GetDefaultLogOutputFunction
+//! - SDL_GetLogOutputFunction
+//! - SDL_LogMessageV
+//! - SDL_SetLogOutputFunction
 
-use std::{
-    ffi::{CStr, CString},
-    fmt::Arguments,
-};
+use std::{ffi::CString, fmt::Arguments};
 
 use sdl3_sys::log::*;
 
-use crate::{Result, util::to_result};
-
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_LogPriority")]
 pub enum Priority {
     Trace = SDL_LogPriority::TRACE.0,
@@ -51,50 +49,40 @@ impl From<Priority> for SDL_LogPriority {
     }
 }
 
-/// A log category. Unlike most SDL enums, `SDL_LogCategory` is an open set:
-/// values at and above [`Self::CUSTOM`] are available for application-defined
-/// categories, so this is a newtype rather than a closed enum.
-#[repr(transparent)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_LogCategory")]
-pub struct Category(pub i32);
-
-impl Category {
-    pub const APPLICATION: Self = Self(SDL_LogCategory::APPLICATION.0);
-    pub const ERROR: Self = Self(SDL_LogCategory::ERROR.0);
-    pub const ASSERT: Self = Self(SDL_LogCategory::ASSERT.0);
-    pub const SYSTEM: Self = Self(SDL_LogCategory::SYSTEM.0);
-    pub const AUDIO: Self = Self(SDL_LogCategory::AUDIO.0);
-    pub const VIDEO: Self = Self(SDL_LogCategory::VIDEO.0);
-    pub const RENDER: Self = Self(SDL_LogCategory::RENDER.0);
-    pub const INPUT: Self = Self(SDL_LogCategory::INPUT.0);
-    pub const TEST: Self = Self(SDL_LogCategory::TEST.0);
-    pub const GPU: Self = Self(SDL_LogCategory::GPU.0);
+pub enum Category {
+    Application = SDL_LogCategory::APPLICATION.0,
+    Error = SDL_LogCategory::ERROR.0,
+    Assert = SDL_LogCategory::ASSERT.0,
+    System = SDL_LogCategory::SYSTEM.0,
+    Audio = SDL_LogCategory::AUDIO.0,
+    Video = SDL_LogCategory::VIDEO.0,
+    Render = SDL_LogCategory::RENDER.0,
+    Input = SDL_LogCategory::INPUT.0,
+    Test = SDL_LogCategory::TEST.0,
+    Gpu = SDL_LogCategory::GPU.0,
 }
 
-// SDL's log functions are variadic; Rust cannot pass variadic arguments, so
-// messages are formatted on the Rust side and passed as the sole argument.
-// Note that SDL still interprets the message as a printf-style format string,
-// so literal `%` characters must be escaped as `%%`.
+// TODO: Cleanup args to escape `%`.
+fn args2cstr(args: Arguments) -> CString {
+    let s = args.to_string();
+    unsafe { CString::from_vec_unchecked(s.into_bytes()) }
+}
+
 #[doc(alias = "SDL_Log")]
 pub fn log(args: Arguments) {
-    let s = args.to_string();
-    let cs = unsafe { CString::from_vec_unchecked(s.into_bytes()) };
+    let cs = args2cstr(args);
     unsafe { SDL_Log(cs.as_ptr()) };
-}
-
-#[macro_export]
-macro_rules! log {
-    ($($arg:tt)*) => {
-        $crate::log::log(format_args!($($arg)*));
-    };
 }
 
 macro_rules! log_for_priority {
     ($name:ident, $sdl:ident, $alias:literal) => {
         #[doc(alias = $alias)]
-        pub fn $name(category: Category, msg: &CStr) {
-            unsafe { $sdl(category.0, msg.as_ptr()) }
+        pub fn $name(category: Category, args: Arguments) {
+            let cs = args2cstr(args);
+            unsafe { $sdl(category as _, cs.as_ptr()) };
         }
     };
 }
@@ -107,14 +95,65 @@ log_for_priority!(warn, SDL_LogWarn, "SDL_LogWarn");
 log_for_priority!(error, SDL_LogError, "SDL_LogError");
 log_for_priority!(critical, SDL_LogCritical, "SDL_LogCritical");
 
-#[doc(alias = "SDL_LogMessage")]
-pub fn log_message(category: Category, priority: Priority, msg: &CStr) {
-    unsafe { SDL_LogMessage(category.0, priority.into(), msg.as_ptr()) }
+#[macro_export]
+macro_rules! log {
+    ($($arg:tt)*) => {
+        $crate::log::log(format_args!($($arg)*));
+    };
+}
+
+#[macro_export]
+macro_rules! log_trace {
+    ($cat:expr, $($arg:tt)*) => {
+        $crate::log::trace($cat, format_args!($($arg)*));
+    };
+}
+
+#[macro_export]
+macro_rules! log_verbose {
+    ($cat:expr, $($arg:tt)*) => {
+        $crate::log::verbose($cat, format_args!($($arg)*));
+    };
+}
+
+#[macro_export]
+macro_rules! log_debug {
+    ($cat:expr, $($arg:tt)*) => {
+        $crate::log::debug($cat, format_args!($($arg)*));
+    };
+}
+
+#[macro_export]
+macro_rules! log_info {
+    ($cat:expr, $($arg:tt)*) => {
+        $crate::log::info($cat, format_args!($($arg)*));
+    };
+}
+
+#[macro_export]
+macro_rules! log_warn {
+    ($cat:expr, $($arg:tt)*) => {
+        $crate::log::warn($cat, format_args!($($arg)*));
+    };
+}
+
+#[macro_export]
+macro_rules! log_error {
+    ($cat:expr, $($arg:tt)*) => {
+        $crate::log::error($cat, format_args!($($arg)*));
+    };
+}
+
+#[macro_export]
+macro_rules! log_critical {
+    ($cat:expr, $($arg:tt)*) => {
+        $crate::log::critical($cat, format_args!($($arg)*));
+    };
 }
 
 #[doc(alias = "SDL_SetLogPriority")]
 pub fn set_priority(category: Category, priority: Priority) {
-    unsafe { SDL_SetLogPriority(category.0, priority.into()) }
+    unsafe { SDL_SetLogPriority(category as _, priority.into()) }
 }
 
 #[doc(alias = "SDL_SetLogPriorities")]
@@ -124,15 +163,10 @@ pub fn set_priorities(priority: Priority) {
 
 #[doc(alias = "SDL_GetLogPriority")]
 pub fn priority(category: Category) -> Priority {
-    unsafe { SDL_GetLogPriority(category.0) }.into()
+    unsafe { SDL_GetLogPriority(category as _) }.into()
 }
 
 #[doc(alias = "SDL_ResetLogPriorities")]
 pub fn reset_priorities() {
     unsafe { SDL_ResetLogPriorities() }
-}
-
-#[doc(alias = "SDL_SetLogPriorityPrefix")]
-pub fn set_priority_prefix(priority: Priority, prefix: &CStr) -> Result {
-    to_result(unsafe { SDL_SetLogPriorityPrefix(priority.into(), prefix.as_ptr()) })
 }
