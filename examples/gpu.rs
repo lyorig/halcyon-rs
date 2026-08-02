@@ -28,15 +28,12 @@ cfg_select! {
 }
 
 fn prop_enum(r: Ref<'_, Properties>, n: &CStr) {
-    use sdl3_sys::log::SDL_Log;
     let value = r.string(n, c"");
-    unsafe {
-        SDL_Log(
-            c"Property \"%s\" = \"%s\"".as_ptr(),
-            n.as_ptr(),
-            value.as_ptr(),
-        )
-    };
+    halcyon::log!(
+        "Property {} = {}",
+        n.to_string_lossy(),
+        value.to_string_lossy()
+    );
 }
 
 fn run() -> Result {
