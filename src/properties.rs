@@ -5,7 +5,12 @@ use std::{
 
 use sdl3_sys::properties::*;
 
-use crate::{Result, error::Error, resource::Resource, util::to_result};
+use crate::{
+    Result,
+    error::Error,
+    resource::{Ref, Resource},
+    util::to_result,
+};
 
 #[derive(Clone, Copy)]
 #[doc(alias = "SDL_PropertiesID")]
@@ -71,6 +76,23 @@ impl PropertiesHandle {
     pub fn set_bool(&mut self, key: *const c_char, value: bool) -> Result {
         to_result(unsafe { SDL_SetBooleanProperty(self.id(), key, value) })
     }
+
+    #[doc(alias = "SDL_EnumerateProperties")]
+    pub fn enumerate(&self, f: fn(Ref<'_, Properties>, *const i8)) -> Result {
+        use std::ffi::c_void;
+
+        // This is the function that gets passed to `SDL_EnumerateProperties`.
+        // `f` is smuggled in `userdata`.
+        unsafe extern "C" fn wrap(userdata: *mut c_void, props: SDL_PropertiesID, name: *const i8) {
+            let f: fn(Ref<'_, Properties>, *const i8) = unsafe { std::mem::transmute(userdata) };
+            let r: Ref<'_, Properties> =
+                unsafe { Ref::from_handle(PropertiesHandle::from_id(props).unwrap()) };
+
+            f(r, name);
+        }
+
+        to_result(unsafe { SDL_EnumerateProperties(self.id(), Some(wrap), f as _) })
+    }
 }
 
 #[doc(alias = "SDL_PropertiesID")]
@@ -89,7 +111,7 @@ impl Properties {
     }
 
     #[doc(alias = "SDL_CreateProperties")]
-    pub(crate) fn new() -> Result<Self> {
+    pub fn new() -> Result<Self> {
         match PropertiesHandle::from_id(unsafe { SDL_CreateProperties() }) {
             Some(inner) => Ok(Self { inner }),
             None => Err(Error::current()),

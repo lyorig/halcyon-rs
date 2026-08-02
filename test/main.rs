@@ -12,6 +12,7 @@ mod clipboard;
 mod color;
 mod error;
 mod event;
+mod properties;
 mod ttf;
 
 /// Basic initialization stuff.

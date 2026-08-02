@@ -11,7 +11,6 @@ use sdl3_sys::{
 
 use crate::{sdl_string::SdlString, subsystem::Subsystem, util::c_ptr_to_str};
 
-mod properties;
 mod sdl_box;
 
 pub mod clipboard;
@@ -22,6 +21,7 @@ pub mod event;
 pub mod gpu;
 pub mod keyboard;
 pub mod msgbox;
+pub mod properties;
 pub mod rect;
 pub mod renderer;
 pub mod resource;
