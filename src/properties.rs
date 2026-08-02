@@ -1,5 +1,5 @@
 use std::{
-    ffi::{CStr, c_char, c_void},
+    ffi::{CStr, c_void},
     num::NonZero,
 };
 
@@ -28,70 +28,82 @@ impl PropertiesHandle {
     }
 
     #[doc(alias = "SDL_GetNumberProperty")]
-    pub fn number(&self, key: *const c_char, default: i64) -> i64 {
-        unsafe { SDL_GetNumberProperty(self.id(), key, default) }
+    pub fn number(&self, key: &CStr, default: i64) -> i64 {
+        unsafe { SDL_GetNumberProperty(self.id(), key.as_ptr(), default) }
     }
 
     #[doc(alias = "SDL_SetNumberProperty")]
-    pub fn set_number(&mut self, key: *const c_char, value: i64) -> Result {
-        to_result(unsafe { SDL_SetNumberProperty(self.id(), key, value) })
+    pub fn set_number(&mut self, key: &CStr, value: i64) -> Result {
+        to_result(unsafe { SDL_SetNumberProperty(self.id(), key.as_ptr(), value) })
     }
 
     #[doc(alias = "SDL_GetFloatProperty")]
-    pub fn float(&self, key: *const c_char, default: f32) -> f32 {
-        unsafe { SDL_GetFloatProperty(self.id(), key, default) }
+    pub fn float(&self, key: &CStr, default: f32) -> f32 {
+        unsafe { SDL_GetFloatProperty(self.id(), key.as_ptr(), default) }
     }
 
     #[doc(alias = "SDL_SetFloatProperty")]
-    pub fn set_float(&mut self, key: *const c_char, value: f32) -> Result {
-        to_result(unsafe { SDL_SetFloatProperty(self.id(), key, value) })
+    pub fn set_float(&mut self, key: &CStr, value: f32) -> Result {
+        to_result(unsafe { SDL_SetFloatProperty(self.id(), key.as_ptr(), value) })
     }
 
     #[doc(alias = "SDL_GetPointerProperty")]
-    pub fn pointer(&self, key: *const c_char, default: *mut c_void) -> *mut c_void {
-        unsafe { SDL_GetPointerProperty(self.id(), key, default) }
+    pub fn pointer(&self, key: &CStr, default: *mut c_void) -> *mut c_void {
+        unsafe { SDL_GetPointerProperty(self.id(), key.as_ptr(), default) }
     }
 
     #[doc(alias = "SDL_SetPointerProperty")]
-    pub fn set_pointer(&mut self, key: *const c_char, value: *mut c_void) -> Result {
-        to_result(unsafe { SDL_SetPointerProperty(self.id(), key, value) })
+    pub fn set_pointer(&mut self, key: &CStr, value: *mut c_void) -> Result {
+        to_result(unsafe { SDL_SetPointerProperty(self.id(), key.as_ptr(), value) })
     }
 
     #[doc(alias = "SDL_GetStringProperty")]
-    pub fn string(&self, key: *const c_char, default: &CStr) -> &CStr {
-        unsafe { CStr::from_ptr(SDL_GetStringProperty(self.id(), key, default.as_ptr())) }
+    pub fn string(&self, key: &CStr, default: &CStr) -> &CStr {
+        unsafe {
+            CStr::from_ptr(SDL_GetStringProperty(
+                self.id(),
+                key.as_ptr(),
+                default.as_ptr(),
+            ))
+        }
     }
 
     #[doc(alias = "SDL_SetStringProperty")]
-    pub fn set_string(&mut self, key: *const c_char, value: &CStr) -> Result {
-        to_result(unsafe { SDL_SetStringProperty(self.id(), key, value.as_ptr()) })
+    pub fn set_string(&mut self, key: &CStr, value: &CStr) -> Result {
+        to_result(unsafe { SDL_SetStringProperty(self.id(), key.as_ptr(), value.as_ptr()) })
     }
 
     #[doc(alias = "SDL_GetBooleanProperty")]
-    pub fn bool(&self, key: *const c_char, default: bool) -> bool {
-        unsafe { SDL_GetBooleanProperty(self.id(), key, default) }
+    pub fn bool(&self, key: &CStr, default: bool) -> bool {
+        unsafe { SDL_GetBooleanProperty(self.id(), key.as_ptr(), default) }
     }
 
     #[doc(alias = "SDL_SetBooleanProperty")]
-    pub fn set_bool(&mut self, key: *const c_char, value: bool) -> Result {
-        to_result(unsafe { SDL_SetBooleanProperty(self.id(), key, value) })
+    pub fn set_bool(&mut self, key: &CStr, value: bool) -> Result {
+        to_result(unsafe { SDL_SetBooleanProperty(self.id(), key.as_ptr(), value) })
     }
 
     #[doc(alias = "SDL_EnumerateProperties")]
-    pub fn enumerate(&self, f: fn(Ref<'_, Properties>, *const i8)) -> Result {
+    pub fn enumerate<F: FnMut(Ref<'_, Properties>, &CStr)>(&self, f: F) -> Result {
         use std::ffi::c_void;
 
-        // This is the function that gets passed to `SDL_EnumerateProperties`.
-        // `f` is smuggled in `userdata`.
+        // SDL invokes the callback synchronously inside `SDL_EnumerateProperties`,
+        // so the closure can live in a `Box` on the stack for the duration of the
+        // call, with the `Box` itself handed to SDL as the opaque `userdata`
+        // pointer. This only involves thin pointer casts, unlike the previous
+        // version which transmuted between function and data pointers.
         unsafe extern "C" fn wrap(userdata: *mut c_void, props: SDL_PropertiesID, name: *const i8) {
-            let f: fn(Ref<'_, Properties>, *const i8) = unsafe { std::mem::transmute(userdata) };
-            let r: Ref<'_, Properties> =
-                unsafe { Ref::from_handle(PropertiesHandle::from_id(props).unwrap()) };
+            let f = unsafe { &mut *userdata.cast::<Box<dyn FnMut(Ref<'_, Properties>, &CStr)>>() };
+            let handle = unsafe { PropertiesHandle::from_id(props).unwrap_unchecked() };
+            let r: Ref<'_, Properties> = unsafe { Ref::from_handle(handle) };
 
-            f(r, name);
+            f(r, unsafe { CStr::from_ptr(name) });
         }
 
-        to_result(unsafe { SDL_EnumerateProperties(self.id(), Some(wrap), f as _) })
+        let mut f: Box<dyn FnMut(Ref<'_, Properties>, &CStr)> = Box::new(f);
+        let userdata = std::ptr::from_mut(&mut f).cast::<c_void>();
+
+        to_result(unsafe { SDL_EnumerateProperties(self.id(), Some(wrap), userdata) })
     }
 }
 

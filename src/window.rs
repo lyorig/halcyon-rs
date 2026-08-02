@@ -232,10 +232,10 @@ impl WindowBuilder {
     }
 
     pub fn parent(&mut self, value: Ref<Window>) -> &mut Self {
-        _ = self.inner.set_pointer(
-            SDL_PROP_WINDOW_CREATE_PARENT_POINTER,
-            value.handle.as_ptr() as *mut c_void,
-        );
+        let cstr = unsafe { CStr::from_ptr(SDL_PROP_WINDOW_CREATE_PARENT_POINTER) };
+        _ = self
+            .inner
+            .set_pointer(cstr, value.handle.as_ptr() as *mut c_void);
         self
     }
 
@@ -244,9 +244,8 @@ impl WindowBuilder {
     }
 
     pub fn title(&mut self, value: &CStr) -> &mut Self {
-        _ = self
-            .inner
-            .set_string(SDL_PROP_WINDOW_CREATE_TITLE_STRING, value);
+        let cstr = unsafe { CStr::from_ptr(SDL_PROP_WINDOW_CREATE_TITLE_STRING) };
+        _ = self.inner.set_string(cstr, value);
         self
     }
 
@@ -297,12 +296,12 @@ impl WindowBuilder {
     }
 
     fn set_bool(&mut self, key: *const c_char, value: bool) -> &mut Self {
-        _ = self.inner.set_bool(key, value);
+        _ = self.inner.set_bool(unsafe { CStr::from_ptr(key) }, value);
         self
     }
 
     fn set_number(&mut self, key: *const c_char, value: i64) -> &mut Self {
-        _ = self.inner.set_number(key, value);
+        _ = self.inner.set_number(unsafe { CStr::from_ptr(key) }, value);
         self
     }
 }

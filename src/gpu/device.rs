@@ -18,7 +18,7 @@
 //! - [x] SDL_WindowSupportsGPUSwapchainComposition
 //! - [x] SDL_GetGPUShaderFormats
 
-use std::ffi::CStr;
+use std::{ffi::CStr, ops::Deref};
 
 use sdl3_sys::gpu::*;
 
@@ -67,7 +67,8 @@ impl<'a> DeviceProperties<'a> {
     }
 
     fn get(&self, key: *const i8) -> Option<&str> {
-        let s = self.inner.pointer(key, std::ptr::null_mut());
+        let cstr = unsafe { CStr::from_ptr(key) };
+        let s = self.inner.pointer(cstr, std::ptr::null_mut());
 
         if s.is_null() {
             return None;
@@ -90,6 +91,14 @@ impl<'a> DeviceProperties<'a> {
 
     pub fn driver_info(&self) -> Option<&str> {
         self.get(SDL_PROP_GPU_DEVICE_DRIVER_INFO_STRING)
+    }
+}
+
+impl Deref for DeviceProperties<'_> {
+    type Target = PropertiesHandle;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
     }
 }
 

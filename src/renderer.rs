@@ -108,45 +108,41 @@ impl RendererBuilder {
     }
 
     pub fn name(&mut self, value: &CStr) -> &mut Self {
-        _ = self
-            .inner
-            .set_string(SDL_PROP_RENDERER_CREATE_NAME_STRING, value);
+        let cstr = unsafe { CStr::from_ptr(SDL_PROP_RENDERER_CREATE_NAME_STRING) };
+        _ = self.inner.set_string(cstr, value);
 
         self
     }
 
     /// Private and only used in `RendererBuilder::new()`.
     fn window(&mut self, value: Ref<Window>) -> &mut Self {
-        _ = self.inner.set_pointer(
-            SDL_PROP_RENDERER_CREATE_WINDOW_POINTER,
-            value.handle.as_ptr() as *mut c_void,
-        );
+        let cstr = unsafe { CStr::from_ptr(SDL_PROP_RENDERER_CREATE_WINDOW_POINTER) };
+        _ = self
+            .inner
+            .set_pointer(cstr, value.handle.as_ptr() as *mut c_void);
 
         self
     }
 
     pub fn surface(&mut self, value: Ref<Surface>) -> &mut Self {
-        _ = self.inner.set_pointer(
-            SDL_PROP_RENDERER_CREATE_SURFACE_POINTER,
-            value.handle.as_ptr() as *mut c_void,
-        );
+        let cstr = unsafe { CStr::from_ptr(SDL_PROP_RENDERER_CREATE_SURFACE_POINTER) };
+        _ = self
+            .inner
+            .set_pointer(cstr, value.handle.as_ptr() as *mut c_void);
 
         self
     }
 
     pub fn colorspace(&mut self, value: SDL_Colorspace) -> &mut Self {
-        _ = self.inner.set_number(
-            SDL_PROP_RENDERER_CREATE_OUTPUT_COLORSPACE_NUMBER,
-            value.0.into(),
-        );
+        let cstr = unsafe { CStr::from_ptr(SDL_PROP_RENDERER_CREATE_OUTPUT_COLORSPACE_NUMBER) };
+        _ = self.inner.set_number(cstr, value.0.into());
 
         self
     }
 
     pub fn vsync(&mut self, value: i64) -> &mut Self {
-        _ = self
-            .inner
-            .set_number(SDL_PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER, value);
+        let cstr = unsafe { CStr::from_ptr(SDL_PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER) };
+        _ = self.inner.set_number(cstr, value);
 
         self
     }

@@ -31,25 +31,14 @@ fn run() -> Result {
     let _video = ManuallyDrop::new(Video::new(&ctx)?);
 
     let device = Device::new(SHADER_FMT.as_mask(), EnableDebug::No)?;
-    let props = device.properties();
-
-    println!(
-        "Device name:    {}",
-        props.device_name().unwrap_or("[unavailable]")
-    );
-
-    println!(
-        "Driver name:    {}",
-        props.driver_name().unwrap_or("[unavailable]")
-    );
-    println!(
-        "Driver version: {}",
-        props.driver_version().unwrap_or("[unavailable]")
-    );
-    println!(
-        "Driver info:    {}",
-        props.driver_info().unwrap_or("[unavailable]")
-    );
+    _ = device.properties().enumerate(|r, n| {
+        let value = r.string(n, c"");
+        println!(
+            "Property \"{}\" = \"{}\"",
+            n.to_string_lossy(),
+            value.to_string_lossy()
+        );
+    });
 
     let wnd = Window::new(c"Halcyon GPU", Point::new(800, 600), Default::default())?;
     device.claim_window(wnd.as_ref())?;
