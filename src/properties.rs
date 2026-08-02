@@ -1,5 +1,33 @@
+//! API checklist [source](https://wiki.libsdl.org/SDL3/CategoryProperties):
+//! - [x] SDL_ClearProperty
+//! - [x] SDL_CopyProperties
+//! - [x] SDL_CreateProperties
+//! - [x] SDL_DestroyProperties
+//! - [x] SDL_EnumerateProperties
+//! - [x] SDL_GetBooleanProperty
+//! - [x] SDL_GetFloatProperty
+//! - [x] SDL_GetGlobalProperties
+//! - [x] SDL_GetNumberProperty
+//! - [x] SDL_GetPointerProperty
+//! - [ ] SDL_GetPropertyType
+//! - [x] SDL_GetStringProperty
+//! - [x] SDL_HasProperty
+//! - [x] SDL_SetBooleanProperty
+//! - [x] SDL_SetFloatProperty
+//! - [x] SDL_SetNumberProperty
+//! - [x] SDL_SetPointerProperty
+//! - [x] SDL_SetStringProperty
+//!
+//! Not planned/unavailable for implementation:
+//! - SDL_GetNumProperties (since SDL 3.6.0)
+//! - SDL_LockProperties
+//! - SDL_SetPointerPropertyWithCleanup
+//! - SDL_UnlockProperties
+
 use std::{
     ffi::{CStr, c_void},
+    fmt::Display,
+    hint::unreachable_unchecked,
     num::NonZero,
 };
 
@@ -9,8 +37,32 @@ use crate::{
     Result,
     error::Error,
     resource::{Ref, Resource},
-    util::to_result,
+    util::{c_ptr_to_str, to_result},
 };
+
+#[derive(Clone, Copy)]
+pub enum Property {
+    Pointer(*mut c_void),
+    String(*const i8),
+    Number(i64),
+    Float(f32),
+    Bool(bool),
+}
+
+impl Display for Property {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Property::Pointer(p) => write!(f, "{p:p}"),
+            Property::String(s) => {
+                let str = unsafe { c_ptr_to_str(*s) };
+                write!(f, "{str}")
+            }
+            Property::Number(n) => write!(f, "{n}"),
+            Property::Float(fl) => write!(f, "{fl}"),
+            Property::Bool(b) => write!(f, "{b}"),
+        }
+    }
+}
 
 #[derive(Clone, Copy)]
 #[doc(alias = "SDL_PropertiesID")]
@@ -57,6 +109,32 @@ impl PropertiesHandle {
         to_result(unsafe { SDL_SetPointerProperty(self.id(), key.as_ptr(), value) })
     }
 
+    pub fn set(&mut self, key: &CStr, value: Property) -> Result {
+        use Property::*;
+
+        match value {
+            Pointer(p) => self.set_pointer(key, p),
+            String(s) => self.set_string(key, s),
+            Number(n) => self.set_number(key, n),
+            Float(f) => self.set_float(key, f),
+            Bool(b) => self.set_bool(key, b),
+        }
+    }
+
+    pub fn get(&self, key: &CStr) -> Option<Property> {
+        use Property::*;
+
+        match self.type_of(key) {
+            SDL_PropertyType::INVALID => None,
+            SDL_PropertyType::POINTER => Some(Pointer(self.pointer(key, std::ptr::null_mut()))),
+            SDL_PropertyType::STRING => Some(String(self.string(key, c"").as_ptr())),
+            SDL_PropertyType::NUMBER => Some(Number(self.number(key, 0))),
+            SDL_PropertyType::FLOAT => Some(Float(self.float(key, 0.))),
+            SDL_PropertyType::BOOLEAN => Some(Bool(self.bool(key, false))),
+            _ => unsafe { unreachable_unchecked() },
+        }
+    }
+
     #[doc(alias = "SDL_GetStringProperty")]
     pub fn string(&self, key: &CStr, default: &CStr) -> &CStr {
         unsafe {
@@ -69,8 +147,8 @@ impl PropertiesHandle {
     }
 
     #[doc(alias = "SDL_SetStringProperty")]
-    pub fn set_string(&mut self, key: &CStr, value: &CStr) -> Result {
-        to_result(unsafe { SDL_SetStringProperty(self.id(), key.as_ptr(), value.as_ptr()) })
+    pub fn set_string(&mut self, key: &CStr, value: *const i8) -> Result {
+        to_result(unsafe { SDL_SetStringProperty(self.id(), key.as_ptr(), value) })
     }
 
     #[doc(alias = "SDL_GetBooleanProperty")]
@@ -83,8 +161,9 @@ impl PropertiesHandle {
         to_result(unsafe { SDL_SetBooleanProperty(self.id(), key.as_ptr(), value) })
     }
 
+    /// Enumerate all properties. Accepts a function with a key-value pair as parameters.
     #[doc(alias = "SDL_EnumerateProperties")]
-    pub fn enumerate<F: FnMut(Ref<'_, Properties>, &CStr)>(&self, f: F) -> Result {
+    pub fn enumerate<F: FnMut(&CStr, Option<Property>)>(&self, f: F) -> Result {
         use std::ffi::c_void;
 
         // SDL invokes the callback synchronously inside `SDL_EnumerateProperties`,
@@ -93,17 +172,38 @@ impl PropertiesHandle {
         // pointer. This only involves thin pointer casts, unlike the previous
         // version which transmuted between function and data pointers.
         unsafe extern "C" fn wrap(userdata: *mut c_void, props: SDL_PropertiesID, name: *const i8) {
-            let f = unsafe { &mut *userdata.cast::<Box<dyn FnMut(Ref<'_, Properties>, &CStr)>>() };
+            let f = unsafe { &mut *userdata.cast::<Box<dyn FnMut(&CStr, Option<Property>)>>() };
             let handle = unsafe { PropertiesHandle::from_id(props).unwrap_unchecked() };
             let r: Ref<'_, Properties> = unsafe { Ref::from_handle(handle) };
+            let key = unsafe { CStr::from_ptr(name) };
 
-            f(r, unsafe { CStr::from_ptr(name) });
+            f(key, r.get(key));
         }
 
-        let mut f: Box<dyn FnMut(Ref<'_, Properties>, &CStr)> = Box::new(f);
+        let mut f: Box<dyn FnMut(&CStr, Option<Property>)> = Box::new(f);
         let userdata = std::ptr::from_mut(&mut f).cast::<c_void>();
 
         to_result(unsafe { SDL_EnumerateProperties(self.id(), Some(wrap), userdata) })
+    }
+
+    #[doc(alias = "SDL_ClearProperty")]
+    fn clear(&self, key: &CStr) -> Result {
+        to_result(unsafe { SDL_ClearProperty(self.id(), key.as_ptr()) })
+    }
+
+    #[doc(alias = "SDL_CopyProperties")]
+    fn copy_to(&self, dst: Ref<'_, Properties>) -> Result {
+        to_result(unsafe { SDL_CopyProperties(self.id(), dst.id()) })
+    }
+
+    #[doc(alias = "SDL_HasProperty")]
+    pub fn has(&self, key: &CStr) -> bool {
+        unsafe { SDL_HasProperty(self.id(), key.as_ptr()) }
+    }
+
+    #[doc(alias = "SDL_GetPropertyType")]
+    fn type_of(&self, key: &CStr) -> SDL_PropertyType {
+        unsafe { SDL_GetPropertyType(self.id(), key.as_ptr()) }
     }
 }
 
@@ -124,8 +224,18 @@ impl Properties {
 
     #[doc(alias = "SDL_CreateProperties")]
     pub fn new() -> Result<Self> {
-        match PropertiesHandle::from_id(unsafe { SDL_CreateProperties() }) {
+        let id = unsafe { SDL_CreateProperties() };
+        match PropertiesHandle::from_id(id) {
             Some(inner) => Ok(Self { inner }),
+            None => Err(Error::current()),
+        }
+    }
+
+    #[doc(alias = "SDL_GetGlobalProperties")]
+    pub fn global() -> Result<Ref<'static, Properties>> {
+        let id = unsafe { SDL_GetGlobalProperties() };
+        match PropertiesHandle::from_id(id) {
+            Some(p) => Ok(unsafe { Ref::from_handle(p) }),
             None => Err(Error::current()),
         }
     }

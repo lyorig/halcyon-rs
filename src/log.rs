@@ -65,24 +65,19 @@ pub enum Category {
     Gpu = SDL_LogCategory::GPU.0,
 }
 
-// TODO: Cleanup args to escape `%`.
 fn args2cstr(args: Arguments) -> CString {
     let s = args.to_string();
     unsafe { CString::from_vec_unchecked(s.into_bytes()) }
 }
 
-#[doc(alias = "SDL_Log")]
-pub fn log(args: Arguments) {
-    let cs = args2cstr(args);
-    unsafe { SDL_Log(cs.as_ptr()) };
-}
+const FMT: *const i8 = c"%s".as_ptr();
 
 macro_rules! log_for_priority {
     ($name:ident, $sdl:ident, $alias:literal) => {
         #[doc(alias = $alias)]
         pub fn $name(category: Category, args: Arguments) {
             let cs = args2cstr(args);
-            unsafe { $sdl(category as _, cs.as_ptr()) };
+            unsafe { $sdl(category as _, FMT, cs.as_ptr()) };
         }
     };
 }
@@ -94,6 +89,12 @@ log_for_priority!(info, SDL_LogInfo, "SDL_LogInfo");
 log_for_priority!(warn, SDL_LogWarn, "SDL_LogWarn");
 log_for_priority!(error, SDL_LogError, "SDL_LogError");
 log_for_priority!(critical, SDL_LogCritical, "SDL_LogCritical");
+
+#[doc(alias = "SDL_Log")]
+pub fn log(args: Arguments) {
+    let cs = args2cstr(args);
+    unsafe { SDL_Log(FMT, cs.as_ptr()) };
+}
 
 #[macro_export]
 macro_rules! log {

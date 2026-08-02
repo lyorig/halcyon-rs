@@ -7,9 +7,9 @@ use halcyon::{
     color::RgbaF32,
     event::{Event, EventIter},
     gpu::*,
-    properties::Properties,
+    properties::Property,
     rect::Point,
-    resource::{Ref, Resource},
+    resource::Resource,
     subsystem::Video,
     window::Window,
 };
@@ -27,13 +27,10 @@ cfg_select! {
     }
 }
 
-fn prop_enum(r: Ref<'_, Properties>, n: &CStr) {
-    let value = r.string(n, c"");
-    halcyon::log!(
-        "Property {} = {}",
-        n.to_string_lossy(),
-        value.to_string_lossy()
-    );
+fn prop_enum(n: &CStr, val: Option<Property>) {
+    if let Some(val) = val {
+        halcyon::log!("Property {} = {}", n.to_string_lossy(), val);
+    }
 }
 
 fn run() -> Result {

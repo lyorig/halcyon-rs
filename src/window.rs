@@ -245,7 +245,7 @@ impl WindowBuilder {
 
     pub fn title(&mut self, value: &CStr) -> &mut Self {
         let cstr = unsafe { CStr::from_ptr(SDL_PROP_WINDOW_CREATE_TITLE_STRING) };
-        _ = self.inner.set_string(cstr, value);
+        _ = self.inner.set_string(cstr, value.as_ptr());
         self
     }
 

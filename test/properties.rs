@@ -1,4 +1,3 @@
-
 use halcyon::properties::Properties;
 use rustest::test;
 
@@ -14,8 +13,8 @@ fn properties_enumerate_keys() {
 
     let mut visited = Vec::new();
     props
-        .enumerate(|_props, name| {
-            let key = name.to_str().unwrap().to_owned();
+        .enumerate(|k, _v| {
+            let key = k.to_str().unwrap().to_owned();
             visited.push(key);
         })
         .unwrap();
@@ -33,9 +32,9 @@ fn properties_enumerate_values() {
 
     let mut values = Vec::new();
     props
-        .enumerate(|props, name| {
-            let key = name.to_str().unwrap().to_owned();
-            let value = props.number(name, -1);
+        .enumerate(|k, _v| {
+            let key = k.to_str().unwrap().to_owned();
+            let value = props.number(k, -1);
             values.push((key, value));
         })
         .unwrap();
@@ -53,7 +52,7 @@ fn properties_enumerate_all_types() {
     let mut props = Properties::new().unwrap();
     props.set_number(c"num", 10).unwrap();
     props.set_float(c"flt", 2.5).unwrap();
-    props.set_string(c"str", c"hello").unwrap();
+    props.set_string(c"str", c"hello".as_ptr()).unwrap();
     props.set_bool(c"bln", true).unwrap();
     props
         .set_pointer(c"ptr", std::ptr::from_ref(&MARKER).cast_mut().cast())
@@ -61,15 +60,15 @@ fn properties_enumerate_all_types() {
 
     let mut typed = Vec::new();
     props
-        .enumerate(|props, name| {
-            let key = name.to_str().unwrap().to_owned();
+        .enumerate(|k, _v| {
+            let key = k.to_str().unwrap().to_owned();
             match key.as_str() {
-                "num" => assert_eq!(props.number(name, 0), 10),
-                "flt" => assert_eq!(props.float(name, 0.0), 2.5),
-                "str" => assert_eq!(props.string(name, c"").to_str().unwrap(), "hello"),
-                "bln" => assert_eq!(props.bool(name, false), true),
+                "num" => assert_eq!(props.number(k, 0), 10),
+                "flt" => assert_eq!(props.float(k, 0.0), 2.5),
+                "str" => assert_eq!(props.string(k, c"").to_str().unwrap(), "hello"),
+                "bln" => assert_eq!(props.bool(k, false), true),
                 "ptr" => assert_eq!(
-                    props.pointer(name, std::ptr::null_mut()),
+                    props.pointer(k, std::ptr::null_mut()),
                     std::ptr::from_ref(&MARKER).cast_mut().cast()
                 ),
                 other => panic!("unexpected property {other}"),
