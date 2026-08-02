@@ -1,14 +1,15 @@
 // #![windows_subsystem = "windows"]
 
-use std::mem::ManuallyDrop;
+use std::{ffi::CStr, mem::ManuallyDrop};
 
 use halcyon::{
     Context, Result,
     color::RgbaF32,
     event::{Event, EventIter},
     gpu::*,
+    properties::Properties,
     rect::Point,
-    resource::Resource,
+    resource::{Ref, Resource},
     subsystem::Video,
     window::Window,
 };
@@ -26,22 +27,29 @@ cfg_select! {
     }
 }
 
+fn prop_enum(r: Ref<'_, Properties>, n: &CStr) {
+    use sdl3_sys::log::SDL_Log;
+    let value = r.string(n, c"");
+    unsafe {
+        SDL_Log(
+            c"Property \"%s\" = \"%s\"".as_ptr(),
+            n.as_ptr(),
+            value.as_ptr(),
+        )
+    };
+}
+
 fn run() -> Result {
     let ctx = Context::new();
     let _video = ManuallyDrop::new(Video::new(&ctx)?);
 
     let device = Device::new(SHADER_FMT.as_mask(), EnableDebug::No)?;
-    _ = device.properties().enumerate(|r, n| {
-        let value = r.string(n, c"");
-        println!(
-            "Property \"{}\" = \"{}\"",
-            n.to_string_lossy(),
-            value.to_string_lossy()
-        );
-    });
+    _ = device.properties().enumerate(prop_enum);
 
     let wnd = Window::new(c"Halcyon GPU", Point::new(800, 600), Default::default())?;
     device.claim_window(wnd.as_ref())?;
+
+    _ = wnd.properties().enumerate(prop_enum);
 
     let sci_vs = ShaderCreateInfo::new(
         VS_MSL,

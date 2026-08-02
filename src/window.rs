@@ -40,7 +40,7 @@
 //! - [x] SDL_GetWindowPosition
 //! - [ ] SDL_GetWindowProgressState
 //! - [ ] SDL_GetWindowProgressValue
-//! - [ ] SDL_GetWindowProperties
+//! - [x] SDL_GetWindowProperties
 //! - [ ] SDL_GetWindows
 //! - [ ] SDL_GetWindowSafeArea
 //! - [x] SDL_GetWindowSize
@@ -106,7 +106,7 @@ use crate::{
     Result,
     display::DisplayHandle,
     error::Error,
-    properties::Properties,
+    properties::{Properties, PropertiesHandle},
     rect::PointI32,
     renderer::{Renderer, RendererHandle},
     resource::Ref,
@@ -409,6 +409,12 @@ impl WindowHandle {
     #[doc(alias = "SDL_HideWindow")]
     pub fn hide(&self) -> Result {
         to_result(unsafe { SDL_HideWindow(self.handle.as_ptr()) })
+    }
+
+    #[doc(alias = "SDL_GetWindowProperties")]
+    pub fn properties(&self) -> PropertiesHandle {
+        let id = unsafe { SDL_GetWindowProperties(self.handle.as_ptr()) };
+        PropertiesHandle::from_id(id).expect("A valid window should have properties")
     }
 }
 
