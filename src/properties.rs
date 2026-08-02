@@ -100,11 +100,13 @@ impl PropertiesHandle {
     }
 
     #[doc(alias = "SDL_GetPointerProperty")]
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     pub fn pointer(&self, key: &CStr, default: *mut c_void) -> *mut c_void {
         unsafe { SDL_GetPointerProperty(self.id(), key.as_ptr(), default) }
     }
 
     #[doc(alias = "SDL_SetPointerProperty")]
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     pub fn set_pointer(&mut self, key: &CStr, value: *mut c_void) -> Result {
         to_result(unsafe { SDL_SetPointerProperty(self.id(), key.as_ptr(), value) })
     }
@@ -147,6 +149,7 @@ impl PropertiesHandle {
     }
 
     #[doc(alias = "SDL_SetStringProperty")]
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     pub fn set_string(&mut self, key: &CStr, value: *const i8) -> Result {
         to_result(unsafe { SDL_SetStringProperty(self.id(), key.as_ptr(), value) })
     }
@@ -163,6 +166,7 @@ impl PropertiesHandle {
 
     /// Enumerate all properties. Accepts a function with a key-value pair as parameters.
     #[doc(alias = "SDL_EnumerateProperties")]
+    #[allow(clippy::type_complexity)]
     pub fn enumerate<F: FnMut(&CStr, Option<Property>)>(&self, f: F) -> Result {
         use std::ffi::c_void;
 

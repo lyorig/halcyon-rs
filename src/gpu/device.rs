@@ -196,8 +196,8 @@ impl DeviceHandle {
         let handle =
             PropertiesHandle::from_id(id).expect("A valid GPU device should have properties");
 
-        let foo = unsafe { Ref::from_handle(handle) };
-        DeviceProperties::new(foo)
+        let r = unsafe { Ref::from_handle(handle) };
+        DeviceProperties::new(r)
     }
 
     #[doc(alias = "SDL_GetGPUSwapchainTextureFormat")]
