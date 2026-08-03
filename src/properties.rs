@@ -172,16 +172,16 @@ impl PropertiesHandle {
     #[doc(alias = "SDL_EnumerateProperties")]
     #[allow(clippy::type_complexity)]
     pub fn enumerate<F: FnMut(&CStr, Property)>(&self, f: F) -> Result {
-        use std::ffi::c_void;
-
         // SDL invokes the callback synchronously inside `SDL_EnumerateProperties`,
         // so the closure can live in a `Box` on the stack for the duration of the
         // call, with the `Box` itself handed to SDL as the opaque `userdata`
         // pointer. This only involves thin pointer casts, unlike the previous
         // version which transmuted between function and data pointers.
         unsafe extern "C" fn wrap(userdata: *mut c_void, props: SDL_PropertiesID, name: *const i8) {
-            let f = unsafe { &mut *userdata.cast::<Box<dyn FnMut(&CStr, Property)>>() };
+            // SAFETY: We are enumerating a valid property group.
             let handle = unsafe { PropertiesHandle::from_id(props).unwrap_unchecked() };
+
+            // SAFETY: This `Ref` is only used inside the body of `enumerate()`.
             let r: Ref<'_, Properties> = unsafe { Ref::from_handle(handle) };
 
             // SAFETY: SDL property names are null-terminated.
@@ -189,6 +189,13 @@ impl PropertiesHandle {
 
             // SAFETY: Existing properties always have an associated value.
             let value = unsafe { r.get(key).unwrap_unchecked() };
+
+            // SAFETY: Smuggled inside `userdata`, see body of `enumerate`.
+            let f = unsafe {
+                userdata
+                    .cast::<Box<dyn FnMut(&CStr, Property)>>()
+                    .as_mut_unchecked()
+            };
 
             f(key, value);
         }
