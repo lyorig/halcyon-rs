@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 use halcyon::{
     Context, Result,
     color::Rgba,
