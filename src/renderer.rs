@@ -171,6 +171,7 @@ impl RendererHandle {
         }
     }
 
+    // TODO: Create custom properties wrapper.
     #[doc(alias = "SDL_GetRendererProperties")]
     pub fn properties(&self) -> Ref<'_, Properties> {
         let id = unsafe { SDL_GetRendererProperties(self.handle.as_ptr()) };
@@ -179,27 +180,15 @@ impl RendererHandle {
         unsafe { Ref::from_handle(handle) }
     }
 
-    /// This function doesn't return an [`Option`], as all renderers should have
-    /// an associated window. If that's somehow violated, the program will panic.
-    ///
-    /// # Safety
-    /// A raw handle is returned. Its methods must only be called within
-    /// the actual pointed-to object's lifetime. Consult the SDL function's docs
-    /// for more specific info.
     #[doc(alias = "SDL_GetRenderWindow")]
-    pub unsafe fn window(&self) -> WindowHandle {
-        // TODO: Return a `Ref<Window>`.
-        WindowHandle::from_ptr(unsafe { SDL_GetRenderWindow(self.handle.as_ptr()) })
-            .expect("Renderer has no associated window")
+    pub fn window(&self) -> Ref<'_, Window> {
+        let handle = WindowHandle::from_ptr(unsafe { SDL_GetRenderWindow(self.handle.as_ptr()) })
+            .expect("Renderer has no associated window");
+        unsafe { Ref::from_handle(handle) }
     }
 
-    /// # Safety
-    /// A raw handle is returned. Its methods must only be called within
-    /// the actual pointed-to object's lifetime. Consult the SDL function's docs
-    /// for more specific info.
     #[doc(alias = "SDL_GetRenderTarget")]
-    pub unsafe fn target(&self) -> Option<Ref<'_, Texture>> {
-        // TODO: Update docs, since this function doesn't return a handle anymore.
+    pub fn target(&self) -> Option<Ref<'_, Texture>> {
         TextureHandle::from_ptr(unsafe { SDL_GetRenderTarget(self.handle.as_ptr()) })
             .map(|h| unsafe { Ref::from_handle(h) })
     }
@@ -575,10 +564,8 @@ impl RendererHandle {
         self.set_target_opt(None)
     }
 
-    /// # Safety
-    /// Ensure `tgt` lives for as long as it's used as the target texture.
     pub fn xchg_target(&self, tgt: Ref<Texture>) -> Result<Option<Ref<'_, Texture>>> {
-        let old = unsafe { self.target() };
+        let old = self.target();
         self.set_target(tgt)?;
         Ok(old)
     }

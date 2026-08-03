@@ -411,6 +411,7 @@ impl WindowHandle {
         to_result(unsafe { SDL_HideWindow(self.handle.as_ptr()) })
     }
 
+    // TODO: Create custom properties wrapper.
     #[doc(alias = "SDL_GetWindowProperties")]
     pub fn properties(&self) -> Ref<'_, Properties> {
         let id = unsafe { SDL_GetWindowProperties(self.handle.as_ptr()) };
