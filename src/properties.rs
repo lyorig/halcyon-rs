@@ -9,7 +9,7 @@
 //! - [x] SDL_GetGlobalProperties
 //! - [x] SDL_GetNumberProperty
 //! - [x] SDL_GetPointerProperty
-//! - [ ] SDL_GetPropertyType
+//! - [x] SDL_GetPropertyType
 //! - [x] SDL_GetStringProperty
 //! - [x] SDL_HasProperty
 //! - [x] SDL_SetBooleanProperty
@@ -37,7 +37,7 @@ use crate::{
     Result,
     error::Error,
     resource::{Ref, Resource},
-    util::{c_ptr_to_str, to_result},
+    util::to_result,
 };
 
 #[derive(Clone, Copy)]
@@ -54,7 +54,11 @@ impl Display for Property {
         match self {
             Property::Pointer(p) => write!(f, "{p:p}"),
             Property::String(s) => {
-                let str = unsafe { c_ptr_to_str(*s) };
+                let str = if s.is_null() {
+                    "<null string>"
+                } else {
+                    &unsafe { CStr::from_ptr(*s) }.to_string_lossy()
+                };
                 write!(f, "{str}")
             }
             Property::Number(n) => write!(f, "{n}"),
@@ -167,7 +171,7 @@ impl PropertiesHandle {
     /// Enumerate all properties. Accepts a function with a key-value pair as parameters.
     #[doc(alias = "SDL_EnumerateProperties")]
     #[allow(clippy::type_complexity)]
-    pub fn enumerate<F: FnMut(&CStr, Option<Property>)>(&self, f: F) -> Result {
+    pub fn enumerate<F: FnMut(&CStr, Property)>(&self, f: F) -> Result {
         use std::ffi::c_void;
 
         // SDL invokes the callback synchronously inside `SDL_EnumerateProperties`,
@@ -176,15 +180,20 @@ impl PropertiesHandle {
         // pointer. This only involves thin pointer casts, unlike the previous
         // version which transmuted between function and data pointers.
         unsafe extern "C" fn wrap(userdata: *mut c_void, props: SDL_PropertiesID, name: *const i8) {
-            let f = unsafe { &mut *userdata.cast::<Box<dyn FnMut(&CStr, Option<Property>)>>() };
+            let f = unsafe { &mut *userdata.cast::<Box<dyn FnMut(&CStr, Property)>>() };
             let handle = unsafe { PropertiesHandle::from_id(props).unwrap_unchecked() };
             let r: Ref<'_, Properties> = unsafe { Ref::from_handle(handle) };
+
+            // SAFETY: SDL property names are null-terminated.
             let key = unsafe { CStr::from_ptr(name) };
 
-            f(key, r.get(key));
+            // SAFETY: Existing properties always have an associated value.
+            let value = unsafe { r.get(key).unwrap_unchecked() };
+
+            f(key, value);
         }
 
-        let mut f: Box<dyn FnMut(&CStr, Option<Property>)> = Box::new(f);
+        let mut f: Box<dyn FnMut(&CStr, Property)> = Box::new(f);
         let userdata = std::ptr::from_mut(&mut f).cast::<c_void>();
 
         to_result(unsafe { SDL_EnumerateProperties(self.id(), Some(wrap), userdata) })

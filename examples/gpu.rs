@@ -27,10 +27,8 @@ cfg_select! {
     }
 }
 
-fn prop_enum(n: &CStr, val: Option<Property>) {
-    if let Some(val) = val {
-        halcyon::log!("Property {} = {}", n.to_string_lossy(), val);
-    }
+fn prop_enum(n: &CStr, val: Property) {
+    halcyon::log!("Property {} = {}", n.to_string_lossy(), val);
 }
 
 fn run() -> Result {
