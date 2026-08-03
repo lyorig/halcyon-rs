@@ -412,9 +412,10 @@ impl WindowHandle {
     }
 
     #[doc(alias = "SDL_GetWindowProperties")]
-    pub fn properties(&self) -> PropertiesHandle {
+    pub fn properties(&self) -> Ref<'_, Properties> {
         let id = unsafe { SDL_GetWindowProperties(self.handle.as_ptr()) };
-        PropertiesHandle::from_id(id).expect("A valid window should have properties")
+        let handle = PropertiesHandle::from_id(id).expect("A valid window should have properties");
+        unsafe { Ref::from_handle(handle) }
     }
 }
 

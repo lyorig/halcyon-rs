@@ -20,7 +20,7 @@
 //! - [x] SDL_GetRenderDrawColorFloat
 //! - [ ] SDL_GetRenderDriver
 //! - [x] SDL_GetRendererName
-//! - [ ] SDL_GetRendererProperties
+//! - [x] SDL_GetRendererProperties
 //! - [ ] SDL_GetRenderLogicalPresentation
 //! - [ ] SDL_GetRenderLogicalPresentationRect
 //! - [ ] SDL_GetRenderMetalCommandEncoder
@@ -82,7 +82,7 @@ use sdl3_sys::{blendmode::SDL_BlendMode, pixels::SDL_Colorspace, render::*};
 use crate::{
     Result,
     color::{RgbaF32, RgbaU8},
-    properties::Properties,
+    properties::{Properties, PropertiesHandle},
     rect::{PointF32, PointI32, RectF32, RectI32},
     resource::Ref,
     resource_new,
@@ -169,6 +169,14 @@ impl RendererHandle {
                 CStr::from_ptr(SDL_GetRendererName(self.handle.as_ptr())).to_bytes(),
             )
         }
+    }
+
+    #[doc(alias = "SDL_GetRendererProperties")]
+    pub fn properties(&self) -> Ref<'_, Properties> {
+        let id = unsafe { SDL_GetRendererProperties(self.handle.as_ptr()) };
+        let handle =
+            PropertiesHandle::from_id(id).expect("A valid renderer should always have a handle");
+        unsafe { Ref::from_handle(handle) }
     }
 
     /// This function doesn't return an [`Option`], as all renderers should have
