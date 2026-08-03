@@ -27,8 +27,10 @@ cfg_select! {
     }
 }
 
-fn prop_enum(n: &CStr, val: Property) {
-    halcyon::log!("Property {} = {}", n.to_string_lossy(), val);
+/// You can make the output of this function visible by setting
+/// the env var `SDL_LOGGING=trace`, among others.
+fn prop_enum(key: &CStr, value: Property) {
+    halcyon::log_trace!("Property {} = {}", key.to_string_lossy(), value);
 }
 
 fn run() -> Result {
@@ -185,6 +187,6 @@ fn run() -> Result {
 
 fn main() {
     if let Err(e) = run() {
-        halcyon::log!("An unexpected error occurred: {e}");
+        halcyon::log_error!("An unexpected error occurred: {e}");
     }
 }

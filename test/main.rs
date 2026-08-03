@@ -12,6 +12,7 @@ mod clipboard;
 mod color;
 mod error;
 mod event;
+mod log;
 mod properties;
 mod ttf;
 
