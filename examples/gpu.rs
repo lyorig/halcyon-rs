@@ -185,12 +185,6 @@ fn run() -> Result {
 
 fn main() {
     if let Err(e) = run() {
-        // println!() isn't enough, since #![windows_subsystem = "windows"]
-        // prevents your usual methods of console output from working.
-        // SDL's logging API seemingly works, though.
-        use sdl3_sys::log::SDL_Log;
-
-        let err = e.into_cstring();
-        unsafe { SDL_Log(c"An unexpected error occurred: %s".as_ptr(), err.as_ptr()) };
+        halcyon::log!("An unexpected error occurred: {e}");
     }
 }
