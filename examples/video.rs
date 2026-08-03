@@ -2,6 +2,7 @@ use halcyon::{
     Context, Result,
     color::Rgba,
     event::{Event, EventIter},
+    log::Category,
     rect::{Point, Rect},
     renderer::RendererBuilder,
     resource::Resource,
@@ -25,11 +26,19 @@ unsafe fn run() -> Result {
     let rnd = RendererBuilder::new(wnd.as_ref()).vsync(1).build()?;
     rnd.clear()?;
 
-    println!(
+    halcyon::log!(
         "Platform = {}, renderer backend = {}",
         halcyon::platform(),
         rnd.name()
     );
+
+    halcyon::log!("Window properties:");
+    wnd.properties()
+        .enumerate(|k, v| halcyon::log!("{} = {}", k.to_string_lossy(), v))?;
+
+    halcyon::log!("Renderer properties:");
+    rnd.properties()
+        .enumerate(|k, v| halcyon::log!("{} = {}", k.to_string_lossy(), v))?;
 
     rnd.set_draw_color_f32(Rgba::rgb(1., 1., 1.));
     rnd.draw_line(Point::new(10., 10.), Point::new(128., 64.))?;
@@ -60,6 +69,6 @@ unsafe fn run() -> Result {
 
 fn main() {
     if let Err(e) = unsafe { run() } {
-        println!("An error occurred: {}", e);
+        halcyon::log_error!(Category::Error, "An error occurred: {}", e);
     }
 }

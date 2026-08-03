@@ -4,7 +4,7 @@ fn main() {
     let ctx = Context::new();
     let _vid = Video::new(&ctx).expect("Cannot initialize video subsystem");
 
-    println!(
+    halcyon::log!(
         "Clipboard content before the program was run: \"{}\"",
         halcyon::clipboard::text()
     );
@@ -12,5 +12,5 @@ fn main() {
     halcyon::clipboard::set_text(c"And now I see, with eye serene")
         .expect("Couldn't set clipboard text");
 
-    println!("New clipboard content: \"{}\"", halcyon::clipboard::text());
+    halcyon::log!("New clipboard content: \"{}\"", halcyon::clipboard::text());
 }

@@ -5,7 +5,7 @@ fn outer() -> Result {
     let _video: Video = context.init()?;
 
     for (i, disp) in DisplayHandle::all()?.iter().copied().enumerate() {
-        println!(
+        halcyon::log!(
             "Display #{}: \"{}\", bounds {} (usable {}), content scale = {:.2}",
             i,
             unsafe { c_ptr_to_str(disp.name()?.as_ptr()) },
@@ -16,18 +16,18 @@ fn outer() -> Result {
     }
 
     let p = DisplayHandle::primary()?;
-    println!(
+    halcyon::log!(
         "Primary display has ID {} and name \"{}\"",
         p.id().0,
         unsafe { c_ptr_to_str(p.name()?.as_ptr()) }
     );
 
-    println!("All primary desktop display modes:");
+    halcyon::log!("All primary desktop display modes:");
     for (x, y, hz) in p.modes()?.iter().map(|dm| {
         let dm = unsafe { dm.read() };
         (dm.w, dm.h, dm.refresh_rate)
     }) {
-        println!("{x}x{y}, {hz} Hz");
+        halcyon::log!("{x}x{y}, {hz} Hz");
     }
 
     Ok(())
@@ -35,6 +35,6 @@ fn outer() -> Result {
 
 fn main() {
     if let Err(e) = outer() {
-        println!("Something went wrong: {}", e);
+        halcyon::log!("Something went wrong: {}", e);
     }
 }
