@@ -24,6 +24,7 @@ fn main_init() {
     const WINDOW_SIZE: Point<i32> = Point::new(128, 128);
 
     let wnd = Window::builder()
+        .unwrap()
         .hidden(true)
         .size(WINDOW_SIZE)
         .build()
@@ -31,7 +32,7 @@ fn main_init() {
 
     assert_eq!(wnd.size(), WINDOW_SIZE);
 
-    let rnd = Renderer::builder(wnd.as_ref()).build().unwrap();
+    let rnd = Renderer::builder(wnd.as_ref()).unwrap().build().unwrap();
     let tex = Texture::new(
         rnd.as_ref(),
         SDL_PixelFormat::RGB24,

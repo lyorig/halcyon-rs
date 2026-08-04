@@ -632,13 +632,13 @@ impl Renderer {
     const VSYNC_DISABLED: i32 = SDL_RENDERER_VSYNC_DISABLED;
     const VSYNC_ADAPTIVE: i32 = SDL_RENDERER_VSYNC_ADAPTIVE;
 
-    pub fn builder(wnd: Ref<Window>) -> RendererBuilder {
-        let mut ret = RendererBuilder {
-            inner: Properties::new().unwrap(),
-        };
+    pub fn builder(wnd: Ref<Window>) -> Result<RendererBuilder> {
+        let inner = Properties::new()?;
 
+        let mut ret = RendererBuilder { inner };
         ret.window(wnd);
-        ret
+
+        Ok(ret)
     }
 
     #[doc(alias = "SDL_CreateRenderer")]

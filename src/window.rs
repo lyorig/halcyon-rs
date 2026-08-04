@@ -412,10 +412,9 @@ impl Window {
     pub const POS_CENTERED: i32 = SDL_WINDOWPOS_CENTERED;
     pub const POS_UNDEFINED: i32 = SDL_WINDOWPOS_UNDEFINED;
 
-    pub fn builder() -> WindowBuilder {
-        WindowBuilder {
-            inner: Properties::new().unwrap(),
-        }
+    pub fn builder() -> Result<WindowBuilder> {
+        let inner = Properties::new()?;
+        Ok(WindowBuilder { inner })
     }
 
     #[doc(alias = "SDL_CreateWindow")]
