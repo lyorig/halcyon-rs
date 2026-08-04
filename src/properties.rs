@@ -170,8 +170,9 @@ impl PropertiesHandle {
 
     /// Enumerate all properties. Accepts a function with a key-value pair as parameters.
     #[doc(alias = "SDL_EnumerateProperties")]
-    #[allow(clippy::type_complexity)]
     pub fn enumerate<F: FnMut(&CStr, Property)>(&self, f: F) -> Result {
+        type DynCbk<'a> = dyn FnMut(&CStr, Property) + 'a;
+
         // SDL invokes the callback synchronously inside `SDL_EnumerateProperties`,
         // so the closure can live in a `Box` on the stack for the duration of the
         // call, with the `Box` itself handed to SDL as the opaque `userdata`
@@ -191,16 +192,12 @@ impl PropertiesHandle {
             let value = unsafe { r.get(key).unwrap_unchecked() };
 
             // SAFETY: Smuggled inside `userdata`, see body of `enumerate`.
-            let f = unsafe {
-                userdata
-                    .cast::<Box<dyn FnMut(&CStr, Property)>>()
-                    .as_mut_unchecked()
-            };
+            let f = unsafe { userdata.cast::<Box<DynCbk<'static>>>().as_mut_unchecked() };
 
             f(key, value);
         }
 
-        let mut f: Box<dyn FnMut(&CStr, Property)> = Box::new(f);
+        let mut f: Box<DynCbk<'_>> = Box::new(f);
         let userdata = std::ptr::from_mut(&mut f).cast::<c_void>();
 
         to_result(unsafe { SDL_EnumerateProperties(self.id(), Some(wrap), userdata) })
