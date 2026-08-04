@@ -41,14 +41,7 @@ fn run() -> Result {
     let ctx = Context::new();
     let _video = ManuallyDrop::new(Video::new(&ctx)?);
 
-    let device = Device::builder()?
-        .debug_mode(false)
-        .verbose(true)
-        .shaders_dxil(true)
-        .shaders_msl(true)
-        .prefer_low_power(true)
-        .build()?;
-
+    let device = Device::new(SHADER_FMT.as_mask(), EnableDebug::No)?;
     print_properties(device.properties());
 
     let wnd = Window::new(c"Halcyon GPU", Point::new(800, 600), Default::default())?;
