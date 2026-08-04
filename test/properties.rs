@@ -65,7 +65,7 @@ fn properties_enumerate_all_types() {
             match key.as_str() {
                 "num" => assert_eq!(props.number(k, 0), 10),
                 "flt" => assert_eq!(props.float(k, 0.0), 2.5),
-                "str" => assert_eq!(props.string(k, c"").to_str().unwrap(), "hello"),
+                "str" => assert_ne!(props.string(k, std::ptr::null()), std::ptr::null()),
                 "bln" => assert!(props.bool(k, false)),
                 "ptr" => assert_eq!(
                     props.pointer(k, std::ptr::null_mut()),

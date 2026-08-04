@@ -133,7 +133,7 @@ impl PropertiesHandle {
         match self.type_of(key) {
             SDL_PropertyType::INVALID => None,
             SDL_PropertyType::POINTER => Some(Pointer(self.pointer(key, std::ptr::null_mut()))),
-            SDL_PropertyType::STRING => Some(String(self.string(key, c"").as_ptr())),
+            SDL_PropertyType::STRING => Some(String(self.string(key, std::ptr::null()))),
             SDL_PropertyType::NUMBER => Some(Number(self.number(key, 0))),
             SDL_PropertyType::FLOAT => Some(Float(self.float(key, 0.))),
             SDL_PropertyType::BOOLEAN => Some(Bool(self.bool(key, false))),
@@ -142,14 +142,8 @@ impl PropertiesHandle {
     }
 
     #[doc(alias = "SDL_GetStringProperty")]
-    pub fn string(&self, key: &CStr, default: &CStr) -> &CStr {
-        unsafe {
-            CStr::from_ptr(SDL_GetStringProperty(
-                self.id(),
-                key.as_ptr(),
-                default.as_ptr(),
-            ))
-        }
+    pub fn string(&self, key: &CStr, default: *const i8) -> *const i8 {
+        unsafe { SDL_GetStringProperty(self.id(), key.as_ptr(), default) }
     }
 
     #[doc(alias = "SDL_SetStringProperty")]

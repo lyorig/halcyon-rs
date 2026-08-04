@@ -1,13 +1,12 @@
 #![windows_subsystem = "windows"]
 
-use std::{ffi::CStr, mem::ManuallyDrop};
+use std::mem::ManuallyDrop;
 
 use halcyon::{
     Context, Result,
     color::RgbaF32,
     event::{Event, EventIter},
     gpu::*,
-    properties::Property,
     rect::Point,
     resource::Resource,
     subsystem::Video,
@@ -27,10 +26,15 @@ cfg_select! {
     }
 }
 
-/// You can make the output of this function visible by setting
-/// the env var `SDL_LOGGING=trace`, among others.
-fn prop_enum(key: &CStr, value: Property) {
-    halcyon::log_trace!("Property {} = {}", key.to_string_lossy(), value);
+fn print_properties(props: DeviceProperties) {
+    fn f(o: Option<&str>) -> &str {
+        o.unwrap_or("N/A")
+    }
+
+    halcyon::log!("Device name: {}", f(props.device_name()));
+    halcyon::log!("Driver name: {}", f(props.driver_name()));
+    halcyon::log!("Driver info: {}", f(props.driver_info()));
+    halcyon::log!("Driver version: {}", f(props.driver_version()));
 }
 
 fn run() -> Result {
@@ -38,12 +42,10 @@ fn run() -> Result {
     let _video = ManuallyDrop::new(Video::new(&ctx)?);
 
     let device = Device::new(SHADER_FMT.as_mask(), EnableDebug::No)?;
-    _ = device.properties().enumerate(prop_enum);
+    print_properties(device.properties());
 
     let wnd = Window::new(c"Halcyon GPU", Point::new(800, 600), Default::default())?;
     device.claim_window(wnd.as_ref())?;
-
-    _ = wnd.properties().enumerate(prop_enum);
 
     let sci_vs = ShaderCreateInfo::new(
         VS_MSL,

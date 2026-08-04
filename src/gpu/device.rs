@@ -68,7 +68,7 @@ impl<'a> DeviceProperties<'a> {
 
     fn get(&self, key: *const i8) -> Option<&str> {
         let cstr = unsafe { CStr::from_ptr(key) };
-        let s = self.inner.pointer(cstr, std::ptr::null_mut());
+        let s = self.inner.string(cstr, std::ptr::null());
 
         if s.is_null() {
             return None;
