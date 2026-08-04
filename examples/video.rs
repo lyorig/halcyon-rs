@@ -9,10 +9,10 @@ use halcyon::{
     log::Category,
     properties::Property,
     rect::{Point, Rect},
-    renderer::RendererBuilder,
+    renderer::Renderer,
     resource::Resource,
     subsystem::Video,
-    window::{Window, WindowBuilder},
+    window::Window,
 };
 
 /// You can make the output of this function visible by setting
@@ -26,7 +26,7 @@ unsafe fn run() -> Result {
     let ctx = Context::new();
     let _vid = Video::new(&ctx).expect("Video creation failed");
 
-    let wnd = WindowBuilder::new()
+    let wnd = Window::builder()
         .position(Point::new(Window::POS_CENTERED, Window::POS_CENTERED))
         .title(c"Halcyon Example")
         .size(Point::new(640, 480))
@@ -34,7 +34,7 @@ unsafe fn run() -> Result {
 
     wnd.sync()?;
 
-    let rnd = RendererBuilder::new(wnd.as_ref()).vsync(1).build()?;
+    let rnd = Renderer::builder(wnd.as_ref()).vsync(1).build()?;
     rnd.clear()?;
 
     halcyon::log_trace!(

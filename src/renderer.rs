@@ -98,15 +98,6 @@ pub struct RendererBuilder {
 }
 
 impl RendererBuilder {
-    pub fn new(wnd: Ref<Window>) -> Self {
-        let mut ret = Self {
-            inner: Properties::new().unwrap(),
-        };
-
-        ret.window(wnd);
-        ret
-    }
-
     pub fn name(&mut self, value: &CStr) -> &mut Self {
         let cstr = unsafe { CStr::from_ptr(SDL_PROP_RENDERER_CREATE_NAME_STRING) };
         _ = self.inner.set_string(cstr, value.as_ptr());
@@ -640,6 +631,15 @@ impl BlendMode for RendererHandle {
 impl Renderer {
     const VSYNC_DISABLED: i32 = SDL_RENDERER_VSYNC_DISABLED;
     const VSYNC_ADAPTIVE: i32 = SDL_RENDERER_VSYNC_ADAPTIVE;
+
+    pub fn builder(wnd: Ref<Window>) -> RendererBuilder {
+        let mut ret = RendererBuilder {
+            inner: Properties::new().unwrap(),
+        };
+
+        ret.window(wnd);
+        ret
+    }
 
     #[doc(alias = "SDL_CreateRenderer")]
     pub fn new(wnd: Ref<Window>, name: Option<&CStr>) -> Result<Renderer> {

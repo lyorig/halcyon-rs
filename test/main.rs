@@ -4,8 +4,8 @@ use rustest::{main, test};
 use sdl3_sys::{pixels::SDL_PixelFormat, render::SDL_TextureAccess};
 
 use halcyon::{
-    Context, rect::Point, renderer::RendererBuilder, resource::Resource, subsystem::Video,
-    texture::Texture, window::WindowBuilder,
+    Context, rect::Point, renderer::Renderer, resource::Resource, subsystem::Video,
+    texture::Texture, window::Window,
 };
 
 mod clipboard;
@@ -23,7 +23,7 @@ fn main_init() {
 
     const WINDOW_SIZE: Point<i32> = Point::new(128, 128);
 
-    let wnd = WindowBuilder::new()
+    let wnd = Window::builder()
         .hidden(true)
         .size(WINDOW_SIZE)
         .build()
@@ -31,7 +31,7 @@ fn main_init() {
 
     assert_eq!(wnd.size(), WINDOW_SIZE);
 
-    let rnd = RendererBuilder::new(wnd.as_ref()).build().unwrap();
+    let rnd = Renderer::builder(wnd.as_ref()).build().unwrap();
     let tex = Texture::new(
         rnd.as_ref(),
         SDL_PixelFormat::RGB24,

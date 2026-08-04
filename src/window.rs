@@ -158,12 +158,6 @@ pub struct WindowBuilder {
 }
 
 impl WindowBuilder {
-    pub fn new() -> Self {
-        Self {
-            inner: Properties::new().unwrap(),
-        }
-    }
-
     pub fn always_on_top(&mut self, value: bool) -> &mut Self {
         self.set_bool(SDL_PROP_WINDOW_CREATE_ALWAYS_ON_TOP_BOOLEAN, value)
     }
@@ -306,12 +300,6 @@ impl WindowBuilder {
     }
 }
 
-impl Default for WindowBuilder {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 pub struct WindowId {
     inner: NonZero<u32>,
 }
@@ -423,6 +411,12 @@ impl WindowHandle {
 impl Window {
     pub const POS_CENTERED: i32 = SDL_WINDOWPOS_CENTERED;
     pub const POS_UNDEFINED: i32 = SDL_WINDOWPOS_UNDEFINED;
+
+    pub fn builder() -> WindowBuilder {
+        WindowBuilder {
+            inner: Properties::new().unwrap(),
+        }
+    }
 
     #[doc(alias = "SDL_CreateWindow")]
     pub fn new(title: &CStr, size: PointI32, flags: SDL_WindowFlags) -> Result<Self> {
