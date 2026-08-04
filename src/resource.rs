@@ -101,6 +101,7 @@ macro_rules! resource_new_no_drop {
     ($sdl:ident, $owned:ident) => {
         paste::paste! {
             #[must_use = "This struct has to be manually dropped via an associated `drop()` method."]
+            #[doc(alias = "" $sdl "")]
             pub struct $owned {
                 pub(crate) inner: [<$owned Handle>],
             }
@@ -115,6 +116,7 @@ macro_rules! resource_new_no_drop {
 macro_rules! resource_new {
     ($sdl:ident, $owned:ident, $dtor:ident) => {
         paste::paste! {
+            #[doc(alias = "" $sdl "")]
             pub struct $owned {
                 pub(crate) inner: [<$owned Handle>],
             }
