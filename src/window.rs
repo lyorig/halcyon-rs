@@ -111,7 +111,8 @@ use crate::{
     renderer::{Renderer, RendererHandle},
     resource::Ref,
     resource_new,
-    util::to_result,
+    surface::{Surface, SurfaceHandle},
+    util::{c_ptr_to_str, to_result},
 };
 use bitmask_enum::bitmask;
 use sdl3_sys::{
@@ -122,6 +123,7 @@ use std::{
     ffi::{CStr, c_char, c_void},
     mem::MaybeUninit,
     num::NonZero,
+    ops::Deref,
     ptr::NonNull,
 };
 
@@ -300,6 +302,144 @@ impl WindowBuilder {
     }
 }
 
+/// Read-only properties of a window, as documented by
+/// [`SDL_GetWindowProperties`](https://wiki.libsdl.org/SDL3/SDL_GetWindowProperties).
+///
+/// Generic properties are returned bare since the docs guarantee their
+/// existence; backend properties are returned as `Option` since they only
+/// exist on their respective backends.
+#[derive(Clone, Copy)]
+pub struct WindowProperties<'a> {
+    inner: Ref<'a, Properties>,
+}
+
+impl<'a> WindowProperties<'a> {
+    fn new(inner: Ref<'a, Properties>) -> Self {
+        Self { inner }
+    }
+
+    fn opt_str(&self, key: *const i8) -> Option<&str> {
+        let cstr = unsafe { CStr::from_ptr(key) };
+        let s = self.inner.string(cstr, std::ptr::null());
+
+        if s.is_null() {
+            return None;
+        }
+
+        Some(unsafe { c_ptr_to_str(s) })
+    }
+
+    fn opt_number(&self, key: *const i8) -> Option<i64> {
+        let cstr = unsafe { CStr::from_ptr(key) };
+        self.inner.has(cstr).then(|| self.inner.number(cstr, 0))
+    }
+
+    fn opt_ptr(&self, key: *const i8) -> Option<*mut c_void> {
+        let cstr = unsafe { CStr::from_ptr(key) };
+        let p = self.inner.pointer(cstr, std::ptr::null_mut());
+
+        (!p.is_null()).then_some(p)
+    }
+
+    pub fn shape(&self) -> Option<Ref<'a, Surface>> {
+        let cstr = unsafe { CStr::from_ptr(SDL_PROP_WINDOW_SHAPE_POINTER) };
+        let p = self.inner.pointer(cstr, std::ptr::null_mut());
+
+        SurfaceHandle::from_ptr(p.cast()).map(|h| unsafe { Ref::from_handle(h) })
+    }
+
+    pub fn hdr_enabled(&self) -> bool {
+        let cstr = unsafe { CStr::from_ptr(SDL_PROP_WINDOW_HDR_ENABLED_BOOLEAN) };
+        self.inner.bool(cstr, false)
+    }
+
+    pub fn sdr_white_level(&self) -> f32 {
+        let cstr = unsafe { CStr::from_ptr(SDL_PROP_WINDOW_SDR_WHITE_LEVEL_FLOAT) };
+        self.inner.float(cstr, 0.)
+    }
+
+    pub fn hdr_headroom(&self) -> f32 {
+        let cstr = unsafe { CStr::from_ptr(SDL_PROP_WINDOW_HDR_HEADROOM_FLOAT) };
+        self.inner.float(cstr, 0.)
+    }
+
+    pub fn cocoa_window(&self) -> Option<*mut c_void> {
+        self.opt_ptr(SDL_PROP_WINDOW_COCOA_WINDOW_POINTER)
+    }
+
+    pub fn cocoa_metal_view_tag(&self) -> Option<i64> {
+        self.opt_number(SDL_PROP_WINDOW_COCOA_METAL_VIEW_TAG_NUMBER)
+    }
+
+    pub fn win32_hwnd(&self) -> Option<*mut c_void> {
+        self.opt_ptr(SDL_PROP_WINDOW_WIN32_HWND_POINTER)
+    }
+
+    pub fn win32_hdc(&self) -> Option<*mut c_void> {
+        self.opt_ptr(SDL_PROP_WINDOW_WIN32_HDC_POINTER)
+    }
+
+    pub fn win32_instance(&self) -> Option<*mut c_void> {
+        self.opt_ptr(SDL_PROP_WINDOW_WIN32_INSTANCE_POINTER)
+    }
+
+    pub fn x11_display(&self) -> Option<*mut c_void> {
+        self.opt_ptr(SDL_PROP_WINDOW_X11_DISPLAY_POINTER)
+    }
+
+    pub fn x11_screen(&self) -> Option<i64> {
+        self.opt_number(SDL_PROP_WINDOW_X11_SCREEN_NUMBER)
+    }
+
+    pub fn x11_window(&self) -> Option<i64> {
+        self.opt_number(SDL_PROP_WINDOW_X11_WINDOW_NUMBER)
+    }
+
+    pub fn wayland_display(&self) -> Option<*mut c_void> {
+        self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER)
+    }
+
+    pub fn wayland_surface(&self) -> Option<*mut c_void> {
+        self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER)
+    }
+
+    pub fn wayland_viewport(&self) -> Option<*mut c_void> {
+        self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_VIEWPORT_POINTER)
+    }
+
+    pub fn wayland_egl_window(&self) -> Option<*mut c_void> {
+        self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_EGL_WINDOW_POINTER)
+    }
+
+    pub fn wayland_xdg_surface(&self) -> Option<*mut c_void> {
+        self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_XDG_SURFACE_POINTER)
+    }
+
+    pub fn wayland_xdg_toplevel(&self) -> Option<*mut c_void> {
+        self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_XDG_TOPLEVEL_POINTER)
+    }
+
+    pub fn wayland_xdg_toplevel_export_handle(&self) -> Option<&str> {
+        self.opt_str(SDL_PROP_WINDOW_WAYLAND_XDG_TOPLEVEL_EXPORT_HANDLE_STRING)
+    }
+
+    pub fn wayland_xdg_popup(&self) -> Option<*mut c_void> {
+        self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_XDG_POPUP_POINTER)
+    }
+
+    pub fn wayland_xdg_positioner(&self) -> Option<*mut c_void> {
+        self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_XDG_POSITIONER_POINTER)
+    }
+}
+
+impl Deref for WindowProperties<'_> {
+    type Target = PropertiesHandle;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
 pub struct WindowId {
     inner: NonZero<u32>,
 }
@@ -399,12 +539,21 @@ impl WindowHandle {
         to_result(unsafe { SDL_HideWindow(self.handle.as_ptr()) })
     }
 
-    // TODO: Create custom properties wrapper.
+    /// Read-only properties of this window, as documented by
+    /// [`SDL_GetWindowProperties`](https://wiki.libsdl.org/SDL3/SDL_GetWindowProperties).
+    ///
+    /// Covers the generic properties plus the Cocoa, Win32, X11 and Wayland
+    /// backends. Not covered: Android, iOS/UIKit, KMS/DRM, OpenVR, QNX,
+    /// Vivante, Emscripten and visionOS, as well as
+    /// `SDL_PROP_WINDOW_WAYLAND_WINDOW_ID_STRING`, which sdl3-sys does not
+    /// expose.
     #[doc(alias = "SDL_GetWindowProperties")]
-    pub fn properties(&self) -> Ref<'_, Properties> {
+    pub fn properties(&'_ self) -> WindowProperties<'_> {
         let id = unsafe { SDL_GetWindowProperties(self.handle.as_ptr()) };
         let handle = PropertiesHandle::from_id(id).expect("A valid window should have properties");
-        unsafe { Ref::from_handle(handle) }
+
+        let r = unsafe { Ref::from_handle(handle) };
+        WindowProperties::new(r)
     }
 }
 

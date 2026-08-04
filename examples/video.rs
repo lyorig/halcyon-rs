@@ -1,15 +1,12 @@
 #![windows_subsystem = "windows"]
 
-use std::ffi::CStr;
-
 use halcyon::{
     Context, Result,
     color::Rgba,
     event::{Event, EventIter},
     log::Category,
-    properties::Property,
     rect::{Point, Rect},
-    renderer::Renderer,
+    renderer::{Renderer, RendererProperties},
     resource::Resource,
     subsystem::Video,
     window::Window,
@@ -17,8 +14,11 @@ use halcyon::{
 
 /// You can make the output of this function visible by setting
 /// the env var `SDL_LOGGING=trace`, among others.
-fn prop_enum(key: &CStr, value: Property) {
-    halcyon::log_trace!("Property {} = {}", key.to_string_lossy(), value);
+fn print_properties(props: RendererProperties) {
+    halcyon::log!("Renderer name: \"{}\"", props.name());
+    halcyon::log!("HDR enabled: {}", props.hdr_enabled());
+    halcyon::log!("HDR headroom: {}", props.hdr_headroom());
+    halcyon::log!("Max texture size: {} px", props.max_texture_size());
 }
 
 /// SAFETY: Only call this on the main thread!
@@ -37,17 +37,9 @@ unsafe fn run() -> Result {
     let rnd = Renderer::builder(wnd.as_ref())?.vsync(1).build()?;
     rnd.clear()?;
 
-    halcyon::log_trace!(
-        "Platform = {}, renderer backend = {}",
-        halcyon::platform(),
-        rnd.name()
-    );
+    print_properties(rnd.properties());
 
-    halcyon::log_trace!("Window properties:");
-    wnd.properties().enumerate(prop_enum)?;
-
-    halcyon::log_trace!("Renderer properties:");
-    rnd.properties().enumerate(prop_enum)?;
+    halcyon::log_trace!("Platform = {}", halcyon::platform(),);
 
     rnd.set_draw_color_f32(Rgba::rgb(1., 1., 1.));
     rnd.draw_line(Point::new(10., 10.), Point::new(128., 64.))?;

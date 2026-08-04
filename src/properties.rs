@@ -142,6 +142,7 @@ impl PropertiesHandle {
     }
 
     #[doc(alias = "SDL_GetStringProperty")]
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     pub fn string(&self, key: &CStr, default: *const i8) -> *const i8 {
         unsafe { SDL_GetStringProperty(self.id(), key.as_ptr(), default) }
     }
