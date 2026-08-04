@@ -19,6 +19,7 @@ fn print_properties(props: RendererProperties) {
     halcyon::log!("HDR enabled: {}", props.hdr_enabled());
     halcyon::log!("HDR headroom: {}", props.hdr_headroom());
     halcyon::log!("Max texture size: {} px", props.max_texture_size());
+    halcyon::log!("# of texture formats: {}", props.texture_formats().len());
 }
 
 /// SAFETY: Only call this on the main thread!

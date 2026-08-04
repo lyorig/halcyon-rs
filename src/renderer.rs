@@ -219,9 +219,18 @@ impl<'a> RendererProperties<'a> {
         self.inner.number(cstr, 0)
     }
 
-    pub fn texture_formats(&self) -> *const SDL_PixelFormat {
+    pub fn texture_formats(&self) -> &[SDL_PixelFormat] {
         let cstr = unsafe { CStr::from_ptr(SDL_PROP_RENDERER_TEXTURE_FORMATS_POINTER) };
-        self.inner.pointer(cstr, std::ptr::null_mut()).cast()
+        let begin = self
+            .inner
+            .pointer(cstr, std::ptr::null_mut())
+            .cast::<SDL_PixelFormat>();
+
+        let mut len = 0;
+        while unsafe { begin.add(len).read() } != SDL_PixelFormat::UNKNOWN {
+            len += 1;
+        }
+        unsafe { std::slice::from_raw_parts(begin, len) }
     }
 
     pub fn texture_wrapping(&self) -> bool {
