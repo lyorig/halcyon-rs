@@ -177,7 +177,7 @@ impl VertexInputState<'_, '_> {
     pub fn new<'vbd, 'va>(
         descriptions: &'vbd [VertexBufferDescription],
         attributes: &'va [VertexAttribute],
-    ) -> Self {
+    ) -> VertexInputState<'vbd, 'va> {
         VertexInputState(
             SDL_GPUVertexInputState {
                 vertex_buffer_descriptions: descriptions.as_ptr().cast(),
