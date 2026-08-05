@@ -54,12 +54,12 @@ impl Display for Property {
         match self {
             Property::Pointer(p) => write!(f, "{p:p}"),
             Property::String(s) => {
-                let str = if s.is_null() {
-                    "<null string>"
+                if s.is_null() {
+                    write!(f, "<null string>")
                 } else {
-                    &unsafe { CStr::from_ptr(*s) }.to_string_lossy()
-                };
-                write!(f, "{str}")
+                    let str = &unsafe { CStr::from_ptr(*s) }.to_string_lossy();
+                    write!(f, "\"{str}\"")
+                }
             }
             Property::Number(n) => write!(f, "{n}"),
             Property::Float(fl) => write!(f, "{fl}"),
