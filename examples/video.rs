@@ -43,6 +43,8 @@ unsafe fn run() -> Result {
         .vsync(1)
         .build()?;
 
+    drop(props);
+
     rnd.clear()?;
 
     print_properties(rnd.properties());
