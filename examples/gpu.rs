@@ -7,8 +7,9 @@ use halcyon::{
     color::RgbaF32,
     event::{Event, EventIter},
     gpu::*,
+    properties::Properties,
     rect::Point,
-    resource::Resource,
+    resource::{Ref, Resource},
     subsystem::Video,
     window::Window,
 };
@@ -37,14 +38,34 @@ fn print_properties(props: DeviceProperties) {
     halcyon::log!("Driver version: {}", f(props.driver_version()));
 }
 
+fn enum_properties(props: Ref<Properties>) {
+    halcyon::log!("--- begin property enumeration ---");
+    _ = props.enumerate(|k, v| halcyon::log!("{k} = {v}"));
+    halcyon::log!("--- end property enumeration ---");
+}
+
 fn run() -> Result {
     let ctx = Context::new();
     let _video = ManuallyDrop::new(Video::new(&ctx)?);
 
-    let device = Device::new(SHADER_FMT.as_mask(), EnableDebug::No)?;
-    print_properties(device.properties());
+    // SDL provides an existing property set, which we can conveniently abuse.
+    let props = Properties::global()?;
 
-    let wnd = Window::new(c"Halcyon GPU", Point::new(800, 600), Default::default())?;
+    let device = Device::builder(props)
+        .debug_mode(false)
+        .prefer_low_power(true)
+        .shaders_msl(true)
+        .shaders_dxil(true)
+        .build()?;
+
+    let wnd = Window::builder(props)
+        .title(c"Halcyon GPU")
+        .size(Point::new(800, 600))
+        .build()?;
+
+    print_properties(device.properties());
+    enum_properties(props);
+
     device.claim_window(wnd.as_ref())?;
 
     let sci_vs = ShaderCreateInfo::new(
