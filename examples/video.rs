@@ -28,9 +28,9 @@ unsafe fn run() -> Result {
     let ctx = Context::new();
     let _vid = Video::new(&ctx).expect("Video creation failed");
 
-    let props = Properties::new()?;
+    let props = Properties::global()?;
 
-    let wnd = Window::builder(props.as_ref())
+    let wnd = Window::builder(props)
         .position(Point::new(Window::POS_CENTERED, Window::POS_CENTERED))
         .title(c"Halcyon Example")
         .size(Point::new(640, 480))
@@ -38,12 +38,10 @@ unsafe fn run() -> Result {
 
     wnd.sync()?;
 
-    let rnd = Renderer::builder(props.as_ref())
+    let rnd = Renderer::builder(props)
         .window(wnd.as_ref())
         .vsync(1)
         .build()?;
-
-    drop(props);
 
     rnd.clear()?;
 
