@@ -111,21 +111,27 @@ use crate::{
     renderer::{Renderer, RendererHandle},
     resource::Ref,
     resource_new,
-    surface::{Surface, SurfaceHandle},
-    util::{c_ptr_to_str, to_result},
+    util::to_result,
 };
+
 use bitmask_enum::bitmask;
 use sdl3_sys::{
     render::{SDL_CreateWindowAndRenderer, SDL_GetRenderer, SDL_Renderer},
     video::*,
 };
+
 use std::{
-    ffi::{CStr, c_char, c_void},
+    ffi::{CStr, c_char},
     mem::MaybeUninit,
     num::NonZero,
-    ops::Deref,
     ptr::NonNull,
 };
+
+pub mod builder;
+pub mod properties;
+
+pub use builder::*;
+pub use properties::*;
 
 #[bitmask(u64)]
 pub enum WindowFlags {
@@ -155,291 +161,6 @@ pub enum WindowFlags {
     NotFocusable = SDL_WINDOW_NOT_FOCUSABLE.0,
 }
 
-pub struct WindowBuilder<'a> {
-    inner: Ref<'a, Properties>,
-}
-
-impl WindowBuilder<'_> {
-    pub fn always_on_top(&mut self, value: bool) -> &mut Self {
-        self.set_bool(SDL_PROP_WINDOW_CREATE_ALWAYS_ON_TOP_BOOLEAN, value)
-    }
-
-    pub fn borderless(&mut self, value: bool) -> &mut Self {
-        self.set_bool(SDL_PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN, value)
-    }
-
-    pub fn constrain_popup(&mut self, value: bool) -> &mut Self {
-        self.set_bool(SDL_PROP_WINDOW_CREATE_CONSTRAIN_POPUP_BOOLEAN, value)
-    }
-
-    pub fn ext_gfx_context(&mut self, value: bool) -> &mut Self {
-        self.set_bool(
-            SDL_PROP_WINDOW_CREATE_EXTERNAL_GRAPHICS_CONTEXT_BOOLEAN,
-            value,
-        )
-    }
-
-    pub fn focusable(&mut self, value: bool) -> &mut Self {
-        self.set_bool(SDL_PROP_WINDOW_CREATE_FOCUSABLE_BOOLEAN, value)
-    }
-
-    pub fn fullscreen(&mut self, value: bool) -> &mut Self {
-        self.set_bool(SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, value)
-    }
-
-    pub fn height(&mut self, value: i64) -> &mut Self {
-        self.set_number(SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, value)
-    }
-
-    pub fn hidden(&mut self, value: bool) -> &mut Self {
-        self.set_bool(SDL_PROP_WINDOW_CREATE_HIDDEN_BOOLEAN, value)
-    }
-
-    pub fn high_pixel_density(&mut self, value: bool) -> &mut Self {
-        self.set_bool(SDL_PROP_WINDOW_CREATE_HIGH_PIXEL_DENSITY_BOOLEAN, value)
-    }
-
-    pub fn maximized(&mut self, value: bool) -> &mut Self {
-        self.set_bool(SDL_PROP_WINDOW_CREATE_MAXIMIZED_BOOLEAN, value)
-    }
-
-    pub fn menu(&mut self, value: bool) -> &mut Self {
-        self.set_bool(SDL_PROP_WINDOW_CREATE_MENU_BOOLEAN, value)
-    }
-
-    pub fn metal(&mut self, value: bool) -> &mut Self {
-        self.set_bool(SDL_PROP_WINDOW_CREATE_METAL_BOOLEAN, value)
-    }
-
-    pub fn minimized(&mut self, value: bool) -> &mut Self {
-        self.set_bool(SDL_PROP_WINDOW_CREATE_MINIMIZED_BOOLEAN, value)
-    }
-
-    pub fn modal(&mut self, value: bool) -> &mut Self {
-        self.set_bool(SDL_PROP_WINDOW_CREATE_MODAL_BOOLEAN, value)
-    }
-
-    pub fn mouse_grabbed(&mut self, value: bool) -> &mut Self {
-        self.set_bool(SDL_PROP_WINDOW_CREATE_MOUSE_GRABBED_BOOLEAN, value)
-    }
-
-    pub fn opengl(&mut self, value: bool) -> &mut Self {
-        self.set_bool(SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, value)
-    }
-
-    pub fn parent(&mut self, value: Ref<Window>) -> &mut Self {
-        let cstr = unsafe { CStr::from_ptr(SDL_PROP_WINDOW_CREATE_PARENT_POINTER) };
-        _ = self
-            .inner
-            .set_pointer(cstr, value.handle.as_ptr() as *mut c_void);
-        self
-    }
-
-    pub fn resizable(&mut self, value: bool) -> &mut Self {
-        self.set_bool(SDL_PROP_WINDOW_CREATE_RESIZABLE_BOOLEAN, value)
-    }
-
-    pub fn title(&mut self, value: &CStr) -> &mut Self {
-        let cstr = unsafe { CStr::from_ptr(SDL_PROP_WINDOW_CREATE_TITLE_STRING) };
-        _ = self.inner.set_string(cstr, value.as_ptr());
-        self
-    }
-
-    pub fn transparent(&mut self, value: bool) -> &mut Self {
-        self.set_bool(SDL_PROP_WINDOW_CREATE_TRANSPARENT_BOOLEAN, value)
-    }
-
-    pub fn tooltip(&mut self, value: bool) -> &mut Self {
-        self.set_bool(SDL_PROP_WINDOW_CREATE_TOOLTIP_BOOLEAN, value)
-    }
-
-    pub fn utility(&mut self, value: bool) -> &mut Self {
-        self.set_bool(SDL_PROP_WINDOW_CREATE_UTILITY_BOOLEAN, value)
-    }
-
-    pub fn vulkan(&mut self, value: bool) -> &mut Self {
-        self.set_bool(SDL_PROP_WINDOW_CREATE_VULKAN_BOOLEAN, value)
-    }
-
-    pub fn width(&mut self, value: i64) -> &mut Self {
-        self.set_number(SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, value)
-    }
-
-    pub fn x(&mut self, value: i64) -> &mut Self {
-        self.set_number(SDL_PROP_WINDOW_CREATE_X_NUMBER, value)
-    }
-
-    pub fn y(&mut self, value: i64) -> &mut Self {
-        self.set_number(SDL_PROP_WINDOW_CREATE_Y_NUMBER, value)
-    }
-
-    /// Utility method that calls `self.width()` and `self.height()`.
-    pub fn size(&mut self, size: PointI32) -> &mut Self {
-        self.width(size.x.into());
-        self.height(size.y.into())
-    }
-
-    /// Utility method that calls `self.x()` and `self.y()`.
-    pub fn position(&mut self, pos: PointI32) -> &mut Self {
-        self.x(pos.x.into());
-        self.y(pos.y.into())
-    }
-
-    /// Build the window.
-    #[doc(alias = "SDL_CreateWindowWithProperties")]
-    pub fn build(&self) -> Result<Window> {
-        Window::from_ptr(unsafe { SDL_CreateWindowWithProperties(self.inner.id()) })
-    }
-
-    fn set_bool(&mut self, key: *const c_char, value: bool) -> &mut Self {
-        _ = self.inner.set_bool(unsafe { CStr::from_ptr(key) }, value);
-        self
-    }
-
-    fn set_number(&mut self, key: *const c_char, value: i64) -> &mut Self {
-        _ = self.inner.set_number(unsafe { CStr::from_ptr(key) }, value);
-        self
-    }
-}
-
-/// Read-only properties of a window, as documented by
-/// [`SDL_GetWindowProperties`](https://wiki.libsdl.org/SDL3/SDL_GetWindowProperties).
-///
-/// Generic properties are returned bare since the docs guarantee their
-/// existence; backend properties are returned as `Option` since they only
-/// exist on their respective backends.
-#[derive(Clone, Copy)]
-pub struct WindowProperties<'a> {
-    inner: Ref<'a, Properties>,
-}
-
-impl<'a> WindowProperties<'a> {
-    fn new(inner: Ref<'a, Properties>) -> Self {
-        Self { inner }
-    }
-
-    fn opt_str(&self, key: *const i8) -> Option<&str> {
-        let cstr = unsafe { CStr::from_ptr(key) };
-        let s = self.inner.string(cstr, std::ptr::null());
-
-        if s.is_null() {
-            return None;
-        }
-
-        Some(unsafe { c_ptr_to_str(s) })
-    }
-
-    fn opt_number(&self, key: *const i8) -> Option<i64> {
-        let cstr = unsafe { CStr::from_ptr(key) };
-        self.inner.has(cstr).then(|| self.inner.number(cstr, 0))
-    }
-
-    fn opt_ptr(&self, key: *const i8) -> Option<*mut c_void> {
-        let cstr = unsafe { CStr::from_ptr(key) };
-        let p = self.inner.pointer(cstr, std::ptr::null_mut());
-
-        (!p.is_null()).then_some(p)
-    }
-
-    pub fn shape(&self) -> Option<Ref<'a, Surface>> {
-        let cstr = unsafe { CStr::from_ptr(SDL_PROP_WINDOW_SHAPE_POINTER) };
-        let p = self.inner.pointer(cstr, std::ptr::null_mut());
-
-        SurfaceHandle::from_ptr(p.cast()).map(|h| unsafe { Ref::from_handle(h) })
-    }
-
-    pub fn hdr_enabled(&self) -> bool {
-        let cstr = unsafe { CStr::from_ptr(SDL_PROP_WINDOW_HDR_ENABLED_BOOLEAN) };
-        self.inner.bool(cstr, false)
-    }
-
-    pub fn sdr_white_level(&self) -> f32 {
-        let cstr = unsafe { CStr::from_ptr(SDL_PROP_WINDOW_SDR_WHITE_LEVEL_FLOAT) };
-        self.inner.float(cstr, 0.)
-    }
-
-    pub fn hdr_headroom(&self) -> f32 {
-        let cstr = unsafe { CStr::from_ptr(SDL_PROP_WINDOW_HDR_HEADROOM_FLOAT) };
-        self.inner.float(cstr, 0.)
-    }
-
-    pub fn cocoa_window(&self) -> Option<*mut c_void> {
-        self.opt_ptr(SDL_PROP_WINDOW_COCOA_WINDOW_POINTER)
-    }
-
-    pub fn cocoa_metal_view_tag(&self) -> Option<i64> {
-        self.opt_number(SDL_PROP_WINDOW_COCOA_METAL_VIEW_TAG_NUMBER)
-    }
-
-    pub fn win32_hwnd(&self) -> Option<*mut c_void> {
-        self.opt_ptr(SDL_PROP_WINDOW_WIN32_HWND_POINTER)
-    }
-
-    pub fn win32_hdc(&self) -> Option<*mut c_void> {
-        self.opt_ptr(SDL_PROP_WINDOW_WIN32_HDC_POINTER)
-    }
-
-    pub fn win32_instance(&self) -> Option<*mut c_void> {
-        self.opt_ptr(SDL_PROP_WINDOW_WIN32_INSTANCE_POINTER)
-    }
-
-    pub fn x11_display(&self) -> Option<*mut c_void> {
-        self.opt_ptr(SDL_PROP_WINDOW_X11_DISPLAY_POINTER)
-    }
-
-    pub fn x11_screen(&self) -> Option<i64> {
-        self.opt_number(SDL_PROP_WINDOW_X11_SCREEN_NUMBER)
-    }
-
-    pub fn x11_window(&self) -> Option<i64> {
-        self.opt_number(SDL_PROP_WINDOW_X11_WINDOW_NUMBER)
-    }
-
-    pub fn wayland_display(&self) -> Option<*mut c_void> {
-        self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER)
-    }
-
-    pub fn wayland_surface(&self) -> Option<*mut c_void> {
-        self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER)
-    }
-
-    pub fn wayland_viewport(&self) -> Option<*mut c_void> {
-        self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_VIEWPORT_POINTER)
-    }
-
-    pub fn wayland_egl_window(&self) -> Option<*mut c_void> {
-        self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_EGL_WINDOW_POINTER)
-    }
-
-    pub fn wayland_xdg_surface(&self) -> Option<*mut c_void> {
-        self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_XDG_SURFACE_POINTER)
-    }
-
-    pub fn wayland_xdg_toplevel(&self) -> Option<*mut c_void> {
-        self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_XDG_TOPLEVEL_POINTER)
-    }
-
-    pub fn wayland_xdg_toplevel_export_handle(&self) -> Option<&str> {
-        self.opt_str(SDL_PROP_WINDOW_WAYLAND_XDG_TOPLEVEL_EXPORT_HANDLE_STRING)
-    }
-
-    pub fn wayland_xdg_popup(&self) -> Option<*mut c_void> {
-        self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_XDG_POPUP_POINTER)
-    }
-
-    pub fn wayland_xdg_positioner(&self) -> Option<*mut c_void> {
-        self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_XDG_POSITIONER_POINTER)
-    }
-}
-
-impl Deref for WindowProperties<'_> {
-    type Target = PropertiesHandle;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
 pub struct WindowId {
     inner: NonZero<u32>,
 }
@@ -452,12 +173,12 @@ impl WindowId {
         }
     }
 
-    unsafe fn from_raw_unchecked(raw: u32) -> Self {
+    const unsafe fn from_raw_unchecked(raw: u32) -> Self {
         let inner = unsafe { NonZero::new_unchecked(raw) };
         Self { inner }
     }
 
-    fn as_sdl(&self) -> SDL_WindowID {
+    const fn as_sdl(&self) -> SDL_WindowID {
         SDL_WindowID(self.inner.get())
     }
 }

@@ -16,7 +16,7 @@ pub trait Resource: Sized {
 }
 
 pub struct Ref<'a, T: Resource> {
-    handle: T::Handle,
+    pub(crate) handle: T::Handle,
     _marker: PhantomData<&'a T>,
 }
 
@@ -58,6 +58,10 @@ macro_rules! resource_new_impl {
             impl [<$owned Handle>] {
                 pub(crate) fn from_ptr(handle: *mut $sdl) -> Option<Self> {
                     std::ptr::NonNull::new(handle).map(|handle| Self { handle })
+                }
+
+                pub(crate) fn as_ptr(&self) -> *mut $sdl {
+                    self.handle.as_ptr()
                 }
             }
 
@@ -154,6 +158,10 @@ macro_rules! resource_new_tied {
             impl [<$owned Handle>] {
                 pub(crate) fn from_ptr(handle: *mut $sdl) -> Option<Self> {
                     std::ptr::NonNull::new(handle).map(|handle| Self { handle })
+                }
+
+                pub(crate) fn as_ptr(&self) -> *mut $sdl {
+                    self.handle.as_ptr()
                 }
             }
 
