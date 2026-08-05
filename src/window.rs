@@ -155,11 +155,11 @@ pub enum WindowFlags {
     NotFocusable = SDL_WINDOW_NOT_FOCUSABLE.0,
 }
 
-pub struct WindowBuilder {
-    inner: Properties,
+pub struct WindowBuilder<'a> {
+    inner: Ref<'a, Properties>,
 }
 
-impl WindowBuilder {
+impl WindowBuilder<'_> {
     pub fn always_on_top(&mut self, value: bool) -> &mut Self {
         self.set_bool(SDL_PROP_WINDOW_CREATE_ALWAYS_ON_TOP_BOOLEAN, value)
     }
@@ -561,9 +561,17 @@ impl Window {
     pub const POS_CENTERED: i32 = SDL_WINDOWPOS_CENTERED;
     pub const POS_UNDEFINED: i32 = SDL_WINDOWPOS_UNDEFINED;
 
-    pub fn builder() -> Result<WindowBuilder> {
-        let inner = Properties::new()?;
-        Ok(WindowBuilder { inner })
+    /// Bind the builder to an existing property group.
+    ///
+    /// A single [`Properties`] can be shared between the window, renderer
+    /// and GPU device builders, since their creation properties
+    /// (`SDL_PROP_WINDOW_CREATE_*`, `SDL_PROP_RENDERER_CREATE_*`,
+    /// `SDL_PROP_GPU_DEVICE_CREATE_*`) never collide with each other.
+    /// They do collide with themselves, however: creating a second window
+    /// from the same group inherits any leftover window properties, so use
+    /// one [`Properties`] per window.
+    pub fn builder(props: Ref<'_, Properties>) -> WindowBuilder<'_> {
+        WindowBuilder { inner: props }
     }
 
     #[doc(alias = "SDL_CreateWindow")]

@@ -99,11 +99,11 @@ use crate::{
     window::{Window, WindowHandle},
 };
 
-pub struct RendererBuilder {
-    inner: Properties,
+pub struct RendererBuilder<'a> {
+    inner: Ref<'a, Properties>,
 }
 
-impl RendererBuilder {
+impl RendererBuilder<'_> {
     pub fn name(&mut self, value: &CStr) -> &mut Self {
         let cstr = unsafe { CStr::from_ptr(SDL_PROP_RENDERER_CREATE_NAME_STRING) };
         _ = self.inner.set_string(cstr, value.as_ptr());
@@ -111,8 +111,9 @@ impl RendererBuilder {
         self
     }
 
-    /// Private and only used in `RendererBuilder::new()`.
-    fn window(&mut self, value: Ref<Window>) -> &mut Self {
+    /// The window where rendering is displayed. Mutually exclusive with
+    /// [`RendererBuilder::surface`].
+    pub fn window(&mut self, value: Ref<Window>) -> &mut Self {
         let cstr = unsafe { CStr::from_ptr(SDL_PROP_RENDERER_CREATE_WINDOW_POINTER) };
         _ = self
             .inner
@@ -816,13 +817,13 @@ impl Renderer {
     const VSYNC_DISABLED: i32 = SDL_RENDERER_VSYNC_DISABLED;
     const VSYNC_ADAPTIVE: i32 = SDL_RENDERER_VSYNC_ADAPTIVE;
 
-    pub fn builder(wnd: Ref<Window>) -> Result<RendererBuilder> {
-        let inner = Properties::new()?;
-
-        let mut ret = RendererBuilder { inner };
-        ret.window(wnd);
-
-        Ok(ret)
+    /// Bind the builder to an existing property group.
+    ///
+    /// The renderer creation properties (`SDL_PROP_RENDERER_CREATE_*`)
+    /// never collide with the window or GPU device ones, so a single
+    /// [`Properties`] can be shared between the three builders.
+    pub fn builder(props: Ref<'_, Properties>) -> RendererBuilder<'_> {
+        RendererBuilder { inner: props }
     }
 
     #[doc(alias = "SDL_CreateRenderer")]

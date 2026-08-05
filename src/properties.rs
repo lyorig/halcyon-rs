@@ -89,7 +89,7 @@ impl PropertiesHandle {
     }
 
     #[doc(alias = "SDL_SetNumberProperty")]
-    pub fn set_number(&mut self, key: &CStr, value: i64) -> Result {
+    pub fn set_number(&self, key: &CStr, value: i64) -> Result {
         to_result(unsafe { SDL_SetNumberProperty(self.id(), key.as_ptr(), value) })
     }
 
@@ -99,7 +99,7 @@ impl PropertiesHandle {
     }
 
     #[doc(alias = "SDL_SetFloatProperty")]
-    pub fn set_float(&mut self, key: &CStr, value: f32) -> Result {
+    pub fn set_float(&self, key: &CStr, value: f32) -> Result {
         to_result(unsafe { SDL_SetFloatProperty(self.id(), key.as_ptr(), value) })
     }
 
@@ -111,11 +111,11 @@ impl PropertiesHandle {
 
     #[doc(alias = "SDL_SetPointerProperty")]
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    pub fn set_pointer(&mut self, key: &CStr, value: *mut c_void) -> Result {
+    pub fn set_pointer(&self, key: &CStr, value: *mut c_void) -> Result {
         to_result(unsafe { SDL_SetPointerProperty(self.id(), key.as_ptr(), value) })
     }
 
-    pub fn set(&mut self, key: &CStr, value: Property) -> Result {
+    pub fn set(&self, key: &CStr, value: Property) -> Result {
         use Property::*;
 
         match value {
@@ -149,7 +149,7 @@ impl PropertiesHandle {
 
     #[doc(alias = "SDL_SetStringProperty")]
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    pub fn set_string(&mut self, key: &CStr, value: *const i8) -> Result {
+    pub fn set_string(&self, key: &CStr, value: *const i8) -> Result {
         to_result(unsafe { SDL_SetStringProperty(self.id(), key.as_ptr(), value) })
     }
 
@@ -159,7 +159,7 @@ impl PropertiesHandle {
     }
 
     #[doc(alias = "SDL_SetBooleanProperty")]
-    pub fn set_bool(&mut self, key: &CStr, value: bool) -> Result {
+    pub fn set_bool(&self, key: &CStr, value: bool) -> Result {
         to_result(unsafe { SDL_SetBooleanProperty(self.id(), key.as_ptr(), value) })
     }
 

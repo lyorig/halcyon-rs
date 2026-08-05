@@ -61,11 +61,11 @@ pub enum SwapchainComposition {
 
 /// Builder for [`Device`], using
 /// [`SDL_CreateGPUDeviceWithProperties`](https://wiki.libsdl.org/SDL3/SDL_CreateGPUDeviceWithProperties).
-pub struct DeviceBuilder {
-    inner: Properties,
+pub struct DeviceBuilder<'a> {
+    inner: Ref<'a, Properties>,
 }
 
-impl DeviceBuilder {
+impl DeviceBuilder<'_> {
     /// Enable debug mode properties and validations. Defaults to `true`.
     pub fn debug_mode(&mut self, value: bool) -> &mut Self {
         self.set_bool(SDL_PROP_GPU_DEVICE_CREATE_DEBUGMODE_BOOLEAN, value)
@@ -292,9 +292,13 @@ impl Device {
         Self::from_ptr(handle)
     }
 
-    pub fn builder() -> Result<DeviceBuilder> {
-        let inner = Properties::new()?;
-        Ok(DeviceBuilder { inner })
+    /// Bind the builder to an existing property group.
+    ///
+    /// The device creation properties (`SDL_PROP_GPU_DEVICE_CREATE_*`)
+    /// never collide with the window or renderer ones, so a single
+    /// [`Properties`] can be shared between the three builders.
+    pub fn builder(props: Ref<'_, Properties>) -> DeviceBuilder<'_> {
+        DeviceBuilder { inner: props }
     }
 }
 

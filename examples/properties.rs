@@ -1,7 +1,7 @@
 use halcyon::properties::Properties;
 
 fn run() -> halcyon::Result<()> {
-    let mut props = Properties::new()?;
+    let props = Properties::new()?;
     props.set_number(c"MyAge", 21)?;
     props.set_string(c"ThisProjectName", c"halcyon-rs".as_ptr())?;
     props.enumerate(|k, v| {

@@ -5,6 +5,7 @@ use halcyon::{
     color::Rgba,
     event::{Event, EventIter},
     log::Category,
+    properties::Properties,
     rect::{Point, Rect},
     renderer::{Renderer, RendererProperties},
     resource::Resource,
@@ -27,7 +28,9 @@ unsafe fn run() -> Result {
     let ctx = Context::new();
     let _vid = Video::new(&ctx).expect("Video creation failed");
 
-    let wnd = Window::builder()?
+    let props = Properties::new()?;
+
+    let wnd = Window::builder(props.as_ref())
         .position(Point::new(Window::POS_CENTERED, Window::POS_CENTERED))
         .title(c"Halcyon Example")
         .size(Point::new(640, 480))
@@ -35,7 +38,11 @@ unsafe fn run() -> Result {
 
     wnd.sync()?;
 
-    let rnd = Renderer::builder(wnd.as_ref())?.vsync(1).build()?;
+    let rnd = Renderer::builder(props.as_ref())
+        .window(wnd.as_ref())
+        .vsync(1)
+        .build()?;
+
     rnd.clear()?;
 
     print_properties(rnd.properties());

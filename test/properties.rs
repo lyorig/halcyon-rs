@@ -6,7 +6,7 @@ static MARKER: u64 = 42;
 /// Every property is visited exactly once, with its name.
 #[test]
 fn properties_enumerate_keys() {
-    let mut props = Properties::new().unwrap();
+    let props = Properties::new().unwrap();
     props.set_number(c"one", 1).unwrap();
     props.set_number(c"two", 2).unwrap();
     props.set_number(c"three", 3).unwrap();
@@ -26,7 +26,7 @@ fn properties_enumerate_keys() {
 /// The properties ID passed to the callback can be used to read values back.
 #[test]
 fn properties_enumerate_values() {
-    let mut props = Properties::new().unwrap();
+    let props = Properties::new().unwrap();
     props.set_number(c"answer", 42).unwrap();
     props.set_number(c"negative", -7).unwrap();
 
@@ -49,7 +49,7 @@ fn properties_enumerate_values() {
 /// All property types survive the round-trip through the callback.
 #[test]
 fn properties_enumerate_all_types() {
-    let mut props = Properties::new().unwrap();
+    let props = Properties::new().unwrap();
     props.set_number(c"num", 10).unwrap();
     props.set_float(c"flt", 2.5).unwrap();
     props.set_string(c"str", c"hello".as_ptr()).unwrap();
