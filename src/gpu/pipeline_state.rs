@@ -3,6 +3,8 @@
 //! Everything in this module is a building block of
 //! [`GraphicsPipelineCreateInfo`](crate::gpu::graphics_pipeline::GraphicsPipelineCreateInfo).
 
+use std::marker::PhantomData;
+
 use bitmask_enum::bitmask;
 use sdl3_sys::gpu::*;
 
@@ -166,15 +168,26 @@ impl VertexAttribute {
 
 #[doc(alias = "SDL_GPUVertexInputState")]
 #[derive(Clone, Copy)]
-pub struct VertexInputState(pub(crate) SDL_GPUVertexInputState);
-impl VertexInputState {
-    pub fn new(descriptions: &[VertexBufferDescription], attributes: &[VertexAttribute]) -> Self {
-        Self(SDL_GPUVertexInputState {
-            vertex_buffer_descriptions: descriptions.as_ptr().cast(),
-            num_vertex_buffers: descriptions.len() as _,
-            vertex_attributes: attributes.as_ptr().cast(),
-            num_vertex_attributes: attributes.len() as _,
-        })
+pub struct VertexInputState<'vbd, 'va>(
+    pub(crate) SDL_GPUVertexInputState,
+    PhantomData<&'vbd [VertexBufferDescription]>,
+    PhantomData<&'va [VertexAttribute]>,
+);
+impl VertexInputState<'_, '_> {
+    pub fn new<'vbd, 'va>(
+        descriptions: &'vbd [VertexBufferDescription],
+        attributes: &'va [VertexAttribute],
+    ) -> Self {
+        VertexInputState(
+            SDL_GPUVertexInputState {
+                vertex_buffer_descriptions: descriptions.as_ptr().cast(),
+                num_vertex_buffers: descriptions.len() as _,
+                vertex_attributes: attributes.as_ptr().cast(),
+                num_vertex_attributes: attributes.len() as _,
+            },
+            PhantomData,
+            PhantomData,
+        )
     }
 }
 
@@ -331,20 +344,25 @@ impl ColorTargetDescription {
 
 #[doc(alias = "SDL_GPUGraphicsPipelineTargetInfo")]
 #[derive(Clone, Copy)]
-pub struct GraphicsPipelineTargetInfo(pub(crate) SDL_GPUGraphicsPipelineTargetInfo);
-impl GraphicsPipelineTargetInfo {
-    // FIXME: Passing `descriptions` as a temporary causes a UAF.
-    pub fn new(
-        descriptions: &[ColorTargetDescription],
+pub struct GraphicsPipelineTargetInfo<'a>(
+    pub(crate) SDL_GPUGraphicsPipelineTargetInfo,
+    PhantomData<&'a [ColorTargetDescription]>,
+);
+impl GraphicsPipelineTargetInfo<'_> {
+    pub fn new<'a>(
+        descriptions: &'a [ColorTargetDescription],
         depth_stencil_format: TextureFormat,
         hdst: HasDepthStencilTarget,
-    ) -> Self {
-        Self(SDL_GPUGraphicsPipelineTargetInfo {
-            color_target_descriptions: descriptions.as_ptr().cast(),
-            num_color_targets: descriptions.len() as _,
-            depth_stencil_format: SDL_GPUTextureFormat::new(depth_stencil_format as _),
-            has_depth_stencil_target: hdst.into(),
-            ..Default::default()
-        })
+    ) -> GraphicsPipelineTargetInfo<'a> {
+        GraphicsPipelineTargetInfo(
+            SDL_GPUGraphicsPipelineTargetInfo {
+                color_target_descriptions: descriptions.as_ptr().cast(),
+                num_color_targets: descriptions.len() as _,
+                depth_stencil_format: SDL_GPUTextureFormat::new(depth_stencil_format as _),
+                has_depth_stencil_target: hdst.into(),
+                ..Default::default()
+            },
+            PhantomData,
+        )
     }
 }
