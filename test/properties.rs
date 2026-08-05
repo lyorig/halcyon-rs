@@ -1,5 +1,15 @@
+use std::ffi::CString;
+
 use halcyon::properties::Properties;
 use rustest::test;
+
+fn c(s: &str) -> CString {
+    let mut vec = Vec::with_capacity(s.len() + 1);
+    vec.extend_from_slice(s.as_bytes());
+    vec.push(b'\0');
+
+    unsafe { CString::from_vec_with_nul_unchecked(vec) }
+}
 
 static MARKER: u64 = 42;
 
@@ -14,7 +24,7 @@ fn properties_enumerate_keys() {
     let mut visited = Vec::new();
     props
         .enumerate(|k, _v| {
-            let key = k.to_str().unwrap().to_owned();
+            let key = k.to_owned();
             visited.push(key);
         })
         .unwrap();
@@ -33,8 +43,8 @@ fn properties_enumerate_values() {
     let mut values = Vec::new();
     props
         .enumerate(|k, _v| {
-            let key = k.to_str().unwrap().to_owned();
-            let value = props.number(k, -1);
+            let key = k.to_owned();
+            let value = props.number(&c(k), -1);
             values.push((key, value));
         })
         .unwrap();
@@ -61,7 +71,8 @@ fn properties_enumerate_all_types() {
     let mut typed = Vec::new();
     props
         .enumerate(|k, _v| {
-            let key = k.to_str().unwrap().to_owned();
+            let key = k.to_owned();
+            let k = &c(k);
             match key.as_str() {
                 "num" => assert_eq!(props.number(k, 0), 10),
                 "flt" => assert_eq!(props.float(k, 0.0), 2.5),

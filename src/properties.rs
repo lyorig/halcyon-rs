@@ -165,8 +165,8 @@ impl PropertiesHandle {
 
     /// Enumerate all properties. Accepts a function with a key-value pair as parameters.
     #[doc(alias = "SDL_EnumerateProperties")]
-    pub fn enumerate<F: FnMut(&CStr, Property)>(&self, f: F) -> Result {
-        type DynCbk<'a> = dyn FnMut(&CStr, Property) + 'a;
+    pub fn enumerate<F: FnMut(&str, Property)>(&self, f: F) -> Result {
+        type DynCbk<'a> = dyn FnMut(&str, Property) + 'a;
 
         // SDL invokes the callback synchronously inside `SDL_EnumerateProperties`,
         // so the closure can live in a `Box` on the stack for the duration of the
@@ -189,7 +189,10 @@ impl PropertiesHandle {
             // SAFETY: Smuggled inside `userdata`, see body of `enumerate`.
             let f = unsafe { userdata.cast::<Box<DynCbk<'static>>>().as_mut_unchecked() };
 
-            f(key, value);
+            // SAFETY: SDL property names are UTF-8.
+            let key_str = unsafe { str::from_utf8_unchecked(key.to_bytes()) };
+
+            f(key_str, value);
         }
 
         let mut f: Box<DynCbk<'_>> = Box::new(f);
