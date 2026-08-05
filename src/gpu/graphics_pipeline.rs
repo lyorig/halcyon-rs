@@ -3,9 +3,16 @@
 //! - [x] SDL_CreateGPUGraphicsPipeline
 //! - [x] SDL_ReleaseGPUGraphicsPipeline
 
+use std::marker::PhantomData;
+
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
-use crate::{Result, resource::Ref, resource_new_no_drop};
+use crate::{
+    Result,
+    gpu::{ColorTargetDescription, VertexAttribute, VertexBufferDescription},
+    resource::Ref,
+    resource_new_no_drop,
+};
 
 use super::{
     device::Device,
@@ -29,30 +36,44 @@ pub enum PrimitiveType {
 
 #[doc(alias = "SDL_GPUGraphicsPipelineCreateInfo")]
 #[derive(Clone, Copy)]
-pub struct GraphicsPipelineCreateInfo(SDL_GPUGraphicsPipelineCreateInfo);
-impl GraphicsPipelineCreateInfo {
+pub struct GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd>(
+    SDL_GPUGraphicsPipelineCreateInfo,
+    PhantomData<&'vs Shader>,
+    PhantomData<&'fs Shader>,
+    PhantomData<&'vbd [VertexBufferDescription]>,
+    PhantomData<&'va [VertexAttribute]>,
+    PhantomData<&'ctd [ColorTargetDescription]>,
+);
+impl GraphicsPipelineCreateInfo<'_, '_, '_, '_, '_> {
     #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        vertex_shader: Ref<Shader>,
-        fragment_shader: Ref<Shader>,
-        vertex_input_state: VertexInputState,
+    pub fn new<'vs, 'fs, 'vbd, 'va, 'ctd>(
+        vertex_shader: Ref<'vs, Shader>,
+        fragment_shader: Ref<'fs, Shader>,
+        vertex_input_state: VertexInputState<'vbd, 'va>,
         primitive_type: PrimitiveType,
         rasterizer_state: RasterizerState,
         multisample_state: MultisampleState,
         depth_stencil_state: DepthStencilState,
-        target_info: GraphicsPipelineTargetInfo,
-    ) -> Self {
-        Self(SDL_GPUGraphicsPipelineCreateInfo {
-            vertex_shader: vertex_shader.handle.as_ptr(),
-            fragment_shader: fragment_shader.handle.as_ptr(),
-            vertex_input_state: vertex_input_state.0,
-            primitive_type: SDL_GPUPrimitiveType::new(primitive_type as _),
-            rasterizer_state: rasterizer_state.0,
-            multisample_state: multisample_state.0,
-            depth_stencil_state: depth_stencil_state.0,
-            target_info: target_info.0,
-            props: SDL_PropertiesID::new(0),
-        })
+        target_info: GraphicsPipelineTargetInfo<'ctd>,
+    ) -> GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd> {
+        GraphicsPipelineCreateInfo(
+            SDL_GPUGraphicsPipelineCreateInfo {
+                vertex_shader: vertex_shader.handle.as_ptr(),
+                fragment_shader: fragment_shader.handle.as_ptr(),
+                vertex_input_state: vertex_input_state.0,
+                primitive_type: SDL_GPUPrimitiveType::new(primitive_type as _),
+                rasterizer_state: rasterizer_state.0,
+                multisample_state: multisample_state.0,
+                depth_stencil_state: depth_stencil_state.0,
+                target_info: target_info.0,
+                props: SDL_PropertiesID::new(0),
+            },
+            PhantomData,
+            PhantomData,
+            PhantomData,
+            PhantomData,
+            PhantomData,
+        )
     }
 }
 

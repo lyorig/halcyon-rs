@@ -344,16 +344,16 @@ impl ColorTargetDescription {
 
 #[doc(alias = "SDL_GPUGraphicsPipelineTargetInfo")]
 #[derive(Clone, Copy)]
-pub struct GraphicsPipelineTargetInfo<'a>(
+pub struct GraphicsPipelineTargetInfo<'ctd>(
     pub(crate) SDL_GPUGraphicsPipelineTargetInfo,
-    PhantomData<&'a [ColorTargetDescription]>,
+    PhantomData<&'ctd [ColorTargetDescription]>,
 );
 impl GraphicsPipelineTargetInfo<'_> {
-    pub fn new<'a>(
-        descriptions: &'a [ColorTargetDescription],
+    pub fn new<'ctd>(
+        descriptions: &'ctd [ColorTargetDescription],
         depth_stencil_format: TextureFormat,
         hdst: HasDepthStencilTarget,
-    ) -> GraphicsPipelineTargetInfo<'a> {
+    ) -> GraphicsPipelineTargetInfo<'ctd> {
         GraphicsPipelineTargetInfo(
             SDL_GPUGraphicsPipelineTargetInfo {
                 color_target_descriptions: descriptions.as_ptr().cast(),
