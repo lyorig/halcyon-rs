@@ -2,7 +2,7 @@
 //! - [x] SDL_CreateGPUComputePipeline
 //! - [x] SDL_ReleaseGPUComputePipeline
 
-use std::ffi::CStr;
+use std::{ffi::CStr, marker::PhantomData};
 
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
@@ -10,13 +10,20 @@ use crate::{Result, resource::Ref, resource_new_no_drop};
 
 use super::{ShaderFormat, device::Device};
 
+/// `'bc` and `'ep` tie the create-info to the lifetime of the shader bytecode and its
+/// entry point. Both are stored as raw pointers in the SDL struct, so this
+/// prevents passing (non-promoted) temporaries that would dangle.
 #[doc(alias = "SDL_GPUComputePipelineCreateInfo")]
 #[derive(Clone, Copy)]
-pub struct ComputePipelineCreateInfo(SDL_GPUComputePipelineCreateInfo);
-impl ComputePipelineCreateInfo {
-    pub const fn new(
-        code: &[u8],
-        entrypoint: &CStr,
+pub struct ComputePipelineCreateInfo<'bc, 'ep>(
+    SDL_GPUComputePipelineCreateInfo,
+    PhantomData<&'bc [u8]>,
+    PhantomData<&'ep CStr>,
+);
+impl ComputePipelineCreateInfo<'_, '_> {
+    pub const fn new<'bc, 'ep>(
+        code: &'bc [u8],
+        entrypoint: &'ep CStr,
         fmt: ShaderFormat,
         (samplers, ro_stor_tex, ro_stor_buf, rw_stor_tex, rw_stor_buf, unif_buf): (
             u32,
@@ -27,7 +34,7 @@ impl ComputePipelineCreateInfo {
             u32,
         ),
         (thr_x, thr_y, thr_z): (u32, u32, u32),
-    ) -> Self {
+    ) -> ComputePipelineCreateInfo<'bc, 'ep> {
         let inner = SDL_GPUComputePipelineCreateInfo {
             code_size: code.len(),
             code: code.as_ptr(),
@@ -45,7 +52,7 @@ impl ComputePipelineCreateInfo {
             props: SDL_PropertiesID::new(0),
         };
 
-        Self(inner)
+        ComputePipelineCreateInfo(inner, PhantomData, PhantomData)
     }
 }
 

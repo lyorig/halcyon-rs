@@ -2,7 +2,7 @@
 //! - [x] SDL_CreateGPUShader
 //! - [x] SDL_ReleaseGPUShader
 
-use std::ffi::CStr;
+use std::{ffi::CStr, marker::PhantomData};
 
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
@@ -11,24 +11,33 @@ use crate::{Result, resource::Ref, resource_new_no_drop};
 use super::{ShaderFormat, device::Device};
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUShaderStage")]
 pub enum ShaderStage {
     Vertex = SDL_GPUShaderStage::VERTEX.0,
     Fragment = SDL_GPUShaderStage::FRAGMENT.0,
 }
 
+/// `'bc` and `'ep` tie the create-info to the lifetime of the shader bytecode and its
+/// entry point. Both are stored as raw pointers in the SDL struct, so this
+/// prevents passing (non-promoted) temporaries that would dangle.
 #[doc(alias = "SDL_GPUShaderCreateInfo")]
 #[derive(Clone, Copy)]
-pub struct ShaderCreateInfo(SDL_GPUShaderCreateInfo);
-impl ShaderCreateInfo {
-    pub const fn new(
-        code: &[u8],
-        entrypoint: &CStr,
+pub struct ShaderCreateInfo<'bc, 'ep>(
+    SDL_GPUShaderCreateInfo,
+    PhantomData<&'bc [u8]>,
+    PhantomData<&'ep CStr>,
+);
+
+impl ShaderCreateInfo<'_, '_> {
+    pub const fn new<'bc, 'ep>(
+        code: &'bc [u8],
+        entrypoint: &'ep CStr,
         fmt: ShaderFormat,
         stage: ShaderStage,
         num_samplers: u32,
         (num_storage_textures, num_storage_buffers, num_uniform_buffers): (u32, u32, u32),
-    ) -> Self {
+    ) -> ShaderCreateInfo<'bc, 'ep> {
         let inner = SDL_GPUShaderCreateInfo {
             code_size: code.len(),
             code: code.as_ptr(),
@@ -41,7 +50,8 @@ impl ShaderCreateInfo {
             num_uniform_buffers,
             props: SDL_PropertiesID::new(0),
         };
-        Self(inner)
+
+        ShaderCreateInfo(inner, PhantomData, PhantomData)
     }
 }
 
