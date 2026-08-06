@@ -6,7 +6,6 @@ use halcyon::{
     Context, Result,
     color::Rgba,
     event::{Event, EventIter},
-    log::Category,
     properties::Properties,
     rect::{Point, Rect},
     renderer::{Renderer, RendererProperties},
@@ -79,6 +78,6 @@ fn run() -> Result {
 
 fn main() {
     if let Err(e) = run() {
-        halcyon::log_error!(Category::Error, "An error occurred: {}", e);
+        halcyon::log_error!("An error occurred: {e}");
     }
 }

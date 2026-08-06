@@ -1,6 +1,6 @@
-use halcyon::{Context, Result, display::DisplayHandle, subsystem::Video, util::c_ptr_to_str};
+use halcyon::{Context, Result, display::DisplayHandle, subsystem::Video};
 
-fn outer() -> Result {
+fn run() -> Result {
     let context = Context::new();
     let _video: Video = context.init()?;
 
@@ -8,7 +8,7 @@ fn outer() -> Result {
         halcyon::log!(
             "Display #{}: \"{}\", bounds {} (usable {}), content scale = {:.2}",
             i,
-            unsafe { c_ptr_to_str(disp.name()?.as_ptr()) },
+            disp.name()?.to_string_lossy(),
             disp.bounds()?,
             disp.bounds_usable()?,
             disp.content_scale()?
@@ -19,7 +19,7 @@ fn outer() -> Result {
     halcyon::log!(
         "Primary display has ID {} and name \"{}\"",
         p.id().0,
-        unsafe { c_ptr_to_str(p.name()?.as_ptr()) }
+        p.name()?.to_string_lossy()
     );
 
     halcyon::log!("All primary desktop display modes:");
@@ -34,7 +34,7 @@ fn outer() -> Result {
 }
 
 fn main() {
-    if let Err(e) = outer() {
-        halcyon::log!("Something went wrong: {}", e);
+    if let Err(e) = run() {
+        halcyon::log!("Something went wrong: {e}");
     }
 }
