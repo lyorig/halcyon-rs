@@ -4,6 +4,30 @@ use sdl3_sys::gpu::*;
 
 use crate::{Result, gpu::Device, properties::Properties, resource::Ref};
 
+const CREATE_PROPERTIES: [*const c_char; 21] = [
+    SDL_PROP_GPU_DEVICE_CREATE_DEBUGMODE_BOOLEAN,
+    SDL_PROP_GPU_DEVICE_CREATE_PREFERLOWPOWER_BOOLEAN,
+    SDL_PROP_GPU_DEVICE_CREATE_VERBOSE_BOOLEAN,
+    SDL_PROP_GPU_DEVICE_CREATE_NAME_STRING,
+    SDL_PROP_GPU_DEVICE_CREATE_FEATURE_CLIP_DISTANCE_BOOLEAN,
+    SDL_PROP_GPU_DEVICE_CREATE_FEATURE_DEPTH_CLAMPING_BOOLEAN,
+    SDL_PROP_GPU_DEVICE_CREATE_FEATURE_INDIRECT_DRAW_FIRST_INSTANCE_BOOLEAN,
+    SDL_PROP_GPU_DEVICE_CREATE_FEATURE_ANISOTROPY_BOOLEAN,
+    SDL_PROP_GPU_DEVICE_CREATE_SHADERS_PRIVATE_BOOLEAN,
+    SDL_PROP_GPU_DEVICE_CREATE_SHADERS_SPIRV_BOOLEAN,
+    SDL_PROP_GPU_DEVICE_CREATE_SHADERS_DXBC_BOOLEAN,
+    SDL_PROP_GPU_DEVICE_CREATE_SHADERS_DXIL_BOOLEAN,
+    SDL_PROP_GPU_DEVICE_CREATE_SHADERS_MSL_BOOLEAN,
+    SDL_PROP_GPU_DEVICE_CREATE_SHADERS_METALLIB_BOOLEAN,
+    SDL_PROP_GPU_DEVICE_CREATE_D3D12_ALLOW_FEWER_RESOURCE_SLOTS_BOOLEAN,
+    SDL_PROP_GPU_DEVICE_CREATE_D3D12_SEMANTIC_NAME_STRING,
+    SDL_PROP_GPU_DEVICE_CREATE_D3D12_AGILITY_SDK_VERSION_NUMBER,
+    SDL_PROP_GPU_DEVICE_CREATE_D3D12_AGILITY_SDK_PATH_STRING,
+    SDL_PROP_GPU_DEVICE_CREATE_VULKAN_REQUIRE_HARDWARE_ACCELERATION_BOOLEAN,
+    SDL_PROP_GPU_DEVICE_CREATE_VULKAN_OPTIONS_POINTER,
+    SDL_PROP_GPU_DEVICE_CREATE_METAL_ALLOW_MACFAMILY1_BOOLEAN,
+];
+
 /// Builder for [`Device`], using
 /// [`SDL_CreateGPUDeviceWithProperties`](https://wiki.libsdl.org/SDL3/SDL_CreateGPUDeviceWithProperties).
 pub struct DeviceBuilder<'a> {
@@ -186,10 +210,27 @@ impl DeviceBuilder<'_> {
         )
     }
 
+    /// Clear all device creation properties from a property group.
+    pub fn clear_from(props: Ref<Properties>) {
+        for key in CREATE_PROPERTIES {
+            let cstr = unsafe { CStr::from_ptr(key) };
+            _ = props.clear(cstr);
+        }
+    }
+
     /// Build the device.
     #[doc(alias = "SDL_CreateGPUDeviceWithProperties")]
     pub fn build(&self) -> Result<Device> {
         Device::from_ptr(unsafe { SDL_CreateGPUDeviceWithProperties(self.inner.id()) })
+    }
+
+    /// Build the device, and cleanup all properties.
+    /// See the [crate::properties] module docs for more info.
+    #[doc(alias = "SDL_CreateGPUDeviceWithProperties")]
+    pub fn build_cleanup(&self) -> Result<Device> {
+        let ret = Device::from_ptr(unsafe { SDL_CreateGPUDeviceWithProperties(self.inner.id()) });
+        Self::clear_from(self.inner);
+        ret
     }
 
     fn set_bool(&mut self, key: *const c_char, value: bool) -> &mut Self {

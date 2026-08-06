@@ -23,6 +23,13 @@
 //! - SDL_LockProperties
 //! - SDL_SetPointerPropertyWithCleanup
 //! - SDL_UnlockProperties
+//!
+//! # Build-with-cleanup
+//! Various builders expose a `build_cleanup()` method.
+//! This is useful when using a longer-lived property group, specifically:
+//! - you don't want to keep the builder properties in memory, since they won't be used anymore
+//! - you intend to re-use it to build something else, and don't want the earlier configuration
+//!   to influence future builds
 
 use std::{
     ffi::{CStr, c_char, c_void},
@@ -206,7 +213,7 @@ impl PropertiesHandle {
     }
 
     #[doc(alias = "SDL_ClearProperty")]
-    fn clear(&self, key: &CStr) -> Result {
+    pub fn clear(&self, key: &CStr) -> Result {
         to_result(unsafe { SDL_ClearProperty(self.id(), key.as_ptr()) })
     }
 

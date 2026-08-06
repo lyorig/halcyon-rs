@@ -4,6 +4,35 @@ use sdl3_sys::video::*;
 
 use crate::{Result, properties::Properties, rect::PointI32, resource::Ref, window::Window};
 
+const CREATE_PROPERTIES: [*const c_char; 26] = [
+    SDL_PROP_WINDOW_CREATE_ALWAYS_ON_TOP_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_CONSTRAIN_POPUP_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_EXTERNAL_GRAPHICS_CONTEXT_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_FOCUSABLE_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER,
+    SDL_PROP_WINDOW_CREATE_HIDDEN_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_HIGH_PIXEL_DENSITY_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_MAXIMIZED_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_MENU_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_METAL_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_MINIMIZED_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_MODAL_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_MOUSE_GRABBED_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_PARENT_POINTER,
+    SDL_PROP_WINDOW_CREATE_RESIZABLE_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_TITLE_STRING,
+    SDL_PROP_WINDOW_CREATE_TRANSPARENT_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_TOOLTIP_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_UTILITY_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_VULKAN_BOOLEAN,
+    SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER,
+    SDL_PROP_WINDOW_CREATE_X_NUMBER,
+    SDL_PROP_WINDOW_CREATE_Y_NUMBER,
+];
+
 pub struct WindowBuilder<'a> {
     inner: Ref<'a, Properties>,
 }
@@ -196,10 +225,27 @@ impl WindowBuilder<'_> {
         self.y(pos.y.into())
     }
 
+    /// Clear all window creation properties from a property group.
+    pub fn clear_from(props: Ref<Properties>) {
+        for key in CREATE_PROPERTIES {
+            let cstr = unsafe { CStr::from_ptr(key) };
+            _ = props.clear(cstr);
+        }
+    }
+
     /// Build the window.
     #[doc(alias = "SDL_CreateWindowWithProperties")]
     pub fn build(&self) -> Result<Window> {
         Window::from_ptr(unsafe { SDL_CreateWindowWithProperties(self.inner.id()) })
+    }
+
+    /// Build the window, and cleanup all properties.
+    /// See the [crate::properties] module docs for more info.
+    #[doc(alias = "SDL_CreateWindowWithProperties")]
+    pub fn build_cleanup(&self) -> Result<Window> {
+        let ret = Window::from_ptr(unsafe { SDL_CreateWindowWithProperties(self.inner.id()) });
+        Self::clear_from(self.inner);
+        ret
     }
 
     fn set_bool(&mut self, key: *const c_char, value: bool) -> &mut Self {

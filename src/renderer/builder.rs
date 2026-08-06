@@ -1,4 +1,4 @@
-use std::ffi::CStr;
+use std::ffi::{CStr, c_char};
 
 use sdl3_sys::{pixels::SDL_Colorspace, render::*};
 
@@ -6,6 +6,14 @@ use crate::{
     Result, properties::Properties, renderer::Renderer, resource::Ref, surface::Surface,
     window::Window,
 };
+
+const CREATE_PROPERTIES: [*const c_char; 5] = [
+    SDL_PROP_RENDERER_CREATE_NAME_STRING,
+    SDL_PROP_RENDERER_CREATE_WINDOW_POINTER,
+    SDL_PROP_RENDERER_CREATE_SURFACE_POINTER,
+    SDL_PROP_RENDERER_CREATE_OUTPUT_COLORSPACE_NUMBER,
+    SDL_PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER,
+];
 
 pub struct RendererBuilder<'a> {
     inner: Ref<'a, Properties>,
@@ -67,6 +75,14 @@ impl RendererBuilder<'_> {
         self
     }
 
+    /// Clear all renderer creation properties from a property group.
+    pub fn clear_from(props: Ref<Properties>) {
+        for key in CREATE_PROPERTIES {
+            let cstr = unsafe { CStr::from_ptr(key) };
+            _ = props.clear(cstr);
+        }
+    }
+
     /// Build the renderer.
     ///
     /// This doesn't require a subsystem parameter, as the [`Window`]
@@ -75,5 +91,18 @@ impl RendererBuilder<'_> {
     #[doc(alias = "SDL_CreateRendererWithProperties")]
     pub fn build(&self) -> Result<Renderer> {
         Renderer::from_ptr(unsafe { SDL_CreateRendererWithProperties(self.inner.id()) })
+    }
+
+    /// Build the renderer, and cleanup all properties.
+    /// See the [crate::properties] module docs for more info.
+    ///
+    /// This doesn't require a subsystem parameter, as the [`Window`]
+    /// you're creating this with needs one, proving the subsystem has been
+    /// initialized.
+    #[doc(alias = "SDL_CreateRendererWithProperties")]
+    pub fn build_cleanup(&self) -> Result<Renderer> {
+        let ret = Renderer::from_ptr(unsafe { SDL_CreateRendererWithProperties(self.inner.id()) });
+        Self::clear_from(self.inner);
+        ret
     }
 }

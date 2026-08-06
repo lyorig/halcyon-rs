@@ -56,12 +56,12 @@ fn run() -> Result {
         .prefer_low_power(true)
         .shaders_metallib(true)
         .shaders_dxil(true)
-        .build()?;
+        .build_cleanup()?;
 
     let wnd = Window::builder(props)
         .title(c"Halcyon GPU")
         .size(Point::new(800, 600))
-        .build()?;
+        .build_cleanup()?;
 
     print_properties(device.properties());
     enum_properties(props);
