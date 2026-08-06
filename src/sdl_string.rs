@@ -16,8 +16,8 @@ pub struct SdlString {
 }
 
 impl SdlString {
-    pub(crate) fn from_ptr(handle: *const c_char) -> Result<Self> {
-        match NonNull::new(handle.cast_mut()) {
+    pub(crate) fn from_ptr(handle: *mut c_char) -> Result<Self> {
+        match NonNull::new(handle) {
             Some(handle) => Ok(Self { handle }),
             None => Err(Error::current()),
         }

@@ -1,4 +1,4 @@
-use std::ffi::{CStr, c_void};
+use std::ffi::{CStr, c_char, c_void};
 
 use sdl3_sys::video::*;
 
@@ -25,7 +25,7 @@ impl<'a> WindowProperties<'a> {
         Self { inner }
     }
 
-    fn opt_str(&self, key: *const i8) -> Option<&str> {
+    fn opt_str(&self, key: *const c_char) -> Option<&str> {
         let cstr = unsafe { CStr::from_ptr(key) };
         let s = self.inner.string(cstr, std::ptr::null());
 
@@ -36,12 +36,12 @@ impl<'a> WindowProperties<'a> {
         Some(unsafe { c_ptr_to_str(s) })
     }
 
-    fn opt_number(&self, key: *const i8) -> Option<i64> {
+    fn opt_number(&self, key: *const c_char) -> Option<i64> {
         let cstr = unsafe { CStr::from_ptr(key) };
         self.inner.has(cstr).then(|| self.inner.number(cstr, 0))
     }
 
-    fn opt_ptr(&self, key: *const i8) -> Option<*mut c_void> {
+    fn opt_ptr(&self, key: *const c_char) -> Option<*mut c_void> {
         let cstr = unsafe { CStr::from_ptr(key) };
         let p = self.inner.pointer(cstr, std::ptr::null_mut());
 

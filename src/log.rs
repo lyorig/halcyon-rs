@@ -20,7 +20,10 @@
 //! - SDL_LogMessageV
 //! - SDL_SetLogOutputFunction
 
-use std::{ffi::CString, fmt::Arguments};
+use std::{
+    ffi::{CString, c_char},
+    fmt::Arguments,
+};
 
 use sdl3_sys::log::*;
 
@@ -70,7 +73,7 @@ fn args2cstr(args: Arguments) -> CString {
     unsafe { CString::from_vec_unchecked(s.into_bytes()) }
 }
 
-const FMT: *const i8 = c"%s".as_ptr();
+const FMT: *const c_char = c"%s".as_ptr();
 
 macro_rules! log_for_priority {
     ($name:ident, $sdl:ident, $alias:literal) => {

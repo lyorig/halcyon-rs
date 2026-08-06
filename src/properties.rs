@@ -25,7 +25,7 @@
 //! - SDL_UnlockProperties
 
 use std::{
-    ffi::{CStr, c_void},
+    ffi::{CStr, c_char, c_void},
     fmt::Display,
     hint::unreachable_unchecked,
     num::NonZero,
@@ -43,7 +43,7 @@ use crate::{
 #[derive(Clone, Copy)]
 pub enum Property {
     Pointer(*mut c_void),
-    String(*const i8),
+    String(*const c_char),
     Number(i64),
     Float(f32),
     Bool(bool),
@@ -143,13 +143,13 @@ impl PropertiesHandle {
 
     #[doc(alias = "SDL_GetStringProperty")]
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    pub fn string(&self, key: &CStr, default: *const i8) -> *const i8 {
+    pub fn string(&self, key: &CStr, default: *const c_char) -> *const c_char {
         unsafe { SDL_GetStringProperty(self.id(), key.as_ptr(), default) }
     }
 
     #[doc(alias = "SDL_SetStringProperty")]
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    pub fn set_string(&self, key: &CStr, value: *const i8) -> Result {
+    pub fn set_string(&self, key: &CStr, value: *const c_char) -> Result {
         to_result(unsafe { SDL_SetStringProperty(self.id(), key.as_ptr(), value) })
     }
 
@@ -173,7 +173,11 @@ impl PropertiesHandle {
         // call, with the `Box` itself handed to SDL as the opaque `userdata`
         // pointer. This only involves thin pointer casts, unlike the previous
         // version which transmuted between function and data pointers.
-        unsafe extern "C" fn wrap(userdata: *mut c_void, props: SDL_PropertiesID, name: *const i8) {
+        unsafe extern "C" fn wrap(
+            userdata: *mut c_void,
+            props: SDL_PropertiesID,
+            name: *const c_char,
+        ) {
             // SAFETY: We are enumerating a valid property group.
             let handle = unsafe { PropertiesHandle::from_id(props).unwrap_unchecked() };
 
