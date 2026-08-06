@@ -16,13 +16,13 @@ use halcyon::{
 
 cfg_select! {
     target_os = "macos" => {
-        const VS_MSL: &[u8] = include_bytes!("shaders/triangle.metallib");
-        const FS_MSL: &[u8] = VS_MSL;
+        const VS_CODE: &[u8] = include_bytes!("shaders/triangle.metallib");
+        const FS_CODE: &[u8] = VS_CODE;
         const SHADER_FMT: ShaderFormat = ShaderFormat::Metallib;
     },
     target_os = "windows" => {
-        const VS_MSL: &[u8] = include_bytes!("shaders/triangle_vs.dxil");
-        const FS_MSL: &[u8] = include_bytes!("shaders/triangle_fs.dxil");
+        const VS_CODE: &[u8] = include_bytes!("shaders/triangle_vs.dxil");
+        const FS_CODE: &[u8] = include_bytes!("shaders/triangle_fs.dxil");
         const SHADER_FMT: ShaderFormat = ShaderFormat::Dxil;
     }
 }
@@ -62,7 +62,7 @@ fn run() -> Result {
     device.claim_window(wnd.as_ref())?;
 
     let sci_vs = ShaderCreateInfo::new(
-        VS_MSL,
+        VS_CODE,
         c"vs_main",
         SHADER_FMT,
         ShaderStage::Vertex,
@@ -71,7 +71,7 @@ fn run() -> Result {
     );
 
     let sci_fs = ShaderCreateInfo::new(
-        FS_MSL,
+        FS_CODE,
         c"fs_main",
         SHADER_FMT,
         ShaderStage::Fragment,
