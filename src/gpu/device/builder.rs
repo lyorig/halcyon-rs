@@ -7,10 +7,14 @@ use crate::{Result, gpu::Device, properties::Properties, resource::Ref};
 /// Builder for [`Device`], using
 /// [`SDL_CreateGPUDeviceWithProperties`](https://wiki.libsdl.org/SDL3/SDL_CreateGPUDeviceWithProperties).
 pub struct DeviceBuilder<'a> {
-    pub(super) inner: Ref<'a, Properties>,
+    inner: Ref<'a, Properties>,
 }
 
 impl DeviceBuilder<'_> {
+    pub(super) fn new(inner: Ref<Properties>) -> DeviceBuilder {
+        DeviceBuilder { inner }
+    }
+
     /// Enable debug mode properties and validations. Defaults to `true`.
     pub fn debug_mode(&mut self, value: bool) -> &mut Self {
         self.set_bool(SDL_PROP_GPU_DEVICE_CREATE_DEBUGMODE_BOOLEAN, value)

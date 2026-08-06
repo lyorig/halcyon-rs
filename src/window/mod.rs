@@ -291,8 +291,8 @@ impl Window {
     /// They do collide with themselves, however: creating a second window
     /// from the same group inherits any leftover window properties, so use
     /// one [`Properties`] per window.
-    pub fn builder(props: Ref<'_, Properties>) -> WindowBuilder<'_> {
-        WindowBuilder { inner: props }
+    pub fn builder(props: Ref<Properties>) -> WindowBuilder {
+        WindowBuilder::new(props)
     }
 
     #[doc(alias = "SDL_CreateWindow")]

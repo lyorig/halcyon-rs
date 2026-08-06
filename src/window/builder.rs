@@ -5,10 +5,14 @@ use sdl3_sys::video::*;
 use crate::{Result, properties::Properties, rect::PointI32, resource::Ref, window::Window};
 
 pub struct WindowBuilder<'a> {
-    pub(super) inner: Ref<'a, Properties>,
+    inner: Ref<'a, Properties>,
 }
 
 impl WindowBuilder<'_> {
+    pub(super) fn new(inner: Ref<Properties>) -> WindowBuilder {
+        WindowBuilder { inner }
+    }
+
     pub fn always_on_top(&mut self, value: bool) -> &mut Self {
         self.set_bool(SDL_PROP_WINDOW_CREATE_ALWAYS_ON_TOP_BOOLEAN, value)
     }

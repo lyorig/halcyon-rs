@@ -77,7 +77,7 @@ impl Device {
     /// never collide with the window or renderer ones, so a single
     /// [`Properties`] can be shared between the three builders.
     pub fn builder(props: Ref<'_, Properties>) -> DeviceBuilder<'_> {
-        DeviceBuilder { inner: props }
+        DeviceBuilder::new(props)
     }
 }
 
