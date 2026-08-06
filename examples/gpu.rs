@@ -16,9 +16,9 @@ use halcyon::{
 
 cfg_select! {
     target_os = "macos" => {
-        const VS_MSL: &[u8] = include_bytes!("shaders/vs.msl");
-        const FS_MSL: &[u8] = include_bytes!("shaders/fs.msl");
-        const SHADER_FMT: ShaderFormat = ShaderFormat::Msl;
+        const VS_MSL: &[u8] = include_bytes!("shaders/triangle.metallib");
+        const FS_MSL: &[u8] = VS_MSL;
+        const SHADER_FMT: ShaderFormat = ShaderFormat::Metallib;
     },
     target_os = "windows" => {
         const VS_MSL: &[u8] = include_bytes!("shaders/triangle_vs.dxil");
@@ -54,7 +54,7 @@ fn run() -> Result {
     let device = Device::builder(props)
         .debug_mode(false)
         .prefer_low_power(true)
-        .shaders_msl(true)
+        .shaders_metallib(true)
         .shaders_dxil(true)
         .build()?;
 
