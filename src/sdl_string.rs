@@ -8,16 +8,16 @@ use sdl3_sys::stdinc::SDL_free;
 
 use crate::{Result, error::Error};
 
-/// Like an owned `String`, but it gets dropped via SDL's
-/// custom `SDL_free()` function.
+/// Like an owned [`String`], but it gets dropped via SDL's
+/// custom [`SDL_free()`] function.
 #[derive(Debug)]
 pub struct SdlString {
     handle: NonNull<c_char>,
 }
 
 impl SdlString {
-    pub(crate) fn from_ptr(handle: *const c_char) -> Result<Self> {
-        match NonNull::new(handle.cast_mut()) {
+    pub(crate) fn from_ptr(handle: *mut c_char) -> Result<Self> {
+        match NonNull::new(handle) {
             Some(handle) => Ok(Self { handle }),
             None => Err(Error::current()),
         }
@@ -42,7 +42,7 @@ impl SdlString {
 }
 
 impl Display for SdlString {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let str = self.to_str();
         <str as Display>::fmt(str, f)
     }

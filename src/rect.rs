@@ -63,7 +63,7 @@ impl<T: Copy + Mul<Output = T>> Mul<T> for Point<T> {
 }
 
 impl<T: Display> Display for Point<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "[{},{}]", self.x, self.y)
     }
 }
@@ -136,7 +136,7 @@ impl<T: Default + Copy> Rect<T> {
 }
 
 impl<T: Display> Display for Rect<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "({}, {}x{})", self.pos, self.size.x, self.size.y)
     }
 }

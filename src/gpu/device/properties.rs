@@ -1,4 +1,4 @@
-use std::ffi::CStr;
+use std::ffi::{CStr, c_char};
 
 use sdl3_sys::gpu::*;
 
@@ -18,7 +18,7 @@ impl<'a> DeviceProperties<'a> {
         Self { inner }
     }
 
-    fn get(&self, key: *const i8) -> Option<&str> {
+    fn get(&self, key: *const c_char) -> Option<&str> {
         let cstr = unsafe { CStr::from_ptr(key) };
         let s = self.inner.string(cstr, std::ptr::null());
 

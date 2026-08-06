@@ -1,10 +1,11 @@
 #![windows_subsystem = "windows"]
 
+use std::mem::ManuallyDrop;
+
 use halcyon::{
     Context, Result,
     color::Rgba,
     event::{Event, EventIter},
-    log::Category,
     properties::Properties,
     rect::{Point, Rect},
     renderer::{Renderer, RendererProperties},
@@ -23,10 +24,9 @@ fn print_properties(props: RendererProperties) {
     halcyon::log!("# of texture formats: {}", props.texture_formats().len());
 }
 
-/// SAFETY: Only call this on the main thread!
-unsafe fn run() -> Result {
+fn run() -> Result {
     let ctx = Context::new();
-    let _vid = Video::new(&ctx).expect("Video creation failed");
+    let _vid = ManuallyDrop::new(Video::new(&ctx)?);
 
     let props = Properties::global()?;
 
@@ -34,20 +34,20 @@ unsafe fn run() -> Result {
         .position(Point::new(Window::POS_CENTERED, Window::POS_CENTERED))
         .title(c"Halcyon Example")
         .size(Point::new(640, 480))
-        .build()?;
+        .build_cleanup()?;
 
     wnd.sync()?;
 
     let rnd = Renderer::builder(props)
         .window(wnd.as_ref())
         .vsync(1)
-        .build()?;
+        .build_cleanup()?;
 
     rnd.clear()?;
 
     print_properties(rnd.properties());
 
-    halcyon::log_trace!("Platform = {}", halcyon::platform(),);
+    halcyon::log_trace!("Platform = {}", halcyon::platform());
 
     rnd.set_draw_color_f32(Rgba::rgb(1., 1., 1.));
     rnd.draw_line(Point::new(10., 10.), Point::new(128., 64.))?;
@@ -77,7 +77,7 @@ unsafe fn run() -> Result {
 }
 
 fn main() {
-    if let Err(e) = unsafe { run() } {
-        halcyon::log_error!(Category::Error, "An error occurred: {}", e);
+    if let Err(e) = run() {
+        halcyon::log_error!("An error occurred: {e}");
     }
 }

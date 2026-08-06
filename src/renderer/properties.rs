@@ -1,4 +1,4 @@
-use std::ffi::{CStr, c_void};
+use std::ffi::{CStr, c_char, c_void};
 
 use sdl3_sys::{
     pixels::{SDL_Colorspace, SDL_PixelFormat},
@@ -30,7 +30,7 @@ impl<'a> RendererProperties<'a> {
         Self { inner }
     }
 
-    fn get_str(&self, key: *const i8) -> &str {
+    fn get_str(&self, key: *const c_char) -> &str {
         let cstr = unsafe { CStr::from_ptr(key) };
         let s = self.inner.string(cstr, std::ptr::null());
 
@@ -38,12 +38,12 @@ impl<'a> RendererProperties<'a> {
         unsafe { c_ptr_to_str(s) }
     }
 
-    fn opt_number(&self, key: *const i8) -> Option<i64> {
+    fn opt_number(&self, key: *const c_char) -> Option<i64> {
         let cstr = unsafe { CStr::from_ptr(key) };
         self.inner.has(cstr).then(|| self.inner.number(cstr, 0))
     }
 
-    fn opt_ptr(&self, key: *const i8) -> Option<*mut c_void> {
+    fn opt_ptr(&self, key: *const c_char) -> Option<*mut c_void> {
         let cstr = unsafe { CStr::from_ptr(key) };
         let p = self.inner.pointer(cstr, std::ptr::null_mut());
 

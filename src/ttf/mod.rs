@@ -123,7 +123,12 @@
 
 pub mod engine;
 
-use std::{ffi::CStr, marker::PhantomData, mem::MaybeUninit, ptr::NonNull};
+use std::{
+    ffi::{CStr, c_char},
+    marker::PhantomData,
+    mem::MaybeUninit,
+    ptr::NonNull,
+};
 
 use sdl3_ttf_sys::ttf::*;
 
@@ -150,7 +155,7 @@ use crate::{
 /// - [`RtStr::new_unchecked`] skips the check. Use when you know that the string is not empty.
 #[derive(Clone, Copy)]
 pub struct RtStr<'a> {
-    ptr: *const i8,
+    ptr: *const c_char,
     len: usize,
     marker: std::marker::PhantomData<&'a str>,
 }
@@ -177,7 +182,7 @@ impl RtStr<'_> {
         unsafe { std::mem::transmute(s) }
     }
 
-    pub const fn as_ptr(&self) -> *const i8 {
+    pub const fn as_ptr(&self) -> *const c_char {
         self.ptr
     }
 

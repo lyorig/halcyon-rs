@@ -116,7 +116,7 @@ impl RendererHandle {
     /// GPU-renderer backends. Not covered: the Metal backend
     /// (`SDL_PROP_RENDERER_METAL_*`), which sdl3-sys does not expose.
     #[doc(alias = "SDL_GetRendererProperties")]
-    pub fn properties(&'_ self) -> RendererProperties<'_> {
+    pub fn properties(&self) -> RendererProperties<'_> {
         let id = unsafe { SDL_GetRendererProperties(self.handle.as_ptr()) };
         let handle =
             PropertiesHandle::from_id(id).expect("A valid renderer should always have a handle");
@@ -591,8 +591,8 @@ impl Renderer {
     /// The renderer creation properties (`SDL_PROP_RENDERER_CREATE_*`)
     /// never collide with the window or GPU device ones, so a single
     /// [`Properties`] can be shared between the three builders.
-    pub fn builder(props: Ref<'_, Properties>) -> RendererBuilder<'_> {
-        RendererBuilder { inner: props }
+    pub fn builder(props: Ref<Properties>) -> RendererBuilder {
+        RendererBuilder::new(props)
     }
 
     #[doc(alias = "SDL_CreateRenderer")]

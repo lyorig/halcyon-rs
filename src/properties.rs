@@ -23,9 +23,16 @@
 //! - SDL_LockProperties
 //! - SDL_SetPointerPropertyWithCleanup
 //! - SDL_UnlockProperties
+//!
+//! # Build-with-cleanup
+//! Various builders expose a `build_cleanup()` method.
+//! This is useful when using a longer-lived property group, specifically:
+//! - you don't want to keep the builder properties in memory, since they won't be used anymore
+//! - you intend to re-use it to build something else, and don't want the earlier configuration
+//!   to influence future builds
 
 use std::{
-    ffi::{CStr, c_void},
+    ffi::{CStr, c_char, c_void},
     fmt::Display,
     hint::unreachable_unchecked,
     num::NonZero,
@@ -43,14 +50,14 @@ use crate::{
 #[derive(Clone, Copy)]
 pub enum Property {
     Pointer(*mut c_void),
-    String(*const i8),
+    String(*const c_char),
     Number(i64),
     Float(f32),
     Bool(bool),
 }
 
 impl Display for Property {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Property::Pointer(p) => write!(f, "{p:p}"),
             Property::String(s) => {
@@ -143,13 +150,13 @@ impl PropertiesHandle {
 
     #[doc(alias = "SDL_GetStringProperty")]
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    pub fn string(&self, key: &CStr, default: *const i8) -> *const i8 {
+    pub fn string(&self, key: &CStr, default: *const c_char) -> *const c_char {
         unsafe { SDL_GetStringProperty(self.id(), key.as_ptr(), default) }
     }
 
     #[doc(alias = "SDL_SetStringProperty")]
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    pub fn set_string(&self, key: &CStr, value: *const i8) -> Result {
+    pub fn set_string(&self, key: &CStr, value: *const c_char) -> Result {
         to_result(unsafe { SDL_SetStringProperty(self.id(), key.as_ptr(), value) })
     }
 
@@ -173,12 +180,16 @@ impl PropertiesHandle {
         // call, with the `Box` itself handed to SDL as the opaque `userdata`
         // pointer. This only involves thin pointer casts, unlike the previous
         // version which transmuted between function and data pointers.
-        unsafe extern "C" fn wrap(userdata: *mut c_void, props: SDL_PropertiesID, name: *const i8) {
+        unsafe extern "C" fn wrap(
+            userdata: *mut c_void,
+            props: SDL_PropertiesID,
+            name: *const c_char,
+        ) {
             // SAFETY: We are enumerating a valid property group.
             let handle = unsafe { PropertiesHandle::from_id(props).unwrap_unchecked() };
 
             // SAFETY: This `Ref` is only used inside the body of `enumerate()`.
-            let r: Ref<'_, Properties> = unsafe { Ref::from_handle(handle) };
+            let r: Ref<Properties> = unsafe { Ref::from_handle(handle) };
 
             // SAFETY: SDL property names are null-terminated.
             let key = unsafe { CStr::from_ptr(name) };
@@ -195,19 +206,19 @@ impl PropertiesHandle {
             f(key_str, value);
         }
 
-        let mut f: Box<DynCbk<'_>> = Box::new(f);
+        let mut f: Box<DynCbk> = Box::new(f);
         let userdata = std::ptr::from_mut(&mut f).cast::<c_void>();
 
         to_result(unsafe { SDL_EnumerateProperties(self.id(), Some(wrap), userdata) })
     }
 
     #[doc(alias = "SDL_ClearProperty")]
-    fn clear(&self, key: &CStr) -> Result {
+    pub fn clear(&self, key: &CStr) -> Result {
         to_result(unsafe { SDL_ClearProperty(self.id(), key.as_ptr()) })
     }
 
     #[doc(alias = "SDL_CopyProperties")]
-    fn copy_to(&self, dst: Ref<'_, Properties>) -> Result {
+    fn copy_to(&self, dst: Ref<Properties>) -> Result {
         to_result(unsafe { SDL_CopyProperties(self.id(), dst.id()) })
     }
 

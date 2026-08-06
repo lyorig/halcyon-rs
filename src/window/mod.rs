@@ -269,7 +269,7 @@ impl WindowHandle {
     /// `SDL_PROP_WINDOW_WAYLAND_WINDOW_ID_STRING`, which sdl3-sys does not
     /// expose.
     #[doc(alias = "SDL_GetWindowProperties")]
-    pub fn properties(&'_ self) -> WindowProperties<'_> {
+    pub fn properties(&self) -> WindowProperties<'_> {
         let id = unsafe { SDL_GetWindowProperties(self.handle.as_ptr()) };
         let handle = PropertiesHandle::from_id(id).expect("A valid window should have properties");
 
@@ -291,8 +291,8 @@ impl Window {
     /// They do collide with themselves, however: creating a second window
     /// from the same group inherits any leftover window properties, so use
     /// one [`Properties`] per window.
-    pub fn builder(props: Ref<'_, Properties>) -> WindowBuilder<'_> {
-        WindowBuilder { inner: props }
+    pub fn builder(props: Ref<Properties>) -> WindowBuilder {
+        WindowBuilder::new(props)
     }
 
     #[doc(alias = "SDL_CreateWindow")]

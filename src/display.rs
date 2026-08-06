@@ -22,11 +22,10 @@ use crate::{
     error::Error,
     rect::{PointI32, RectI32},
     sdl_box::SdlBoxArr,
-    util::c_ptr_to_str,
 };
 
 use sdl3_sys::video::*;
-use std::{ffi::c_char, mem::MaybeUninit, num::NonZero, ptr::NonNull};
+use std::{ffi::CStr, mem::MaybeUninit, num::NonZero, ptr::NonNull};
 
 boolenum!(IncludeHighDensityModes);
 
@@ -93,18 +92,12 @@ impl DisplayHandle {
 
     /// The returned string is guaranteed to be valid UTF-8.
     #[doc(alias = "SDL_GetDisplayName")]
-    pub fn name(&self) -> Result<NonNull<c_char>> {
-        NonNull::new(unsafe { SDL_GetDisplayName(self.id()).cast_mut() }).ok_or_else(Error::current)
-    }
-
-    /// Convenience function to return [`DisplayHandle::name()`] as an owned [`String`].
-    #[doc(alias = "SDL_GetDisplayName")]
-    pub fn name_owned(&self) -> Result<String> {
+    pub fn name(&self) -> Result<&CStr> {
         let ptr = unsafe { SDL_GetDisplayName(self.id()) };
         if ptr.is_null() {
             Err(Error::current())
         } else {
-            Ok(String::from(unsafe { c_ptr_to_str(ptr) }))
+            Ok(unsafe { CStr::from_ptr(ptr) })
         }
     }
 
