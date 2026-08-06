@@ -76,7 +76,7 @@ impl Device {
     /// The device creation properties (`SDL_PROP_GPU_DEVICE_CREATE_*`)
     /// never collide with the window or renderer ones, so a single
     /// [`Properties`] can be shared between the three builders.
-    pub fn builder(props: Ref<'_, Properties>) -> DeviceBuilder<'_> {
+    pub fn builder(props: Ref<Properties>) -> DeviceBuilder {
         DeviceBuilder::new(props)
     }
 }
@@ -154,7 +154,7 @@ impl DeviceHandle {
     }
 
     #[doc(alias = "SDL_GetGPUDeviceProperties")]
-    pub fn properties(&'_ self) -> DeviceProperties<'_> {
+    pub fn properties(&self) -> DeviceProperties<'_> {
         let id = unsafe { SDL_GetGPUDeviceProperties(self.handle.as_ptr()) };
         let handle =
             PropertiesHandle::from_id(id).expect("A valid GPU device should have properties");

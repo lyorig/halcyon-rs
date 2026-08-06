@@ -116,7 +116,7 @@ impl RendererHandle {
     /// GPU-renderer backends. Not covered: the Metal backend
     /// (`SDL_PROP_RENDERER_METAL_*`), which sdl3-sys does not expose.
     #[doc(alias = "SDL_GetRendererProperties")]
-    pub fn properties(&'_ self) -> RendererProperties<'_> {
+    pub fn properties(&self) -> RendererProperties<'_> {
         let id = unsafe { SDL_GetRendererProperties(self.handle.as_ptr()) };
         let handle =
             PropertiesHandle::from_id(id).expect("A valid renderer should always have a handle");

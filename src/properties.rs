@@ -50,7 +50,7 @@ pub enum Property {
 }
 
 impl Display for Property {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Property::Pointer(p) => write!(f, "{p:p}"),
             Property::String(s) => {
@@ -182,7 +182,7 @@ impl PropertiesHandle {
             let handle = unsafe { PropertiesHandle::from_id(props).unwrap_unchecked() };
 
             // SAFETY: This `Ref` is only used inside the body of `enumerate()`.
-            let r: Ref<'_, Properties> = unsafe { Ref::from_handle(handle) };
+            let r: Ref<Properties> = unsafe { Ref::from_handle(handle) };
 
             // SAFETY: SDL property names are null-terminated.
             let key = unsafe { CStr::from_ptr(name) };
@@ -199,7 +199,7 @@ impl PropertiesHandle {
             f(key_str, value);
         }
 
-        let mut f: Box<DynCbk<'_>> = Box::new(f);
+        let mut f: Box<DynCbk> = Box::new(f);
         let userdata = std::ptr::from_mut(&mut f).cast::<c_void>();
 
         to_result(unsafe { SDL_EnumerateProperties(self.id(), Some(wrap), userdata) })
@@ -211,7 +211,7 @@ impl PropertiesHandle {
     }
 
     #[doc(alias = "SDL_CopyProperties")]
-    fn copy_to(&self, dst: Ref<'_, Properties>) -> Result {
+    fn copy_to(&self, dst: Ref<Properties>) -> Result {
         to_result(unsafe { SDL_CopyProperties(self.id(), dst.id()) })
     }
 

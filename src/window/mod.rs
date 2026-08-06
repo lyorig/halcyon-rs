@@ -269,7 +269,7 @@ impl WindowHandle {
     /// `SDL_PROP_WINDOW_WAYLAND_WINDOW_ID_STRING`, which sdl3-sys does not
     /// expose.
     #[doc(alias = "SDL_GetWindowProperties")]
-    pub fn properties(&'_ self) -> WindowProperties<'_> {
+    pub fn properties(&self) -> WindowProperties<'_> {
         let id = unsafe { SDL_GetWindowProperties(self.handle.as_ptr()) };
         let handle = PropertiesHandle::from_id(id).expect("A valid window should have properties");
 
