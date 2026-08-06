@@ -9,7 +9,7 @@ use halcyon::{
     gpu::*,
     properties::Properties,
     rect::Point,
-    resource::{Ref, Resource},
+    resource::Resource,
     subsystem::Video,
     window::Window,
 };
@@ -38,12 +38,6 @@ fn print_properties(props: DeviceProperties) {
     halcyon::log!("Driver version: {}", f(props.driver_version()));
 }
 
-fn enum_properties(props: Ref<Properties>) {
-    halcyon::log!("--- begin property enumeration ---");
-    _ = props.enumerate(|k, v| halcyon::log!("{k} = {v}"));
-    halcyon::log!("--- end property enumeration ---");
-}
-
 fn run() -> Result {
     let ctx = Context::new();
     let _video = ManuallyDrop::new(Video::new(&ctx)?);
@@ -60,11 +54,10 @@ fn run() -> Result {
 
     let wnd = Window::builder(props)
         .title(c"Halcyon GPU")
-        .size(Point::new(800, 600))
+        .size(Point::new(720, 480))
         .build_cleanup()?;
 
     print_properties(device.properties());
-    enum_properties(props);
 
     device.claim_window(wnd.as_ref())?;
 
@@ -159,6 +152,7 @@ fn run() -> Result {
     if let Some(tex) =
         cmdbuf.wait_for_swapchain_texture(wnd.as_ref(), (Some(&mut width), Some(&mut height)))?
     {
+        halcyon::log!("Swapchain texture dimensions = {width}x{height}");
         let color_target = ColorTargetInfo::new(
             tex,
             0,
