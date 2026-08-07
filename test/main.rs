@@ -39,13 +39,12 @@ fn main_init() {
         .build()
         .unwrap();
 
-    let tex = Texture::new(
-        rnd.as_ref(),
-        SDL_PixelFormat::RGB24,
-        SDL_TextureAccess::STATIC,
-        Point::new(16, 16),
-    )
-    .unwrap();
+    let tex = Texture::builder(rnd.as_ref(), props.as_ref())
+        .format(SDL_PixelFormat::RGB24)
+        .access(SDL_TextureAccess::STATIC)
+        .size(Point::new(16, 16))
+        .build()
+        .unwrap();
 
     assert_eq!(tex.size(), Point::new(16.0, 16.0));
 }
