@@ -103,6 +103,8 @@ impl Display {
         Self::from_sdl(unsafe { SDL_GetDisplayForRect(rect.as_sdl_ptr()) })
     }
 
+    /// Returns the "raw" SDL handle type. Intended for interfacing with
+    /// SDL display functions.
     pub fn id(&self) -> SDL_DisplayID {
         unsafe { std::mem::transmute(self.id) }
     }
