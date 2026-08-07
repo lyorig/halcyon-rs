@@ -86,4 +86,6 @@ Tests should focus on what Halcyon does differently from SDL. Avoid writing test
 
 ## Running tests
 
-Run `scripts/test.sh`. This wraps `cargo test` with options specific to this crate.
+Tests are run via a platform-specific script, wrapping `cargo test` with certain required options:
+- for Windows, `scripts\powershell\test.ps1`
+- for Unix-like systems, `scripts/unix/test.sh`
