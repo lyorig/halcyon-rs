@@ -37,6 +37,24 @@ pub fn opt2ptr_mut<T>(opt: Option<&mut T>) -> *mut T {
     opt.map_or(std::ptr::null_mut(), |s| s)
 }
 
+/// Convenience function that converts an `Option<T>` to
+/// a `Result`, getting the current error if it is `None`.
+pub fn opt2res<T>(opt: Option<T>) -> Result<T> {
+    match opt {
+        Some(s) => Ok(s),
+        None => Err(Error::current()),
+    }
+}
+
+/// Convenience function that converts an `Option<T>` to
+/// a `Result<U>`, getting the current error if it is `None`.
+pub fn opt2res_map<T, U, F: FnOnce(T) -> U>(opt: Option<T>, f: F) -> Result<U> {
+    match opt {
+        Some(s) => Ok(f(s)),
+        None => Err(Error::current()),
+    }
+}
+
 pub fn to_result(result: bool) -> Result {
     if result {
         Ok(())

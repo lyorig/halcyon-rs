@@ -104,14 +104,13 @@
 
 use crate::{
     Result,
-    display::DisplayHandle,
-    error::Error,
+    display::Display,
     properties::{Properties, PropertiesHandle},
     rect::PointI32,
     renderer::{Renderer, RendererHandle},
     resource::Ref,
     resource_new,
-    util::to_result,
+    util::{opt2res_map, to_result},
 };
 
 use bitmask_enum::bitmask;
@@ -167,10 +166,7 @@ pub struct WindowId {
 
 impl WindowId {
     fn from_raw(raw: u32) -> Result<Self> {
-        match NonZero::new(raw) {
-            Some(inner) => Ok(Self { inner }),
-            None => Err(Error::current()),
-        }
+        opt2res_map(NonZero::new(raw), |inner| Self { inner })
     }
 
     const unsafe fn from_raw_unchecked(raw: u32) -> Self {
@@ -235,9 +231,9 @@ impl WindowHandle {
     }
 
     #[doc(alias = "SDL_GetDisplayForWindow")]
-    pub fn display(&self) -> Result<DisplayHandle> {
+    pub fn display(&self) -> Result<Display> {
         let raw = unsafe { SDL_GetDisplayForWindow(self.handle.as_ptr()) };
-        DisplayHandle::new(raw)
+        Display::from_sdl(raw)
     }
 
     #[doc(alias = "SDL_SetWindowSize")]

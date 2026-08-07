@@ -44,7 +44,7 @@ use crate::{
     Result,
     error::Error,
     resource::{Ref, Resource},
-    util::to_result,
+    util::{opt2res_map, to_result},
 };
 
 #[derive(Clone, Copy)]
@@ -240,12 +240,9 @@ pub struct Properties {
 
 impl Properties {
     pub(crate) fn from_id(handle: SDL_PropertiesID) -> Result<Self> {
-        match NonZero::new(handle.0) {
-            Some(handle) => Ok(Self {
-                inner: PropertiesHandle { handle },
-            }),
-            None => Err(Error::current()),
-        }
+        opt2res_map(NonZero::new(handle.0), |handle| Self {
+            inner: PropertiesHandle { handle },
+        })
     }
 
     #[doc(alias = "SDL_CreateProperties")]

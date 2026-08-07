@@ -21,7 +21,8 @@ use crate::{
     Result, boolenum,
     error::Error,
     rect::{PointI32, RectI32},
-    sdl_box::SdlBoxArr,
+    sdl_box::{SdlBox, SdlBoxArr},
+    util::opt2res_map,
 };
 
 use sdl3_sys::video::*;
@@ -29,24 +30,33 @@ use std::{ffi::CStr, mem::MaybeUninit, num::NonZero, ptr::NonNull};
 
 boolenum!(IncludeHighDensityModes);
 
-#[derive(Clone, Copy, PartialEq)]
-pub struct DisplayId {
-    inner: NonZero<u32>,
+#[repr(i32)]
+#[derive(Clone, Copy, Debug)]
+pub enum DisplayOrientation {
+    Landscape = SDL_DisplayOrientation::LANDSCAPE.0,
+    LandscapeFlipped = SDL_DisplayOrientation::LANDSCAPE_FLIPPED.0,
+    Portrait = SDL_DisplayOrientation::PORTRAIT.0,
+    PortraitFlipped = SDL_DisplayOrientation::PORTRAIT_FLIPPED.0,
 }
 
-impl DisplayId {
-    pub(crate) fn from_raw(raw: SDL_DisplayID) -> Result<Self> {
-        match NonZero::new(raw.0) {
-            Some(inner) => Ok(Self { inner }),
-            None => Err(Error::current()),
-        }
+impl std::fmt::Display for DisplayOrientation {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        <Self as std::fmt::Debug>::fmt(self, f)
+    }
+}
+
+fn sdl2do(sdl: SDL_DisplayOrientation) -> Option<DisplayOrientation> {
+    if sdl == SDL_DisplayOrientation::UNKNOWN {
+        None
+    } else {
+        unsafe { std::mem::transmute(sdl) }
     }
 }
 
 /// A handle to a display owned by SDL.
 ///
 /// This is essentially just a number, and since displays can be
-/// added and removed at will, member functions mostly return an [`Result`].
+/// added and removed at will, member functions mostly return a [`Result`].
 ///
 /// Some SDL display-related functions provide owned data, while others return
 /// a pointer to data managed by SDL itself. Due to the aforementioned display
@@ -55,39 +65,46 @@ impl DisplayId {
 /// offloading the risk to you.
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
-pub struct DisplayHandle {
-    pub(crate) inner: DisplayId,
+pub struct Display {
+    id: NonZero<u32>,
 }
 
-impl DisplayHandle {
-    pub(crate) fn new(id: SDL_DisplayID) -> Result<Self> {
-        let inner = DisplayId::from_raw(id)?;
-        Ok(Self { inner })
+impl Display {
+    /// Accepts [`NonZero`], since zero is an invalid display ID.
+    pub fn new(id: NonZero<u32>) -> Self {
+        Self { id }
+    }
+
+    pub(crate) fn from_sdl(id: SDL_DisplayID) -> Result<Self> {
+        opt2res_map(NonZero::new(id.0), |id| Self { id })
     }
 
     #[doc(alias = "SDL_GetDisplays")]
     pub fn all() -> Result<SdlBoxArr<Self>> {
         let mut count = MaybeUninit::uninit();
-        unsafe { SdlBoxArr::from_ptr(SDL_GetDisplays(count.as_mut_ptr()).cast(), count) }
+        let ptr = unsafe { SDL_GetDisplays(count.as_mut_ptr()) };
+        let sb = SdlBox::from_ptr(ptr.cast())?;
+
+        Ok(unsafe { SdlBoxArr::new(sb, count.assume_init() as _) })
     }
 
     #[doc(alias = "SDL_GetPrimaryDisplay")]
     pub fn primary() -> Result<Self> {
-        Self::new(unsafe { SDL_GetPrimaryDisplay() })
+        Self::from_sdl(unsafe { SDL_GetPrimaryDisplay() })
     }
 
     #[doc(alias = "SDL_GetDisplayForPoint")]
     pub fn for_point(point: PointI32) -> Result<Self> {
-        Self::new(unsafe { SDL_GetDisplayForPoint((&raw const point).cast()) })
+        Self::from_sdl(unsafe { SDL_GetDisplayForPoint(point.as_sdl_ptr()) })
     }
 
     #[doc(alias = "SDL_GetDisplayForRect")]
     pub fn for_rect(rect: RectI32) -> Result<Self> {
-        Self::new(unsafe { SDL_GetDisplayForRect((&raw const rect).cast()) })
+        Self::from_sdl(unsafe { SDL_GetDisplayForRect(rect.as_sdl_ptr()) })
     }
 
     pub fn id(&self) -> SDL_DisplayID {
-        unsafe { std::mem::transmute(self.inner) }
+        unsafe { std::mem::transmute(self.id) }
     }
 
     /// The returned string is guaranteed to be valid UTF-8.
@@ -114,7 +131,7 @@ impl DisplayHandle {
     }
 
     #[doc(alias = "SDL_GetDisplayUsableBounds")]
-    pub fn bounds_usable(&self) -> Result<RectI32> {
+    pub fn usable_bounds(&self) -> Result<RectI32> {
         let mut ret = MaybeUninit::uninit();
         unsafe {
             if SDL_GetDisplayUsableBounds(self.id(), ret.as_mut_ptr()) {
@@ -126,7 +143,7 @@ impl DisplayHandle {
     }
 
     #[doc(alias = "SDL_GetCurrentDisplayMode")]
-    pub fn mode_current(&self) -> Result<NonNull<SDL_DisplayMode>> {
+    pub fn current_mode(&self) -> Result<NonNull<SDL_DisplayMode>> {
         let ptr = unsafe { SDL_GetCurrentDisplayMode(self.id()) };
         if ptr.is_null() {
             Err(Error::current())
@@ -136,7 +153,7 @@ impl DisplayHandle {
     }
 
     #[doc(alias = "SDL_GetDesktopDisplayMode")]
-    pub fn mode_desktop(&self) -> Result<NonNull<SDL_DisplayMode>> {
+    pub fn desktop_mode(&self) -> Result<NonNull<SDL_DisplayMode>> {
         let ptr = unsafe { SDL_GetDesktopDisplayMode(self.id()) };
         if ptr.is_null() {
             Err(Error::current())
@@ -146,15 +163,12 @@ impl DisplayHandle {
     }
 
     #[doc(alias = "SDL_GetFullscreenDisplayModes")]
-    pub fn modes(&self) -> Result<SdlBoxArr<NonNull<SDL_DisplayMode>>> {
+    pub fn fullscreen_modes(&self) -> Result<SdlBoxArr<NonNull<SDL_DisplayMode>>> {
         let mut count = MaybeUninit::uninit();
+        let ptr = unsafe { SDL_GetFullscreenDisplayModes(self.id(), count.as_mut_ptr()) };
+        let sb = SdlBox::from_ptr(ptr.cast())?;
 
-        unsafe {
-            SdlBoxArr::from_ptr(
-                SDL_GetFullscreenDisplayModes(self.id(), count.as_mut_ptr()).cast(),
-                count,
-            )
-        }
+        Ok(unsafe { SdlBoxArr::new(sb, count.assume_init() as _) })
     }
 
     #[doc(alias = "SDL_GetDisplayContentScale")]
@@ -168,13 +182,13 @@ impl DisplayHandle {
     }
 
     #[doc(alias = "SDL_GetCurrentDisplayOrientation")]
-    pub fn orientation_current(&self) -> SDL_DisplayOrientation {
-        unsafe { SDL_GetCurrentDisplayOrientation(self.id()) }
+    pub fn current_orientation(&self) -> Option<DisplayOrientation> {
+        sdl2do(unsafe { SDL_GetCurrentDisplayOrientation(self.id()) })
     }
 
     #[doc(alias = "SDL_GetNaturalDisplayOrientation")]
-    pub fn orientation_natural(&self) -> SDL_DisplayOrientation {
-        unsafe { SDL_GetNaturalDisplayOrientation(self.id()) }
+    pub fn natural_orientation(&self) -> Option<DisplayOrientation> {
+        sdl2do(unsafe { SDL_GetNaturalDisplayOrientation(self.id()) })
     }
 
     #[doc(alias = "SDL_GetClosestFullscreenDisplayMode")]

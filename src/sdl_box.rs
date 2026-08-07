@@ -1,8 +1,8 @@
-use std::{mem::MaybeUninit, ops::Deref, ptr::NonNull};
+use std::{ops::Deref, ptr::NonNull};
 
 use sdl3_sys::stdinc::SDL_free;
 
-use crate::{Result, error::Error};
+use crate::{Result, util::opt2res_map};
 
 /// Wrapper for SDL allocations.
 pub struct SdlBox<T> {
@@ -13,15 +13,17 @@ impl<T> SdlBox<T> {
     /// Create an `SdlBox` from an owned pointer, most likely
     /// provided by SDL. This takes care of checking whether
     /// the pointer is null, and if so, returning the error.
-    pub unsafe fn from_ptr(ptr: *mut T) -> Result<Self> {
-        match NonNull::new(ptr) {
-            Some(handle) => Ok(Self { handle }),
-            None => Err(Error::current()),
-        }
+    pub fn from_ptr(ptr: *mut T) -> Result<Self> {
+        opt2res_map(NonNull::new(ptr), |handle| Self { handle })
+    }
+
+    pub fn from_nonnull(handle: NonNull<T>) -> Self {
+        Self { handle }
     }
 }
 
 impl<T> Drop for SdlBox<T> {
+    #[doc(alias = "SDL_free")]
     fn drop(&mut self) {
         unsafe { SDL_free(self.handle.as_ptr().cast()) };
     }
@@ -33,18 +35,8 @@ pub struct SdlBoxArr<T> {
 }
 
 impl<T> SdlBoxArr<T> {
-    /// Create an `SdlBoxArr` from an owned pointer, most likely provided by SDL,
-    /// and potentially uninitialized size, since those work via out-parameters.
-    /// This takes care of checking whether the pointer is null, and if so, returning the error.
-    pub unsafe fn from_ptr(ptr: *mut T, len: MaybeUninit<i32>) -> Result<Self> {
-        unsafe {
-            SdlBox::from_ptr(ptr).map(|handle| Self {
-                handle,
-                // If SDL returned a valid pointer, assume the length has also
-                // been provided.
-                len: len.assume_init() as _,
-            })
-        }
+    pub unsafe fn new(handle: SdlBox<T>, len: usize) -> Self {
+        Self { handle, len }
     }
 }
 
