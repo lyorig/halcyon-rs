@@ -3,7 +3,6 @@
 // xcrun metal -o triangle.metallib /tmp/triangle.ir
 
 #include <metal_stdlib>
-using namespace metal;
 
 struct V2F {
     float4 position [[position]];
