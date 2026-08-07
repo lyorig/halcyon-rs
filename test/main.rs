@@ -14,6 +14,7 @@ mod error;
 mod event;
 mod log;
 mod properties;
+mod texture;
 mod ttf;
 
 /// Basic initialization stuff.

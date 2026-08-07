@@ -55,6 +55,7 @@ impl PartialEq for SdlString {
 }
 
 impl Drop for SdlString {
+    #[doc(alias = "SDL_free")]
     fn drop(&mut self) {
         unsafe { SDL_free(self.handle.as_ptr().cast()) };
     }

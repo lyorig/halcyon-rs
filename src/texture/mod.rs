@@ -3,7 +3,7 @@
 //! Implementation checklist ([source](https://wiki.libsdl.org/SDL3/CategoryRender)):
 //! - [x] SDL_CreateTexture
 //! - [x] SDL_CreateTextureFromSurface
-//! - [ ] SDL_CreateTextureWithProperties
+//! - [x] SDL_CreateTextureWithProperties
 //! - [x] SDL_DestroyTexture
 //! - [ ] SDL_GetDefaultTextureScaleMode
 //! - [x] SDL_GetTextureAlphaMod
@@ -11,7 +11,7 @@
 //! - [x] SDL_GetTextureBlendMode
 //! - [x] SDL_GetTextureColorMod
 //! - [x] SDL_GetTextureColorModFloat
-//! - [ ] SDL_GetTextureProperties
+//! - [x] SDL_GetTextureProperties
 //! - [x] SDL_GetTextureScaleMode
 //! - [x] SDL_GetTextureSize
 //! - [ ] SDL_LockTexture
@@ -38,6 +38,7 @@ use sdl3_sys::{
 use crate::{
     Result,
     color::{RgbF32, RgbU8},
+    properties::{Properties, PropertiesHandle},
     rect::{PointF32, PointI32},
     renderer::{Renderer, RendererHandle},
     resource::Ref,
@@ -45,6 +46,12 @@ use crate::{
     surface::Surface,
     traits::{BlendMode, ColorModF32, ColorModU8},
 };
+
+pub mod builder;
+pub mod properties;
+
+pub use builder::*;
+pub use properties::*;
 
 resource_new!(SDL_Texture, Texture, SDL_DestroyTexture);
 
@@ -209,7 +216,43 @@ impl ColorModF32 for TextureHandle {
     }
 }
 
+impl TextureHandle {
+    /// Read-only properties of this texture, as documented by
+    /// [`SDL_GetTextureProperties`](https://wiki.libsdl.org/SDL3/SDL_GetTextureProperties).
+    ///
+    /// Covers the generic properties plus the D3D11, D3D12, OpenGL, Vulkan
+    /// and GPU backends. Not covered: the Metal and OpenGLES2 backends, the
+    /// plane-specific texture pointers, the OpenGL texture target, and
+    /// `SDL_PROP_TEXTURE_OPENGL_TEX_W_FLOAT`/`TEX_H_FLOAT`.
+    #[doc(alias = "SDL_GetTextureProperties")]
+    pub fn properties(&self) -> TextureProperties<'_> {
+        let id = unsafe { SDL_GetTextureProperties(self.handle.as_ptr()) };
+        let handle = PropertiesHandle::from_id(id).expect("A valid texture should have properties");
+
+        let r = unsafe { Ref::from_handle(handle) };
+        TextureProperties::new(r)
+    }
+}
+
 impl Texture {
+    /// Bind the builder to a renderer and an existing property group.
+    ///
+    /// Unlike the window, renderer and GPU device builders, the renderer is
+    /// a required parameter here, since `SDL_CreateTextureWithProperties`
+    /// takes it directly.
+    ///
+    /// A single [`Properties`] can be shared between the window, renderer,
+    /// GPU device and texture builders, since their creation properties
+    /// (`SDL_PROP_WINDOW_CREATE_*`, `SDL_PROP_RENDERER_CREATE_*`,
+    /// `SDL_PROP_GPU_DEVICE_CREATE_*`, `SDL_PROP_TEXTURE_CREATE_*`) never
+    /// collide with each other.
+    pub fn builder<'a>(
+        renderer: Ref<'a, Renderer>,
+        props: Ref<'a, Properties>,
+    ) -> TextureBuilder<'a> {
+        TextureBuilder::new(renderer, props)
+    }
+
     #[doc(alias = "SDL_CreateTexture")]
     pub fn new(
         rnd: Ref<Renderer>,
