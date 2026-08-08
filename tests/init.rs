@@ -1,43 +1,48 @@
 use std::mem::ManuallyDrop;
 
-use rustest::{main, test};
+use rustest::{Result, main, test};
 use sdl3_sys::{pixels::SDL_PixelFormat, render::SDL_TextureAccess};
 
 use halcyon::{
-    Context, properties::Properties, rect::Point, renderer::Renderer, resource::Resource,
-    subsystem::Video, texture::Texture, window::Window,
+    Context,
+    properties::Properties,
+    rect::{Point, PointI32},
+    renderer::Renderer,
+    resource::Resource,
+    subsystem::Video,
+    texture::Texture,
+    window::Window,
 };
 
 /// Basic initialization stuff.
 #[test]
-fn init() {
+fn init() -> Result {
     let _ctx = Context::new();
 
-    const WINDOW_SIZE: Point<i32> = Point::new(128, 128);
+    const WINDOW_SIZE: PointI32 = Point::new(128, 128);
 
-    let props = Properties::new().unwrap();
+    let props = Properties::new()?;
 
     let wnd = Window::builder(props.as_ref())
         .hidden(true)
         .size(WINDOW_SIZE)
-        .build()
-        .unwrap();
+        .build()?;
 
     assert_eq!(wnd.size(), WINDOW_SIZE);
 
     let rnd = Renderer::builder(props.as_ref())
         .window(wnd.as_ref())
-        .build()
-        .unwrap();
+        .build()?;
 
     let tex = Texture::builder(rnd.as_ref(), props.as_ref())
         .format(SDL_PixelFormat::RGB24)
         .access(SDL_TextureAccess::STATIC)
         .size(Point::new(16, 16))
-        .build()
-        .unwrap();
+        .build()?;
 
     assert_eq!(tex.size(), Point::new(16.0, 16.0));
+
+    Ok(())
 }
 
 #[test]

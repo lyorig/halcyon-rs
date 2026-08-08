@@ -79,6 +79,7 @@ As such, the default harness is disabled, and [rustest](https://docs.rs/rustest/
 1. Find the correct module for the test. For example, tests for the `Color` struct go in `tests/color.rs`.
   - In case you create a new module, add a corresponding `[[test]]` key to `Cargo.toml`
 2. Create a function with the `#[rustest::test]` attribute.
+  - If a test is unwrap-heavy, have it return a `rustest::Result`, and use the try operator (`?`) instead.
 
 ## Test coding guidelines
 
