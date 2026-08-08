@@ -1,8 +1,8 @@
 use halcyon::ttf::RtStr;
-use rustest::test;
+use rustest::{main, test};
 
 #[test]
-fn ttf_rt_str_new() {
+fn rt_str_new() {
     // Case 1: Non-empty string.
     let s = "Hello!";
     let rt = RtStr::new(s);
@@ -17,9 +17,12 @@ fn ttf_rt_str_new() {
 }
 
 #[test]
-fn ttf_rt_str_new_unchecked() {
+fn rt_str_new_unchecked() {
     let s = "Hello!";
     let rt = unsafe { RtStr::new_unchecked(s) };
     assert_eq!(rt.as_ptr(), s.as_ptr().cast());
     assert_eq!(rt.len(), s.len());
 }
+
+#[main]
+fn main() {}

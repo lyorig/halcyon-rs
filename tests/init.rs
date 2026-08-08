@@ -8,18 +8,9 @@ use halcyon::{
     subsystem::Video, texture::Texture, window::Window,
 };
 
-mod clipboard;
-mod color;
-mod error;
-mod event;
-mod log;
-mod properties;
-mod texture;
-mod ttf;
-
 /// Basic initialization stuff.
 #[test]
-fn main_init() {
+fn init() {
     let _ctx = Context::new();
 
     const WINDOW_SIZE: Point<i32> = Point::new(128, 128);
@@ -50,7 +41,7 @@ fn main_init() {
 }
 
 #[test]
-fn main_subsystems() {
+fn subsystems() {
     let ctx = Context::new();
 
     {
@@ -62,7 +53,7 @@ fn main_subsystems() {
 }
 
 #[test]
-fn main_manually_drop() {
+fn manually_drop() {
     {
         let ctx = Context::new();
 

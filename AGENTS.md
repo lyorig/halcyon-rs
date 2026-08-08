@@ -71,17 +71,18 @@ In all cases, the `Resource` trait is implemented. Among other things, it enable
 
 # Testing
 
-Tests live in `test/` and not in `src/`. SDL needs the main thread. The default Cargo harness is disabled. [rustest](https://docs.rs/rustest/latest/rustest/) replaces it.
-
-Tests should focus on what Halcyon does differently from SDL. Avoid writing tests that end up testing SDL itself.
+Tests live in `tests/` and not in `src/`, since SDL needs the main thread, and libtest doesn't provide that ability.
+As such, the default harness is disabled, and [rustest](https://docs.rs/rustest/latest/rustest/) replaces it.
 
 ## Creating a test
 
-1. Find the correct module for the test. For example, tests for the `Color` struct go in `test/color.rs`.
-2. Create a function with the `#[rustest::test]` attribute. The function shall be prefixed with the module name (test "foo" in `test/color.rs` shall be named `color_foo`).
+1. Find the correct module for the test. For example, tests for the `Color` struct go in `tests/color.rs`.
+  - In case you create a new module, add a corresponding `[[test]]` key to `Cargo.toml`
+2. Create a function with the `#[rustest::test]` attribute.
 
 ## Test coding guidelines
 
+- Tests should focus on what Halcyon does differently from SDL. Avoid writing tests that end up testing SDL itself.
 - Assets should not contain a custom error message explaining what went wrong. That is usually obvious from the source code.
 
 ## Running tests

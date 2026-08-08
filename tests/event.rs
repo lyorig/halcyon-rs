@@ -1,4 +1,4 @@
-use rustest::test;
+use rustest::{main, test};
 use sdl3_sys::events::*;
 
 use halcyon::{
@@ -9,7 +9,7 @@ use halcyon::{
 
 /// [`SDL_Event`] -> [`Event`] conversion.
 #[test]
-fn event_sdl_to_hal() {
+fn sdl_to_hal() {
     // Manually set the timestamp for testing purposes.
     let ticks = halcyon::ticks_ns();
 
@@ -30,7 +30,7 @@ fn event_sdl_to_hal() {
 
 /// [`Event`] -> [`SDL_Event`] conversion.
 #[test]
-fn event_hal_to_sdl() {
+fn hal_to_sdl() {
     let mut sdl = SDL_Event::from(&Event::Quit);
 
     // Manually set the timestamp for testing purposes.
@@ -45,7 +45,7 @@ fn event_hal_to_sdl() {
 
 /// [`Event::set_timestamp`].
 #[test]
-fn event_timestamp() {
+fn timestamp() {
     let mut evt = Event::Quit;
     let ticks = halcyon::ticks_ns();
     evt.set_timestamp(ticks);
@@ -56,7 +56,7 @@ fn event_timestamp() {
 
 /// [`Event::push()`] testing.
 #[test]
-fn event_push() {
+fn push() {
     // Should fail, since events aren't initialized.
     Event::Quit.push().unwrap_err();
 
@@ -72,3 +72,6 @@ fn event_push() {
         panic!("Expected quit event");
     };
 }
+
+#[main]
+fn main() {}
