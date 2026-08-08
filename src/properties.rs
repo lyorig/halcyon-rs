@@ -1,4 +1,42 @@
-//! API checklist [source](https://wiki.libsdl.org/SDL3/CategoryProperties):
+//! SDL properties API wrapper.
+//! A property group ([`Properties`]) is essentially a map, where (in Rust terms):
+//! - the key is a `&CStr`
+//! - the value is one of {`CString`, `i64`, `f32`, `bool`, `*mut c_void`}.
+//!
+//! SDL has begun using this API in release 3.2.0, and many of its objects are built
+//! by setting certain values on a property group, then calling `SDL_Create*WithProperties()`.
+//! This enables extensibility, and is an interesting case for wrapping in an intuitive API.
+//!
+//! # Builders
+//! Since each [`Properties`]-constructible SDL object has a finite well-documented set of properties,
+//! Halcyon exposes an intuitive builder for each such object via the associated `builder()` function.
+//! Each builder "attaches" to an existing property group, enabling efficient grouping of properties.
+//!
+//! For example:
+//!
+//! ```rust
+//! use halcyon::{window::Window, rect::Point, resource::Resource, properties::Properties};
+//!
+//! // you can also obtain a 'static reference to an existing
+//! // global property group via `Properties::global()`
+//! let props = Properties::new().unwrap();
+//! let wnd = Window::builder(props.as_ref())
+//!     .title(c"My Super Amazing Window")
+//!     .size(Point::new(640, 480))
+//!     .build()
+//!     .unwrap();
+//! ```
+//!
+//! # Build-with-cleanup
+//! Alongside the usual `.build()` method, builders also expose `build_cleanup()`, which
+//! additionally removes all relevant properties from the property group it is attached to.
+//!
+//! This is useful when using a longer-lived property group, specifically:
+//! - you don't want to keep the builder properties in memory, since they won't be used anymore
+//! - you intend to re-use it to build something else, and don't want the earlier configuration
+//!   to influence future builds
+//!
+//! # API checklist ([source](https://wiki.libsdl.org/SDL3/CategoryProperties))
 //! - [x] SDL_ClearProperty
 //! - [x] SDL_CopyProperties
 //! - [x] SDL_CreateProperties
@@ -23,13 +61,6 @@
 //! - SDL_LockProperties
 //! - SDL_SetPointerPropertyWithCleanup
 //! - SDL_UnlockProperties
-//!
-//! # Build-with-cleanup
-//! Various builders expose a `build_cleanup()` method.
-//! This is useful when using a longer-lived property group, specifically:
-//! - you don't want to keep the builder properties in memory, since they won't be used anymore
-//! - you intend to re-use it to build something else, and don't want the earlier configuration
-//!   to influence future builds
 
 use std::{
     ffi::{CStr, c_char, c_void},
