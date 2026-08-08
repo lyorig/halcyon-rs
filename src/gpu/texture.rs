@@ -5,7 +5,7 @@
 //! - [x] SDL_SetGPUTextureName
 //! - [x] SDL_UploadToGPUTexture
 
-use std::ffi::CStr;
+use std::{ffi::CStr, marker::PhantomData};
 
 use bitmask_enum::bitmask;
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
@@ -200,14 +200,14 @@ impl TextureCreateInfo {
 
 #[doc(alias = "SDL_GPUTextureTransferInfo")]
 #[derive(Clone, Copy)]
-pub struct TextureTransferInfo(SDL_GPUTextureTransferInfo);
-impl TextureTransferInfo {
-    pub fn new(
-        tb: Ref<TransferBuffer>,
+pub struct TextureTransferInfo<'tb>(SDL_GPUTextureTransferInfo, PhantomData<&'tb TransferBuffer>);
+impl TextureTransferInfo<'_> {
+    pub fn new<'tb>(
+        tb: Ref<'tb, TransferBuffer>,
         offset: u32,
         pixels_per_row: u32,
         rows_per_layer: u32,
-    ) -> Self {
+    ) -> TextureTransferInfo<'tb> {
         let transfer_buffer = tb.handle.as_ptr();
         let inner = SDL_GPUTextureTransferInfo {
             transfer_buffer,
@@ -215,21 +215,21 @@ impl TextureTransferInfo {
             pixels_per_row,
             rows_per_layer,
         };
-        Self(inner)
+        TextureTransferInfo(inner, PhantomData)
     }
 }
 
 #[doc(alias = "SDL_GPUTextureRegion")]
 #[derive(Clone, Copy)]
-pub struct TextureRegion(SDL_GPUTextureRegion);
-impl TextureRegion {
-    pub fn new(
-        tex: Ref<Texture>,
+pub struct TextureRegion<'t>(SDL_GPUTextureRegion, PhantomData<&'t Texture>);
+impl TextureRegion<'_> {
+    pub fn new<'t>(
+        tex: Ref<'t, Texture>,
         mip_level: u32,
         layer: u32,
         (x, y, z): (u32, u32, u32),
         (w, h, d): (u32, u32, u32),
-    ) -> Self {
+    ) -> TextureRegion<'t> {
         let texture = tex.handle.as_ptr();
         let inner = SDL_GPUTextureRegion {
             texture,
@@ -242,15 +242,20 @@ impl TextureRegion {
             h,
             d,
         };
-        Self(inner)
+        TextureRegion(inner, PhantomData)
     }
 }
 
 #[doc(alias = "SDL_GPUTextureLocation")]
 #[derive(Clone, Copy)]
-pub struct TextureLocation(pub(crate) SDL_GPUTextureLocation);
-impl TextureLocation {
-    pub fn new(tex: Ref<Texture>, mip_level: u32, layer: u32, (x, y, z): (u32, u32, u32)) -> Self {
+pub struct TextureLocation<'t>(pub(crate) SDL_GPUTextureLocation, PhantomData<&'t Texture>);
+impl TextureLocation<'_> {
+    pub fn new<'t>(
+        tex: Ref<'t, Texture>,
+        mip_level: u32,
+        layer: u32,
+        (x, y, z): (u32, u32, u32),
+    ) -> TextureLocation<'t> {
         let texture = tex.handle.as_ptr();
         let inner = SDL_GPUTextureLocation {
             texture,
@@ -260,57 +265,84 @@ impl TextureLocation {
             y,
             z,
         };
-        Self(inner)
+        TextureLocation(inner, PhantomData)
     }
 }
 
 #[doc(alias = "SDL_GPUTextureSamplerBinding")]
 #[derive(Clone, Copy)]
-pub struct TextureSamplerBinding(SDL_GPUTextureSamplerBinding);
-impl TextureSamplerBinding {
-    pub fn new(texture: Ref<Texture>, sampler: Ref<Sampler>) -> Self {
-        Self(SDL_GPUTextureSamplerBinding {
-            texture: texture.handle.as_ptr(),
-            sampler: sampler.handle.as_ptr(),
-        })
+pub struct TextureSamplerBinding<'t, 's>(
+    SDL_GPUTextureSamplerBinding,
+    PhantomData<&'t Texture>,
+    PhantomData<&'s Sampler>,
+);
+
+impl TextureSamplerBinding<'_, '_> {
+    pub fn new<'t, 's>(
+        texture: Ref<'t, Texture>,
+        sampler: Ref<'s, Sampler>,
+    ) -> TextureSamplerBinding<'t, 's> {
+        TextureSamplerBinding(
+            SDL_GPUTextureSamplerBinding {
+                texture: texture.handle.as_ptr(),
+                sampler: sampler.handle.as_ptr(),
+            },
+            PhantomData,
+            PhantomData,
+        )
     }
 }
 
 #[doc(alias = "SDL_GPUStorageTextureReadWriteBinding")]
 #[derive(Clone, Copy)]
-pub struct StorageTextureReadWriteBinding(SDL_GPUStorageTextureReadWriteBinding);
-impl StorageTextureReadWriteBinding {
-    pub fn new(texture: Ref<Texture>, mip_level: u32, layer: u32, cycle: Cycle) -> Self {
-        Self(SDL_GPUStorageTextureReadWriteBinding {
-            texture: texture.handle.as_ptr(),
-            mip_level,
-            layer,
-            cycle: cycle.into(),
-            ..Default::default()
-        })
+pub struct StorageTextureReadWriteBinding<'t>(
+    SDL_GPUStorageTextureReadWriteBinding,
+    PhantomData<&'t Texture>,
+);
+
+impl StorageTextureReadWriteBinding<'_> {
+    pub fn new<'t>(
+        texture: Ref<'t, Texture>,
+        mip_level: u32,
+        layer: u32,
+        cycle: Cycle,
+    ) -> StorageTextureReadWriteBinding<'t> {
+        StorageTextureReadWriteBinding(
+            SDL_GPUStorageTextureReadWriteBinding {
+                texture: texture.handle.as_ptr(),
+                mip_level,
+                layer,
+                cycle: cycle.into(),
+                ..Default::default()
+            },
+            PhantomData,
+        )
     }
 }
 
 #[doc(alias = "SDL_GPUBlitRegion")]
 #[derive(Clone, Copy)]
-pub struct BlitRegion(pub(crate) SDL_GPUBlitRegion);
-impl BlitRegion {
-    pub fn new(
-        tex: Ref<Texture>,
+pub struct BlitRegion<'t>(pub(crate) SDL_GPUBlitRegion, PhantomData<&'t Texture>);
+impl BlitRegion<'_> {
+    pub fn new<'t>(
+        tex: Ref<'t, Texture>,
         mip_level: u32,
         layer_or_depth_plane: u32,
         (x, y, w, h): (u32, u32, u32, u32),
-    ) -> Self {
+    ) -> BlitRegion<'t> {
         let texture = tex.handle.as_ptr();
-        Self(SDL_GPUBlitRegion {
-            texture,
-            mip_level,
-            layer_or_depth_plane,
-            x,
-            y,
-            w,
-            h,
-        })
+        BlitRegion(
+            SDL_GPUBlitRegion {
+                texture,
+                mip_level,
+                layer_or_depth_plane,
+                x,
+                y,
+                w,
+                h,
+            },
+            PhantomData,
+        )
     }
 }
 

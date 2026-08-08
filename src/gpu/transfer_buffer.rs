@@ -4,7 +4,7 @@
 //! - [x] SDL_ReleaseGPUTransferBuffer
 //! - [x] SDL_UnmapGPUTransferBuffer
 
-use std::ptr::NonNull;
+use std::{marker::PhantomData, ptr::NonNull};
 
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
@@ -14,15 +14,19 @@ use super::device::Device;
 
 #[doc(alias = "SDL_GPUTransferBufferLocation")]
 #[derive(Clone, Copy)]
-pub struct TransferBufferLocation(pub(crate) SDL_GPUTransferBufferLocation);
-impl TransferBufferLocation {
-    pub fn new(tb: Ref<TransferBuffer>, offset: u32) -> Self {
+pub struct TransferBufferLocation<'tb>(
+    pub(crate) SDL_GPUTransferBufferLocation,
+    PhantomData<&'tb TransferBuffer>,
+);
+
+impl TransferBufferLocation<'_> {
+    pub fn new<'tb>(tb: Ref<'tb, TransferBuffer>, offset: u32) -> TransferBufferLocation<'tb> {
         let transfer_buffer = tb.handle.as_ptr();
         let inner = SDL_GPUTransferBufferLocation {
             transfer_buffer,
             offset,
         };
-        Self(inner)
+        TransferBufferLocation(inner, PhantomData)
     }
 }
 

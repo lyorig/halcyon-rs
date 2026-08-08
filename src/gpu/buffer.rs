@@ -5,7 +5,7 @@
 //! - [x] SDL_SetGPUBufferName
 //! - [x] SDL_UploadToGPUBuffer
 
-use std::ffi::CStr;
+use std::{ffi::CStr, marker::PhantomData};
 
 use bitmask_enum::bitmask;
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
@@ -42,53 +42,66 @@ impl BufferCreateInfo {
 
 #[doc(alias = "SDL_GPUBufferRegion")]
 #[derive(Clone, Copy)]
-pub struct BufferRegion(SDL_GPUBufferRegion);
-impl BufferRegion {
-    pub fn new(buffer: Ref<Buffer>, offset: u32, size: u32) -> Self {
+pub struct BufferRegion<'b>(SDL_GPUBufferRegion, PhantomData<&'b Buffer>);
+impl BufferRegion<'_> {
+    pub fn new<'b>(buffer: Ref<'b, Buffer>, offset: u32, size: u32) -> BufferRegion<'b> {
         let buffer = buffer.handle.as_ptr();
         let inner = SDL_GPUBufferRegion {
             buffer,
             offset,
             size,
         };
-        Self(inner)
+        BufferRegion(inner, PhantomData)
     }
 }
 
 #[doc(alias = "SDL_GPUBufferBinding")]
 #[derive(Clone, Copy)]
-pub struct BufferBinding(pub(crate) SDL_GPUBufferBinding);
-impl BufferBinding {
-    pub fn new(buffer: Ref<Buffer>, offset: u32) -> Self {
-        Self(SDL_GPUBufferBinding {
-            buffer: buffer.handle.as_ptr(),
-            offset,
-        })
+pub struct BufferBinding<'b>(pub(crate) SDL_GPUBufferBinding, PhantomData<&'b Buffer>);
+impl BufferBinding<'_> {
+    pub fn new<'b>(buffer: Ref<'b, Buffer>, offset: u32) -> BufferBinding<'b> {
+        BufferBinding(
+            SDL_GPUBufferBinding {
+                buffer: buffer.handle.as_ptr(),
+                offset,
+            },
+            PhantomData,
+        )
     }
 }
 
 #[doc(alias = "SDL_GPUBufferLocation")]
 #[derive(Clone, Copy)]
-pub struct BufferLocation(pub(crate) SDL_GPUBufferLocation);
-impl BufferLocation {
-    pub fn new(buffer: Ref<Buffer>, offset: u32) -> Self {
-        Self(SDL_GPUBufferLocation {
-            buffer: buffer.handle.as_ptr(),
-            offset,
-        })
+pub struct BufferLocation<'b>(pub(crate) SDL_GPUBufferLocation, PhantomData<&'b Buffer>);
+impl BufferLocation<'_> {
+    pub fn new<'b>(buffer: Ref<'b, Buffer>, offset: u32) -> BufferLocation<'b> {
+        BufferLocation(
+            SDL_GPUBufferLocation {
+                buffer: buffer.handle.as_ptr(),
+                offset,
+            },
+            PhantomData,
+        )
     }
 }
 
 #[doc(alias = "SDL_GPUStorageBufferReadWriteBinding")]
 #[derive(Clone, Copy)]
-pub struct StorageBufferReadWriteBinding(SDL_GPUStorageBufferReadWriteBinding);
-impl StorageBufferReadWriteBinding {
-    pub fn new(buffer: Ref<Buffer>, cycle: Cycle) -> Self {
-        Self(SDL_GPUStorageBufferReadWriteBinding {
-            buffer: buffer.handle.as_ptr(),
-            cycle: cycle.into(),
-            ..Default::default()
-        })
+pub struct StorageBufferReadWriteBinding<'b>(
+    SDL_GPUStorageBufferReadWriteBinding,
+    PhantomData<&'b Buffer>,
+);
+
+impl StorageBufferReadWriteBinding<'_> {
+    pub fn new<'b>(buffer: Ref<'b, Buffer>, cycle: Cycle) -> StorageBufferReadWriteBinding<'b> {
+        StorageBufferReadWriteBinding(
+            SDL_GPUStorageBufferReadWriteBinding {
+                buffer: buffer.handle.as_ptr(),
+                cycle: cycle.into(),
+                ..Default::default()
+            },
+            PhantomData,
+        )
     }
 }
 

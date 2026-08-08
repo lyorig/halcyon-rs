@@ -10,9 +10,6 @@ use crate::{Result, resource::Ref, resource_new_no_drop};
 
 use super::{ShaderFormat, device::Device};
 
-/// `'bc` and `'ep` tie the create-info to the lifetime of the shader bytecode and its
-/// entry point. Both are stored as raw pointers in the SDL struct, so this
-/// prevents passing (non-promoted) temporaries that would dangle.
 #[doc(alias = "SDL_GPUComputePipelineCreateInfo")]
 #[derive(Clone, Copy)]
 pub struct ComputePipelineCreateInfo<'bc, 'ep>(

@@ -56,7 +56,7 @@ impl Context {
     /// TL;DR: It's less error-prone.
     /// Contexts are sometimes left unused, i.e.
     /// ```
-    /// let _ctx = Context::new();
+    /// let _ctx = halcyon::Context::new();
     /// ```
     /// If [`Self::new()`] returned [`Err`], this snippet would silently skip
     /// the destructor and not quit SDL in case of an error. Not running on

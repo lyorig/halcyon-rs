@@ -19,8 +19,6 @@ pub enum ShaderStage {
 }
 
 /// `'bc` and `'ep` tie the create-info to the lifetime of the shader bytecode and its
-/// entry point. Both are stored as raw pointers in the SDL struct, so this
-/// prevents passing (non-promoted) temporaries that would dangle.
 #[doc(alias = "SDL_GPUShaderCreateInfo")]
 #[derive(Clone, Copy)]
 pub struct ShaderCreateInfo<'bc, 'ep>(

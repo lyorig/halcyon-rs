@@ -14,7 +14,7 @@
 //! - [x] SDL_PushGPUFragmentUniformData
 //! - [x] SDL_PushGPUVertexUniformData
 
-use std::{ffi::CStr, mem::MaybeUninit, ptr::NonNull};
+use std::{ffi::CStr, marker::PhantomData, mem::MaybeUninit, ptr::NonNull};
 
 use sdl3_sys::{gpu::*, surface::SDL_FlipMode};
 
@@ -55,27 +55,36 @@ pub enum FlipMode {
 
 #[doc(alias = "SDL_GPUBlitInfo")]
 #[derive(Clone, Copy)]
-pub struct BlitInfo(SDL_GPUBlitInfo);
-impl BlitInfo {
-    pub fn new(
-        source: BlitRegion,
-        destination: BlitRegion,
+pub struct BlitInfo<'s, 'd>(
+    SDL_GPUBlitInfo,
+    PhantomData<&'s Texture>,
+    PhantomData<&'d Texture>,
+);
+
+impl BlitInfo<'_, '_> {
+    pub fn new<'s, 'd>(
+        source: BlitRegion<'s>,
+        destination: BlitRegion<'d>,
         load_op: LoadOp,
         clear_color: RgbaF32,
         flip_mode: FlipMode,
         filter: Filter,
         cycle: Cycle,
-    ) -> Self {
-        Self(SDL_GPUBlitInfo {
-            source: source.0,
-            destination: destination.0,
-            load_op: SDL_GPULoadOp::new(load_op as _),
-            clear_color: clear_color.into(),
-            flip_mode: SDL_FlipMode::new(flip_mode as _),
-            filter: SDL_GPUFilter::new(filter as _),
-            cycle: cycle.into(),
-            ..Default::default()
-        })
+    ) -> BlitInfo<'s, 'd> {
+        BlitInfo(
+            SDL_GPUBlitInfo {
+                source: source.0,
+                destination: destination.0,
+                load_op: SDL_GPULoadOp::new(load_op as _),
+                clear_color: clear_color.into(),
+                flip_mode: SDL_FlipMode::new(flip_mode as _),
+                filter: SDL_GPUFilter::new(filter as _),
+                cycle: cycle.into(),
+                ..Default::default()
+            },
+            PhantomData,
+            PhantomData,
+        )
     }
 }
 

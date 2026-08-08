@@ -18,6 +18,8 @@
 //! - [x] SDL_SetGPUStencilReference
 //! - [x] SDL_SetGPUViewport
 
+use std::marker::PhantomData;
+
 use sdl3_sys::gpu::*;
 
 use crate::{
@@ -80,65 +82,77 @@ pub enum StoreOp {
 
 #[doc(alias = "SDL_GPUColorTargetInfo")]
 #[derive(Clone, Copy)]
-pub struct ColorTargetInfo(SDL_GPUColorTargetInfo);
-impl ColorTargetInfo {
+pub struct ColorTargetInfo<'t, 'rt>(
+    SDL_GPUColorTargetInfo,
+    PhantomData<&'t Texture>,
+    PhantomData<&'rt Texture>,
+);
+
+impl ColorTargetInfo<'_, '_> {
     #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        tex: Ref<Texture>,
+    pub fn new<'t, 'rt>(
+        tex: Ref<'t, Texture>,
         mip_level: u32,
         layer_or_depth_plane: u32,
         clear_color: RgbaF32,
         load_op: LoadOp,
         store_op: StoreOp,
-        resolve_texture: Option<Ref<Texture>>,
+        resolve_texture: Option<Ref<'rt, Texture>>,
         (resolve_mip_level, resolve_layer): (u32, u32),
         cycle: Cycle,
         crt: CycleResolveTexture,
-    ) -> Self {
+    ) -> ColorTargetInfo<'t, 'rt> {
         let resolve_texture = resolve_texture.map_or(std::ptr::null_mut(), |t| t.handle.as_ptr());
-        Self(SDL_GPUColorTargetInfo {
-            texture: tex.handle.as_ptr(),
-            mip_level,
-            layer_or_depth_plane,
-            clear_color: clear_color.into(),
-            load_op: SDL_GPULoadOp::new(load_op as _),
-            store_op: SDL_GPUStoreOp::new(store_op as _),
-            resolve_texture,
-            resolve_mip_level,
-            resolve_layer,
-            cycle: cycle.into(),
-            cycle_resolve_texture: crt.into(),
-            ..Default::default()
-        })
+        ColorTargetInfo(
+            SDL_GPUColorTargetInfo {
+                texture: tex.handle.as_ptr(),
+                mip_level,
+                layer_or_depth_plane,
+                clear_color: clear_color.into(),
+                load_op: SDL_GPULoadOp::new(load_op as _),
+                store_op: SDL_GPUStoreOp::new(store_op as _),
+                resolve_texture,
+                resolve_mip_level,
+                resolve_layer,
+                cycle: cycle.into(),
+                cycle_resolve_texture: crt.into(),
+                ..Default::default()
+            },
+            PhantomData,
+            PhantomData,
+        )
     }
 }
 
 #[doc(alias = "SDL_GPUDepthStencilTargetInfo")]
 #[derive(Clone, Copy)]
-pub struct DepthStencilTargetInfo(SDL_GPUDepthStencilTargetInfo);
-impl DepthStencilTargetInfo {
-    pub fn new(
-        tex: Ref<Texture>,
+pub struct DepthStencilTargetInfo<'t>(SDL_GPUDepthStencilTargetInfo, PhantomData<&'t Texture>);
+impl DepthStencilTargetInfo<'_> {
+    pub fn new<'t>(
+        tex: Ref<'t, Texture>,
         clear_depth: f32,
         (load_op, store_op): (LoadOp, StoreOp),
         (stencil_load_op, stencil_store_op): (LoadOp, StoreOp),
         cycle: Cycle,
         clear_stencil: u8,
         (mip_level, layer): (u8, u8),
-    ) -> Self {
+    ) -> DepthStencilTargetInfo<'t> {
         let texture = tex.handle.as_ptr();
-        Self(SDL_GPUDepthStencilTargetInfo {
-            texture,
-            clear_depth,
-            load_op: SDL_GPULoadOp::new(load_op as _),
-            store_op: SDL_GPUStoreOp::new(store_op as _),
-            stencil_load_op: SDL_GPULoadOp::new(stencil_load_op as _),
-            stencil_store_op: SDL_GPUStoreOp::new(stencil_store_op as _),
-            cycle: cycle.into(),
-            clear_stencil,
-            mip_level,
-            layer,
-        })
+        DepthStencilTargetInfo(
+            SDL_GPUDepthStencilTargetInfo {
+                texture,
+                clear_depth,
+                load_op: SDL_GPULoadOp::new(load_op as _),
+                store_op: SDL_GPUStoreOp::new(store_op as _),
+                stencil_load_op: SDL_GPULoadOp::new(stencil_load_op as _),
+                stencil_store_op: SDL_GPUStoreOp::new(stencil_store_op as _),
+                cycle: cycle.into(),
+                clear_stencil,
+                mip_level,
+                layer,
+            },
+            PhantomData,
+        )
     }
 }
 
