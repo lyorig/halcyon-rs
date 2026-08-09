@@ -6,7 +6,6 @@ use crate::{
     properties::{Properties, PropertiesHandle},
     resource::Ref,
     surface::{Surface, SurfaceHandle},
-    util::c_ptr_to_str,
 };
 
 /// Read-only properties of a window, as documented by
@@ -27,13 +26,9 @@ impl<'a> WindowProperties<'a> {
 
     fn opt_str(&self, key: *const c_char) -> Option<&str> {
         let cstr = unsafe { CStr::from_ptr(key) };
-        let s = self.inner.string(cstr, std::ptr::null());
+        let s = self.inner.string(cstr, None);
 
-        if s.is_null() {
-            return None;
-        }
-
-        Some(unsafe { c_ptr_to_str(s) })
+        s.map(|c| unsafe { str::from_utf8_unchecked(c.to_bytes()) })
     }
 
     fn opt_number(&self, key: *const c_char) -> Option<i64> {

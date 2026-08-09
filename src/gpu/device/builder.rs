@@ -246,7 +246,7 @@ impl DeviceBuilder<'_> {
     fn set_string(&mut self, key: *const c_char, value: &CStr) -> &mut Self {
         _ = self
             .inner
-            .set_string(unsafe { CStr::from_ptr(key) }, value.as_ptr());
+            .set_string(unsafe { CStr::from_ptr(key) }, Some(value));
         self
     }
 }

@@ -5,7 +5,6 @@ use sdl3_sys::gpu::*;
 use crate::{
     properties::{Properties, PropertiesHandle},
     resource::Ref,
-    util::c_ptr_to_str,
 };
 
 #[derive(Clone, Copy)]
@@ -20,13 +19,9 @@ impl<'a> DeviceProperties<'a> {
 
     fn get(&self, key: *const c_char) -> Option<&str> {
         let cstr = unsafe { CStr::from_ptr(key) };
-        let s = self.inner.string(cstr, std::ptr::null());
+        let s = self.inner.string(cstr, None);
 
-        if s.is_null() {
-            return None;
-        }
-
-        Some(unsafe { c_ptr_to_str(s.cast()) })
+        s.map(|c| unsafe { str::from_utf8_unchecked(c.to_bytes()) })
     }
 
     pub fn device_name(&self) -> Option<&str> {

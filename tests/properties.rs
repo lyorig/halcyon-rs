@@ -62,7 +62,7 @@ fn enumerate_all_types() -> Result {
     let props = Properties::new()?;
     props.set_number(c"num", 10)?;
     props.set_float(c"flt", 2.5)?;
-    props.set_string(c"str", c"hello".as_ptr())?;
+    props.set_string(c"str", Some(c"hello"))?;
     props.set_bool(c"bln", true)?;
     props.set_pointer(c"ptr", std::ptr::from_ref(&MARKER).cast_mut().cast())?;
 
@@ -73,7 +73,7 @@ fn enumerate_all_types() -> Result {
         match key.as_str() {
             "num" => assert_eq!(props.number(k, 0), 10),
             "flt" => assert_eq!(props.float(k, 0.0), 2.5),
-            "str" => assert_ne!(props.string(k, std::ptr::null()), std::ptr::null()),
+            "str" => assert_ne!(props.string(k, None), None),
             "bln" => assert!(props.bool(k, false)),
             "ptr" => assert_eq!(
                 props.pointer(k, std::ptr::null_mut()),

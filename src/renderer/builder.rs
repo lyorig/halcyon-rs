@@ -28,7 +28,7 @@ impl RendererBuilder<'_> {
     #[doc(alias = "SDL_PROP_RENDERER_CREATE_NAME_STRING")]
     pub fn name(&mut self, value: &CStr) -> &mut Self {
         let cstr = unsafe { CStr::from_ptr(SDL_PROP_RENDERER_CREATE_NAME_STRING) };
-        _ = self.inner.set_string(cstr, value.as_ptr());
+        _ = self.inner.set_string(cstr, Some(value));
 
         self
     }

@@ -47,27 +47,22 @@ use crate::{
     util::{opt2res_map, to_result},
 };
 
-#[derive(Clone, Copy)]
-pub enum Property {
+pub enum Property<'p> {
     Pointer(*mut c_void),
-    String(*const c_char),
+    String(Option<&'p CStr>),
     Number(i64),
     Float(f32),
     Bool(bool),
 }
 
-impl Display for Property {
+impl Display for Property<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Property::Pointer(p) => write!(f, "{p:p}"),
-            Property::String(s) => {
-                if s.is_null() {
-                    write!(f, "<null string>")
-                } else {
-                    let str = &unsafe { CStr::from_ptr(*s) }.to_string_lossy();
-                    write!(f, "\"{str}\"")
-                }
-            }
+            Property::String(s) => match s {
+                Some(s) => write!(f, "\"{}\"", s.to_string_lossy()),
+                None => write!(f, "[null string]"),
+            },
             Property::Number(n) => write!(f, "{n}"),
             Property::Float(fl) => write!(f, "{fl}"),
             Property::Bool(b) => write!(f, "{b}"),
@@ -111,15 +106,38 @@ impl PropertiesHandle {
     }
 
     #[doc(alias = "SDL_GetPointerProperty")]
-    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     pub fn pointer(&self, key: &CStr, default: *mut c_void) -> *mut c_void {
         unsafe { SDL_GetPointerProperty(self.id(), key.as_ptr(), default) }
     }
 
     #[doc(alias = "SDL_SetPointerProperty")]
-    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     pub fn set_pointer(&self, key: &CStr, value: *mut c_void) -> Result {
         to_result(unsafe { SDL_SetPointerProperty(self.id(), key.as_ptr(), value) })
+    }
+
+    #[doc(alias = "SDL_GetStringProperty")]
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
+    pub fn string(&self, key: &CStr, default: Option<&CStr>) -> Option<&CStr> {
+        let opt = match default {
+            Some(c) => c.as_ptr(),
+            None => std::ptr::null(),
+        };
+
+        let ptr = unsafe { SDL_GetStringProperty(self.id(), key.as_ptr(), opt) };
+        if ptr.is_null() {
+            None
+        } else {
+            Some(unsafe { CStr::from_ptr(ptr) })
+        }
+    }
+
+    #[doc(alias = "SDL_SetStringProperty")]
+    pub fn set_string(&self, key: &CStr, value: Option<&CStr>) -> Result {
+        let ptr = match value {
+            Some(s) => s.as_ptr(),
+            None => std::ptr::null(),
+        };
+        to_result(unsafe { SDL_SetStringProperty(self.id(), key.as_ptr(), ptr) })
     }
 
     pub fn set(&self, key: &CStr, value: Property) -> Result {
@@ -134,30 +152,27 @@ impl PropertiesHandle {
         }
     }
 
-    pub fn get(&self, key: &CStr) -> Option<Property> {
+    pub fn get(&self, key: &CStr) -> Option<Property<'_>> {
         use Property::*;
 
-        match self.type_of(key) {
-            SDL_PropertyType::INVALID => None,
-            SDL_PropertyType::POINTER => Some(Pointer(self.pointer(key, std::ptr::null_mut()))),
-            SDL_PropertyType::STRING => Some(String(self.string(key, std::ptr::null()))),
-            SDL_PropertyType::NUMBER => Some(Number(self.number(key, 0))),
-            SDL_PropertyType::FLOAT => Some(Float(self.float(key, 0.))),
-            SDL_PropertyType::BOOLEAN => Some(Bool(self.bool(key, false))),
-            _ => unsafe { unreachable_unchecked() },
+        let tp = self.type_of(key);
+        if tp == SDL_PropertyType::INVALID {
+            None
+        } else {
+            let ret = match tp {
+                SDL_PropertyType::POINTER => Pointer(self.pointer(key, std::ptr::null_mut())),
+                SDL_PropertyType::STRING => {
+                    let cstr = self.string(key, None);
+                    String(cstr)
+                }
+                SDL_PropertyType::NUMBER => Number(self.number(key, 0)),
+                SDL_PropertyType::FLOAT => Float(self.float(key, 0.)),
+                SDL_PropertyType::BOOLEAN => Bool(self.bool(key, false)),
+                _ => unsafe { unreachable_unchecked() },
+            };
+
+            Some(ret)
         }
-    }
-
-    #[doc(alias = "SDL_GetStringProperty")]
-    #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    pub fn string(&self, key: &CStr, default: *const c_char) -> *const c_char {
-        unsafe { SDL_GetStringProperty(self.id(), key.as_ptr(), default) }
-    }
-
-    #[doc(alias = "SDL_SetStringProperty")]
-    #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    pub fn set_string(&self, key: &CStr, value: *const c_char) -> Result {
-        to_result(unsafe { SDL_SetStringProperty(self.id(), key.as_ptr(), value) })
     }
 
     #[doc(alias = "SDL_GetBooleanProperty")]

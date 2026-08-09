@@ -10,7 +10,6 @@ use crate::{
     properties::{Properties, PropertiesHandle},
     resource::Ref,
     surface::{Surface, SurfaceHandle},
-    util::c_ptr_to_str,
     window::{Window, WindowHandle},
 };
 
@@ -32,10 +31,10 @@ impl<'a> RendererProperties<'a> {
 
     fn get_str(&self, key: *const c_char) -> &str {
         let cstr = unsafe { CStr::from_ptr(key) };
-        let s = self.inner.string(cstr, std::ptr::null());
+        let s = self.inner.string(cstr, None);
 
         // SAFETY: Only called for properties whose existence the SDL docs guarantee.
-        unsafe { c_ptr_to_str(s) }
+        unsafe { str::from_utf8_unchecked(s.unwrap_unchecked().to_bytes()) }
     }
 
     fn opt_number(&self, key: *const c_char) -> Option<i64> {
