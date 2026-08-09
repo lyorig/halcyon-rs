@@ -1,7 +1,7 @@
 [
   {
     "label": "Test",
-    "command": "scripts/test.sh",
+    "command": "scripts/unix/test.sh",
     "show_command": false,
     "show_summary": false,
   },

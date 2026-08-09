@@ -86,13 +86,13 @@
 //! - [ ] SDL_SetWindowOpacity
 //! - [ ] SDL_SetWindowParent
 //! - [x] SDL_SetWindowPosition
-//! - [ ] SDL_SetWindowProgressState
-//! - [ ] SDL_SetWindowProgressValue
-//! - [ ] SDL_SetWindowResizable
+//! - [x] SDL_SetWindowProgressState
+//! - [x] SDL_SetWindowProgressValue
+//! - [x] SDL_SetWindowResizable
 //! - [ ] SDL_SetWindowShape
 //! - [x] SDL_SetWindowSize
 //! - [ ] SDL_SetWindowSurfaceVSync
-//! - [ ] SDL_SetWindowTitle
+//! - [x] SDL_SetWindowTitle
 //! - [x] SDL_ShowWindow
 //! - [ ] SDL_ShowWindowSystemMenu
 //! - [x] SDL_SyncWindow
@@ -244,6 +244,26 @@ impl WindowHandle {
     #[doc(alias = "SDL_SetWindowPosition")]
     pub fn set_pos(&self, pos: PointI32) -> Result {
         to_result(unsafe { SDL_SetWindowPosition(self.handle.as_ptr(), pos.x, pos.y) })
+    }
+
+    #[doc(alias = "SDL_SetWindowProgressState")]
+    pub fn set_progress_state(&self, state: SDL_ProgressState) -> Result {
+        to_result(unsafe { SDL_SetWindowProgressState(self.handle.as_ptr(), state) })
+    }
+
+    #[doc(alias = "SDL_SetWindowProgressValue")]
+    pub fn set_progress_value(&self, value: f32) -> Result {
+        to_result(unsafe { SDL_SetWindowProgressValue(self.handle.as_ptr(), value) })
+    }
+
+    #[doc(alias = "SDL_SetWindowResizable")]
+    pub fn set_resizable(&self, value: bool) -> Result {
+        to_result(unsafe { SDL_SetWindowResizable(self.handle.as_ptr(), value) })
+    }
+
+    #[doc(alias = "SDL_SetWindowTitle")]
+    pub fn set_title(&self, title: &CStr) -> Result {
+        to_result(unsafe { SDL_SetWindowTitle(self.handle.as_ptr(), title.as_ptr()) })
     }
 
     #[doc(alias = "SDL_ShowWindow")]
