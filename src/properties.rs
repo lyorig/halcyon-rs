@@ -231,25 +231,15 @@ impl PropertiesHandle {
             props: SDL_PropertiesID,
             name: *const c_char,
         ) {
-            // SAFETY: We are enumerating a valid property group.
-            let handle = unsafe { PropertiesHandle::from_id(props).unwrap_unchecked() };
+            unsafe {
+                let handle = PropertiesHandle::from_id(props).unwrap_unchecked();
+                let key = CStr::from_ptr(name);
+                let value = handle.get(key).unwrap_unchecked();
+                let f = userdata.cast::<Box<DynCbk<'static>>>().as_mut_unchecked();
+                let key_str = str::from_utf8_unchecked(key.to_bytes());
 
-            // SAFETY: This `Ref` is only used inside the body of `enumerate()`.
-            let r: Ref<Properties> = unsafe { Ref::from_handle(handle) };
-
-            // SAFETY: SDL property names are null-terminated.
-            let key = unsafe { CStr::from_ptr(name) };
-
-            // SAFETY: Existing properties always have an associated value.
-            let value = unsafe { r.get(key).unwrap_unchecked() };
-
-            // SAFETY: Smuggled inside `userdata`, see body of `enumerate`.
-            let f = unsafe { userdata.cast::<Box<DynCbk<'static>>>().as_mut_unchecked() };
-
-            // SAFETY: SDL property names are UTF-8.
-            let key_str = unsafe { str::from_utf8_unchecked(key.to_bytes()) };
-
-            f(key_str, value);
+                f(key_str, value);
+            }
         }
 
         let mut f: Box<DynCbk> = Box::new(f);
