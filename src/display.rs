@@ -49,7 +49,11 @@ fn sdl2do(sdl: SDL_DisplayOrientation) -> Option<DisplayOrientation> {
     if sdl == SDL_DisplayOrientation::UNKNOWN {
         None
     } else {
-        unsafe { std::mem::transmute(sdl) }
+        use std::mem::transmute;
+
+        type Src = SDL_DisplayOrientation;
+        type Dst = DisplayOrientation;
+        Some(unsafe { transmute::<Src, Dst>(sdl) })
     }
 }
 

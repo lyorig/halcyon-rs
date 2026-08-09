@@ -78,6 +78,13 @@ use crate::{
     util::{opt2res_map, to_result},
 };
 
+fn ptrify(c: Option<&CStr>) -> *const c_char {
+    match c {
+        Some(c) => c.as_ptr(),
+        None => std::ptr::null(),
+    }
+}
+
 pub enum Property<'p> {
     Pointer(*mut c_void),
     String(Option<&'p CStr>),
@@ -137,24 +144,20 @@ impl PropertiesHandle {
     }
 
     #[doc(alias = "SDL_GetPointerProperty")]
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     pub fn pointer(&self, key: &CStr, default: *mut c_void) -> *mut c_void {
         unsafe { SDL_GetPointerProperty(self.id(), key.as_ptr(), default) }
     }
 
     #[doc(alias = "SDL_SetPointerProperty")]
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     pub fn set_pointer(&self, key: &CStr, value: *mut c_void) -> Result {
         to_result(unsafe { SDL_SetPointerProperty(self.id(), key.as_ptr(), value) })
     }
 
     #[doc(alias = "SDL_GetStringProperty")]
-    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     pub fn string(&self, key: &CStr, default: Option<&CStr>) -> Option<&CStr> {
-        let opt = match default {
-            Some(c) => c.as_ptr(),
-            None => std::ptr::null(),
-        };
-
-        let ptr = unsafe { SDL_GetStringProperty(self.id(), key.as_ptr(), opt) };
+        let ptr = unsafe { SDL_GetStringProperty(self.id(), key.as_ptr(), ptrify(default)) };
         if ptr.is_null() {
             None
         } else {
@@ -164,23 +167,7 @@ impl PropertiesHandle {
 
     #[doc(alias = "SDL_SetStringProperty")]
     pub fn set_string(&self, key: &CStr, value: Option<&CStr>) -> Result {
-        let ptr = match value {
-            Some(s) => s.as_ptr(),
-            None => std::ptr::null(),
-        };
-        to_result(unsafe { SDL_SetStringProperty(self.id(), key.as_ptr(), ptr) })
-    }
-
-    pub fn set(&self, key: &CStr, value: Property) -> Result {
-        use Property::*;
-
-        match value {
-            Pointer(p) => self.set_pointer(key, p),
-            String(s) => self.set_string(key, s),
-            Number(n) => self.set_number(key, n),
-            Float(f) => self.set_float(key, f),
-            Bool(b) => self.set_bool(key, b),
-        }
+        to_result(unsafe { SDL_SetStringProperty(self.id(), key.as_ptr(), ptrify(value)) })
     }
 
     pub fn get(&self, key: &CStr) -> Option<Property<'_>> {
@@ -203,6 +190,18 @@ impl PropertiesHandle {
             };
 
             Some(ret)
+        }
+    }
+
+    pub fn set(&self, key: &CStr, value: Property) -> Result {
+        use Property::*;
+
+        match value {
+            Pointer(p) => self.set_pointer(key, p),
+            String(s) => self.set_string(key, s),
+            Number(n) => self.set_number(key, n),
+            Float(f) => self.set_float(key, f),
+            Bool(b) => self.set_bool(key, b),
         }
     }
 
