@@ -1,6 +1,6 @@
 use std::mem::size_of;
 
-use halcyon::color::{OpacityBounds, RgbF32, RgbU8, RgbaU8};
+use halcyon::color::{OpacityBounds, RgbF32, RgbU8, RgbaF32, RgbaU8};
 use rustest::test;
 use sdl3_sys::pixels::SDL_Color;
 
@@ -82,6 +82,59 @@ fn color_rgb_u8_f32_roundtrip() {
         let orig = RgbU8::new(val, val, val);
         let f: RgbF32 = orig.into();
         let back: RgbU8 = f.into();
+        assert_eq!(back, orig, "round-trip failed for u8 value {val}");
+    }
+}
+
+#[test]
+fn color_rgba_u8_to_f32() {
+    // Boundary: black (with full alpha)
+    let f: RgbaF32 = RgbaU8::BLACK.into();
+    assert!((f.rgb.r - 0.0).abs() < f32::EPSILON);
+    assert!((f.rgb.g - 0.0).abs() < f32::EPSILON);
+    assert!((f.rgb.b - 0.0).abs() < f32::EPSILON);
+    assert!((f.a - 1.0).abs() < f32::EPSILON);
+
+    // Boundary: transparent
+    let f: RgbaF32 = RgbaU8::TRANSPARENT.into();
+    assert!((f.a - 0.0).abs() < f32::EPSILON);
+
+    // Boundary: white
+    let f: RgbaF32 = RgbaU8::WHITE.into();
+    assert!((f.rgb.r - 1.0).abs() < f32::EPSILON);
+    assert!((f.rgb.g - 1.0).abs() < f32::EPSILON);
+    assert!((f.rgb.b - 1.0).abs() < f32::EPSILON);
+    assert!((f.a - 1.0).abs() < f32::EPSILON);
+
+    // Mid values
+    let f: RgbaF32 = RgbaU8::new(128, 64, 192, 32).into();
+    assert!((f.rgb.r - 128.0 / 255.0).abs() < 0.001);
+    assert!((f.rgb.g - 64.0 / 255.0).abs() < 0.001);
+    assert!((f.rgb.b - 192.0 / 255.0).abs() < 0.001);
+    assert!((f.a - 32.0 / 255.0).abs() < 0.001);
+}
+
+#[test]
+fn color_rgba_f32_to_u8() {
+    // Boundary: black
+    let u: RgbaU8 = RgbaF32::BLACK.into();
+    assert_eq!(u, RgbaU8::BLACK);
+
+    // Boundary: white
+    let u: RgbaU8 = RgbaF32::WHITE.into();
+    assert_eq!(u, RgbaU8::WHITE);
+
+    // Truncation: f32-to-u8 cast truncates, not rounds
+    let u: RgbaU8 = RgbaF32::new(0.5, 0.25, 0.75, 0.5).into();
+    assert_eq!(u, RgbaU8::new(127, 63, 191, 127));
+}
+
+#[test]
+fn color_rgba_u8_f32_roundtrip() {
+    for val in [0u8, 1, 127, 128, 254, 255] {
+        let orig = RgbaU8::new(val, val, val, val);
+        let f: RgbaF32 = orig.into();
+        let back: RgbaU8 = f.into();
         assert_eq!(back, orig, "round-trip failed for u8 value {val}");
     }
 }

@@ -59,6 +59,28 @@ impl From<RgbF32> for RgbU8 {
     }
 }
 
+impl From<RgbaU8> for RgbaF32 {
+    fn from(value: RgbaU8) -> Self {
+        Self::new(
+            value.rgb.r as f32 / 255.0,
+            value.rgb.g as f32 / 255.0,
+            value.rgb.b as f32 / 255.0,
+            value.a as f32 / 255.0,
+        )
+    }
+}
+
+impl From<RgbaF32> for RgbaU8 {
+    fn from(value: RgbaF32) -> Self {
+        Self::new(
+            (value.rgb.r * 255.0) as _,
+            (value.rgb.g * 255.0) as _,
+            (value.rgb.b * 255.0) as _,
+            (value.a * 255.0) as _,
+        )
+    }
+}
+
 /// Wrapper around [`SDL_Color`]. Can be transmuted.
 #[repr(C)]
 #[derive(Clone, Copy, Debug, PartialEq)]
