@@ -1,17 +1,28 @@
-use halcyon::{Context, Result, subsystem::Video};
+use std::ffi::CStr;
+
+use halcyon::{Context, Result, clipboard, subsystem::Video};
+
+const DESIRED_MIME: &CStr = c"image/png";
 
 fn run() -> Result {
     let ctx = Context::new();
     let _vid = Video::new(&ctx)?;
 
-    halcyon::log!(
-        "Clipboard content before the program was run: \"{}\"",
-        halcyon::clipboard::text()
-    );
+    if clipboard::has_data(DESIRED_MIME) {
+        halcyon::log!("Clipboard has MIME data");
+        halcyon::log!("-- begin MIME type enumeration --");
+        for ptr in clipboard::mime_types()? {
+            let cs = unsafe { CStr::from_ptr(ptr) };
+            halcyon::log!("{}", cs.to_string_lossy());
+        }
+        halcyon::log!("-- end MIME type enumeration --");
 
-    halcyon::clipboard::set_text(c"And now I see, with eye serene")?;
-
-    halcyon::log!("New clipboard content: \"{}\"", halcyon::clipboard::text());
+        let data = clipboard::data(DESIRED_MIME)?;
+        halcyon::log!("Clipboard data is {} bytes", data.len());
+    } else if clipboard::has_text() {
+        halcyon::log!("Clipboard has text");
+        halcyon::log!("Text: \"{}\"", clipboard::text());
+    }
 
     Ok(())
 }
