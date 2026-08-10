@@ -1,4 +1,7 @@
-use std::ffi::{CStr, c_char};
+use std::{
+    ffi::{CStr, c_char},
+    marker::PhantomData,
+};
 
 use sdl3_sys::video::*;
 
@@ -33,13 +36,17 @@ const CREATE_PROPERTIES: [*const c_char; 26] = [
     SDL_PROP_WINDOW_CREATE_Y_NUMBER,
 ];
 
-pub struct WindowBuilder<'a> {
-    inner: Ref<'a, Properties>,
+pub struct WindowBuilder<'p, 'parent> {
+    inner: Ref<'p, Properties>,
+    marker: PhantomData<Ref<'parent, Window>>,
 }
 
-impl WindowBuilder<'_> {
-    pub(super) fn new(inner: Ref<Properties>) -> WindowBuilder {
-        WindowBuilder { inner }
+impl<'p, 'parent> WindowBuilder<'p, 'parent> {
+    pub(super) fn new(inner: Ref<'p, Properties>) -> Self {
+        Self {
+            inner,
+            marker: PhantomData,
+        }
     }
 
     /// True if the window should be always on top.
@@ -146,7 +153,7 @@ impl WindowBuilder<'_> {
     /// A [`Window`] that will be the parent of this window. Required for
     /// windows with the "tooltip", "menu", and "modal" properties.
     #[doc(alias = "SDL_PROP_WINDOW_CREATE_PARENT_POINTER")]
-    pub fn parent(&mut self, value: Ref<Window>) -> &mut Self {
+    pub fn parent(&mut self, value: Ref<'parent, Window>) -> &mut Self {
         let cstr = unsafe { CStr::from_ptr(SDL_PROP_WINDOW_CREATE_PARENT_POINTER) };
         _ = self.inner.set_pointer(cstr, value.handle.as_ptr().cast());
         self

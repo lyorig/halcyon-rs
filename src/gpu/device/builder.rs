@@ -1,4 +1,7 @@
-use std::ffi::{CStr, c_char};
+use std::{
+    ffi::{CStr, c_char},
+    marker::PhantomData,
+};
 
 use sdl3_sys::gpu::*;
 
@@ -30,13 +33,17 @@ const CREATE_PROPERTIES: [*const c_char; 21] = [
 
 /// Builder for [`Device`], using
 /// [`SDL_CreateGPUDeviceWithProperties`](https://wiki.libsdl.org/SDL3/SDL_CreateGPUDeviceWithProperties).
-pub struct DeviceBuilder<'a> {
-    inner: Ref<'a, Properties>,
+pub struct DeviceBuilder<'p, 'vo> {
+    inner: Ref<'p, Properties>,
+    marker: PhantomData<&'vo SDL_GPUVulkanOptions>,
 }
 
-impl DeviceBuilder<'_> {
-    pub(super) fn new(inner: Ref<Properties>) -> DeviceBuilder {
-        DeviceBuilder { inner }
+impl<'p, 'vo> DeviceBuilder<'p, 'vo> {
+    pub(super) fn new(inner: Ref<'p, Properties>) -> Self {
+        Self {
+            inner,
+            marker: PhantomData,
+        }
     }
 
     /// Enable debug mode properties and validations. Defaults to `true`.
@@ -194,7 +201,7 @@ impl DeviceBuilder<'_> {
     /// requires. The referenced struct is read at build time and must outlive
     /// `build()`.
     #[doc(alias = "SDL_PROP_GPU_DEVICE_CREATE_VULKAN_OPTIONS_POINTER")]
-    pub fn vulkan_options(&mut self, value: &SDL_GPUVulkanOptions) -> &mut Self {
+    pub fn vulkan_options(&mut self, value: &'vo SDL_GPUVulkanOptions) -> &mut Self {
         let cstr = unsafe { CStr::from_ptr(SDL_PROP_GPU_DEVICE_CREATE_VULKAN_OPTIONS_POINTER) };
         _ = self.inner.set_pointer(cstr, std::ptr::from_ref(value) as _);
         self
