@@ -137,17 +137,12 @@ pub enum ColorComponentFlags {
 #[derive(Clone, Copy)]
 pub struct VertexBufferDescription(SDL_GPUVertexBufferDescription);
 impl VertexBufferDescription {
-    pub fn new(
-        slot: u32,
-        pitch: u32,
-        input_rate: VertexInputRate,
-        instance_step_rate: u32,
-    ) -> Self {
+    pub fn new(slot: u32, pitch: u32, input_rate: VertexInputRate) -> Self {
         Self(SDL_GPUVertexBufferDescription {
             slot,
             pitch,
             input_rate: SDL_GPUVertexInputRate::new(input_rate as _),
-            instance_step_rate,
+            instance_step_rate: 0, // "Reserved for future use. Must be set to 0."
         })
     }
 }
