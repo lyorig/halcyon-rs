@@ -1,4 +1,7 @@
-use std::ffi::{CStr, c_char};
+use std::{
+    ffi::{CStr, c_char},
+    marker::PhantomData,
+};
 
 use sdl3_sys::{pixels::SDL_Colorspace, render::*};
 
@@ -15,13 +18,19 @@ const CREATE_PROPERTIES: [*const c_char; 5] = [
     SDL_PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER,
 ];
 
-pub struct RendererBuilder<'a> {
-    inner: Ref<'a, Properties>,
+pub struct RendererBuilder<'p, 'wnd, 'surf> {
+    inner: Ref<'p, Properties>,
+    marker_wnd: PhantomData<Ref<'wnd, Window>>,
+    marker_surf: PhantomData<Ref<'surf, Surface>>,
 }
 
-impl RendererBuilder<'_> {
-    pub(super) fn new(inner: Ref<Properties>) -> RendererBuilder {
-        RendererBuilder { inner }
+impl<'p, 'wnd, 'surf> RendererBuilder<'p, 'wnd, 'surf> {
+    pub(super) fn new(inner: Ref<'p, Properties>) -> Self {
+        Self {
+            inner,
+            marker_wnd: PhantomData,
+            marker_surf: PhantomData,
+        }
     }
 
     /// The name of the rendering driver to use, if a specific one is desired.
@@ -37,7 +46,7 @@ impl RendererBuilder<'_> {
     /// software renderer using a surface. Mutually exclusive with
     /// [`RendererBuilder::surface`].
     #[doc(alias = "SDL_PROP_RENDERER_CREATE_WINDOW_POINTER")]
-    pub fn window(&mut self, value: Ref<Window>) -> &mut Self {
+    pub fn window(&mut self, value: Ref<'wnd, Window>) -> &mut Self {
         let cstr = unsafe { CStr::from_ptr(SDL_PROP_RENDERER_CREATE_WINDOW_POINTER) };
         _ = self.inner.set_pointer(cstr, value.handle.as_ptr().cast());
 
@@ -47,7 +56,7 @@ impl RendererBuilder<'_> {
     /// The surface where rendering is displayed, if you want a software
     /// renderer without a window.
     #[doc(alias = "SDL_PROP_RENDERER_CREATE_SURFACE_POINTER")]
-    pub fn surface(&mut self, value: Ref<Surface>) -> &mut Self {
+    pub fn surface(&mut self, value: Ref<'surf, Surface>) -> &mut Self {
         let cstr = unsafe { CStr::from_ptr(SDL_PROP_RENDERER_CREATE_SURFACE_POINTER) };
         _ = self.inner.set_pointer(cstr, value.handle.as_ptr().cast());
 
