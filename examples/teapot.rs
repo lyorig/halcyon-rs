@@ -6,7 +6,7 @@ use std::mem::ManuallyDrop;
 
 use halcyon::{
     Context, Result,
-    color::RgbaF32,
+    color::{RgbaF32, RgbaU8},
     event::{Event, EventIter},
     gpu::*,
     properties::Properties,
@@ -397,6 +397,8 @@ fn run() -> Result {
     let mut depth: Option<Texture> = None;
     let mut angle = 0.0f32;
 
+    let col = RgbaF32::from(RgbaU8::rgb_hex(0x6f32a8));
+
     'frames: loop {
         for event in EventIter::new() {
             if let Event::Quit = event {
@@ -429,7 +431,7 @@ fn run() -> Result {
                 tex,
                 0,
                 0,
-                RgbaF32::new(0.1, 0.12, 0.15, 1.0),
+                col,
                 LoadOp::Clear,
                 StoreOp::Store,
                 None,
