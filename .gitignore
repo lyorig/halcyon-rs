@@ -2,6 +2,6 @@
 
 SDL3*.lib
 *.dxil
-*.metal
+*.metallib
 
 examples/scratch.rs
