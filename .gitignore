@@ -1,5 +1,7 @@
 /target
 
 SDL3*.lib
+*.dxil
+*.metal
 
 examples/scratch.rs
