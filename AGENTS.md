@@ -71,14 +71,15 @@ In all cases, the `Resource` trait is implemented. Among other things, it enable
 
 # Testing
 
-Tests live in `tests/` and not in `src/`, since SDL needs the main thread, and libtest doesn't provide that ability.
+Tests live in `test/` and not in `src/`, since SDL needs the main thread, and libtest doesn't provide that ability.
 As such, the default harness is disabled, and [rustest](https://docs.rs/rustest/latest/rustest/) replaces it.
 
 ## Creating a test
 
-1. Find the correct module for the test. For example, tests for the `Color` struct go in `tests/color.rs`.
-  - In case you create a new module, add a corresponding `[[test]]` key to `Cargo.toml`
+1. Find the correct module for the test. For example, tests for the `Color` struct go in `test/color.rs`.
+  - In case you create a new module, register it in `test/main.rs`.
 2. Create a function with the `#[rustest::test]` attribute.
+  - Test names are prefixed with the module name, i.e. test "foo" in `test/color.rs` is called "color_foo".
   - If a test is unwrap-heavy, have it return a `rustest::Result`, and use the try operator (`?`) instead.
 
 ## Test coding guidelines
