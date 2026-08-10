@@ -1,0 +1,504 @@
+// Renders the Utah teapot (`models/teapot.obj`) with the GPU API.
+// macOS-only: the shaders are compiled to Metal (see `shaders/src/teapot.metal`).
+
+use std::mem::ManuallyDrop;
+
+use halcyon::{
+    Context, Result,
+    color::RgbaF32,
+    event::{Event, EventIter},
+    gpu::*,
+    properties::Properties,
+    rect::Point,
+    resource::Resource,
+    subsystem::Video,
+    window::Window,
+};
+
+const VS_CODE: &[u8] = include_bytes!("shaders/teapot.metallib");
+const FS_CODE: &[u8] = VS_CODE;
+const SHADER_FMT: ShaderFormat = ShaderFormat::Metallib;
+
+const OBJ: &str = include_str!("models/teapot.obj");
+
+/// Minimal column-major 4x4 matrix, matching Metal's `float4x4` layout.
+#[derive(Clone, Copy)]
+struct Mat4([f32; 16]);
+
+impl Mat4 {
+    const fn identity() -> Mat4 {
+        Mat4([
+            1.0, 0.0, 0.0, 0.0, //
+            0.0, 1.0, 0.0, 0.0, //
+            0.0, 0.0, 1.0, 0.0, //
+            0.0, 0.0, 0.0, 1.0, //
+        ])
+    }
+
+    fn mul(&self, rhs: &Mat4) -> Mat4 {
+        let mut out = [0.0f32; 16];
+        for c in 0..4 {
+            for r in 0..4 {
+                out[c * 4 + r] = (0..4).map(|k| self.0[k * 4 + r] * rhs.0[c * 4 + k]).sum();
+            }
+        }
+        Mat4(out)
+    }
+
+    /// Column-major perspective projection (glFrustum convention).
+    fn perspective(fovy_radians: f32, aspect: f32, near: f32, far: f32) -> Mat4 {
+        let f = 1.0 / (fovy_radians / 2.0).tan();
+        Mat4([
+            f / aspect,
+            0.0,
+            0.0,
+            0.0, //
+            0.0,
+            f,
+            0.0,
+            0.0, //
+            0.0,
+            0.0,
+            (far + near) / (near - far),
+            -1.0, //
+            0.0,
+            0.0,
+            2.0 * far * near / (near - far),
+            0.0, //
+        ])
+    }
+
+    /// Column-major rotation about the Y axis.
+    fn rot_y(angle_radians: f32) -> Mat4 {
+        let (s, c) = angle_radians.sin_cos();
+        Mat4([
+            c, 0.0, -s, 0.0, //
+            0.0, 1.0, 0.0, 0.0, //
+            s, 0.0, c, 0.0, //
+            0.0, 0.0, 0.0, 1.0, //
+        ])
+    }
+
+    /// Column-major translation.
+    fn translate(x: f32, y: f32, z: f32) -> Mat4 {
+        let mut m = Mat4::identity();
+        m.0[12] = x;
+        m.0[13] = y;
+        m.0[14] = z;
+        m
+    }
+
+    fn to_bytes(self) -> [u8; 64] {
+        let mut bytes = [0u8; 64];
+        for (i, f) in self.0.iter().enumerate() {
+            bytes[i * 4..i * 4 + 4].copy_from_slice(&f.to_ne_bytes());
+        }
+        bytes
+    }
+}
+
+/// Interleaved positions and (computed) normals, plus triangle indices.
+/// `center` is the bounding-box midpoint, used to center the model on the
+/// origin before rendering.
+struct MeshData {
+    vertices: Vec<f32>,
+    indices: Vec<u32>,
+    center: [f32; 3],
+}
+
+fn load_teapot() -> MeshData {
+    let mut reader = std::io::Cursor::new(OBJ.as_bytes());
+    let (models, _) = tobj::load_obj_buf(&mut reader, &tobj::GPU_LOAD_OPTIONS, |_| {
+        Ok((Vec::new(), Default::default()))
+    })
+    .unwrap_or_else(|e| panic!("failed to parse embedded teapot.obj: {e}"));
+    let mesh = &models[0].mesh;
+
+    // The teapot has no normals, so compute smooth (area-weighted, averaged)
+    // vertex normals from the triangle faces.
+    let positions: Vec<[f32; 3]> = mesh
+        .positions
+        .chunks_exact(3)
+        .map(|c| [c[0], c[1], c[2]])
+        .collect();
+
+    let mut normals = vec![[0.0f32; 3]; positions.len()];
+    for tri in mesh.indices.chunks_exact(3) {
+        let (a, b, c) = (
+            positions[tri[0] as usize],
+            positions[tri[1] as usize],
+            positions[tri[2] as usize],
+        );
+        let ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+        let ac = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+        // Cross product, accumulated per vertex for smooth shading.
+        let n = [
+            ab[1] * ac[2] - ab[2] * ac[1],
+            ab[2] * ac[0] - ab[0] * ac[2],
+            ab[0] * ac[1] - ab[1] * ac[0],
+        ];
+        for &i in tri {
+            let v = &mut normals[i as usize];
+            v[0] += n[0];
+            v[1] += n[1];
+            v[2] += n[2];
+        }
+    }
+
+    let mut vertices = Vec::with_capacity(positions.len() * 6);
+    for (p, n) in positions.iter().zip(&normals) {
+        let len = (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]).sqrt();
+        let (nx, ny, nz) = if len > 0.0 {
+            (n[0] / len, n[1] / len, n[2] / len)
+        } else {
+            (0.0, 0.0, 0.0)
+        };
+        vertices.extend_from_slice(&[p[0], p[1], p[2], nx, ny, nz]);
+    }
+
+    let mut min = [f32::INFINITY; 3];
+    let mut max = [f32::NEG_INFINITY; 3];
+    for p in &positions {
+        for i in 0..3 {
+            min[i] = min[i].min(p[i]);
+            max[i] = max[i].max(p[i]);
+        }
+    }
+    let center = [
+        (min[0] + max[0]) / 2.0,
+        (min[1] + max[1]) / 2.0,
+        (min[2] + max[2]) / 2.0,
+    ];
+
+    MeshData {
+        vertices,
+        indices: mesh.indices.clone(),
+        center,
+    }
+}
+
+/// Pick a depth format the device supports. D24_UNORM is not available on all
+/// backends (e.g. the Metal backend only offers D16_UNORM and D32_FLOAT).
+fn pick_depth_format(device: &Device) -> TextureFormat {
+    const CANDIDATES: [TextureFormat; 2] = [TextureFormat::D16Unorm, TextureFormat::D24Unorm];
+    for format in CANDIDATES {
+        if device.texture_supports_format(
+            format,
+            TextureType::_2d,
+            TextureUsageFlags::DepthStencilTarget,
+        ) {
+            return format;
+        }
+    }
+
+    TextureFormat::D32Float // every device supports at least this
+}
+
+fn run() -> Result {
+    let ctx = Context::new();
+    let _video = ManuallyDrop::new(Video::new(&ctx)?);
+
+    // SDL provides an existing property set, which we can conveniently abuse.
+    let props = Properties::global()?;
+
+    let device = Device::builder(props)
+        .debug_mode(false)
+        .prefer_low_power(true)
+        .shaders_metallib(true)
+        .build_cleanup()?;
+
+    let wnd = Window::builder(props)
+        .title(c"halcyon-rs Teapot Example")
+        .size(Point::new(1280, 720))
+        .build_cleanup()?;
+
+    device.claim_window(wnd.as_ref())?;
+    device.set_swapchain_parameters(wnd.as_ref(), SwapchainComposition::Sdr, PresentMode::Vsync)?;
+
+    let mesh = load_teapot();
+    halcyon::log!(
+        "Teapot: {} verts, {} tris",
+        mesh.vertices.len() / 6,
+        mesh.indices.len() / 3
+    );
+
+    let vs = Shader::new(
+        device.as_ref(),
+        &ShaderCreateInfo::new(
+            VS_CODE,
+            c"vs_main",
+            SHADER_FMT,
+            ShaderStage::Vertex,
+            0,
+            // The counts must match the shader's resource declarations; the
+            // vertex shader uses one uniform buffer (slot 0).
+            (0, 0, 1),
+        ),
+    )?;
+
+    let fs = Shader::new(
+        device.as_ref(),
+        &ShaderCreateInfo::new(
+            FS_CODE,
+            c"fs_main",
+            SHADER_FMT,
+            ShaderStage::Fragment,
+            0,
+            (0, 0, 0),
+        ),
+    )?;
+
+    // Interleaved [pos3, normal3], 24 bytes per vertex.
+    let vert_bytes = (mesh.vertices.len() * 4) as u32;
+    let idx_bytes = (mesh.indices.len() * 4) as u32;
+
+    let vb = Buffer::new(
+        device.as_ref(),
+        &BufferCreateInfo::new(BufferUsageFlags::Vertex, vert_bytes),
+    )?;
+
+    let ib = Buffer::new(
+        device.as_ref(),
+        &BufferCreateInfo::new(BufferUsageFlags::Index, idx_bytes),
+    )?;
+
+    // One transfer buffer holds both vertex and index data; `map` returns a
+    // raw pointer that we fill in before uploading.
+    let tb = TransferBuffer::new(
+        device.as_ref(),
+        &TransferBufferCreateInfo::new(TransferBufferUsage::Upload, vert_bytes + idx_bytes),
+    )?;
+
+    let mapped = tb.map(device.as_ref(), Cycle::No)?;
+    let dst = unsafe {
+        std::slice::from_raw_parts_mut(mapped.as_ptr(), (vert_bytes + idx_bytes) as usize)
+    };
+
+    let vert_slice = unsafe {
+        std::slice::from_raw_parts(mesh.vertices.as_ptr().cast::<u8>(), vert_bytes as usize)
+    };
+
+    let idx_slice = unsafe {
+        std::slice::from_raw_parts(mesh.indices.as_ptr().cast::<u8>(), idx_bytes as usize)
+    };
+
+    dst[..vert_bytes as usize].copy_from_slice(vert_slice);
+    dst[vert_bytes as usize..].copy_from_slice(idx_slice);
+    tb.unmap(device.as_ref());
+
+    // Copy the transfer buffer into the real buffers inside a copy pass.
+    let cmdbuf = CommandBuffer::new(device.as_ref())?;
+    let copy_pass = CopyPass::new(cmdbuf.as_ref())?;
+
+    vb.upload(
+        copy_pass.as_ref(),
+        &TransferBufferLocation::new(tb.as_ref(), 0),
+        &BufferRegion::new(vb.as_ref(), 0, vert_bytes),
+        Cycle::No,
+    );
+
+    ib.upload(
+        copy_pass.as_ref(),
+        &TransferBufferLocation::new(tb.as_ref(), vert_bytes),
+        &BufferRegion::new(ib.as_ref(), 0, idx_bytes),
+        Cycle::No,
+    );
+
+    drop(copy_pass); // ends the copy pass
+    cmdbuf.submit()?;
+
+    // The vertex layout: slot 0, 24-byte stride, position + normal.
+    let vbd = [VertexBufferDescription::new(0, 24, VertexInputRate::Vertex)];
+    let attrs = [
+        VertexAttribute::new(0, 0, VertexElementFormat::Float3, 0),
+        VertexAttribute::new(1, 0, VertexElementFormat::Float3, 12),
+    ];
+
+    let stencil = StencilOpState::new(
+        StencilOp::Keep,
+        StencilOp::Keep,
+        StencilOp::Keep,
+        CompareOp::Always,
+    );
+
+    let blend = ColorTargetBlendState::new(
+        (BlendFactor::One, BlendFactor::Zero),
+        BlendOp::Add,
+        (BlendFactor::One, BlendFactor::Zero),
+        BlendOp::Add,
+        ColorComponentFlags::R
+            | ColorComponentFlags::G
+            | ColorComponentFlags::B
+            | ColorComponentFlags::A,
+        EnableBlend::No,
+        EnableColorWriteMask::No,
+    );
+
+    // The pipeline's color target format must match the swapchain's.
+    let swapchain_format = device.swapchain_texture_format(wnd.as_ref());
+    let ctd = [ColorTargetDescription::new(swapchain_format, blend)];
+
+    // The depth texture and the pipeline must use the same, device-supported
+    // format.
+    let depth_format = pick_depth_format(&device);
+    halcyon::log!(
+        "Depth format: {}",
+        match depth_format {
+            TextureFormat::D16Unorm => "D16Unorm",
+            TextureFormat::D24Unorm => "D24Unorm",
+            TextureFormat::D32Float => "D32Float",
+            _ => "other",
+        }
+    );
+
+    let pipeline = GraphicsPipeline::new(
+        device.as_ref(),
+        &GraphicsPipelineCreateInfo::new(
+            vs.as_ref(),
+            fs.as_ref(),
+            VertexInputState::new(&vbd, &attrs),
+            PrimitiveType::TriangleList,
+            RasterizerState::new(
+                FillMode::Fill,
+                CullMode::Back,
+                FrontFace::CounterClockwise,
+                0.0,
+                0.0,
+                0.0,
+                EnableDepthBias::No,
+                EnableDepthClip::Yes,
+            ),
+            MultisampleState::new(SampleCount::One, EnableAlphaToCoverage::No),
+            DepthStencilState::new(
+                CompareOp::Less,
+                stencil,
+                stencil,
+                0xFF,
+                0xFF,
+                EnableDepthTest::Yes,
+                EnableDepthWrite::Yes,
+                EnableStencilTest::No,
+            ),
+            GraphicsPipelineTargetInfo::new(&ctd, depth_format, HasDepthStencilTarget::Yes),
+        ),
+    )?;
+
+    // The depth texture is created lazily, since its size must match the
+    // swapchain texture's, which is only known after the first acquire.
+    let mut depth: Option<Texture> = None;
+    let mut angle = 0.0f32;
+
+    'frames: loop {
+        for event in EventIter::new() {
+            if let Event::Quit = event {
+                break 'frames;
+            }
+        }
+
+        let cmdbuf = CommandBuffer::new(device.as_ref())?;
+        let (mut width, mut height) = (0u32, 0u32);
+        if let Some(tex) = cmdbuf
+            .wait_for_swapchain_texture(wnd.as_ref(), (Some(&mut width), Some(&mut height)))?
+        {
+            if depth.is_none() {
+                depth = Some(Texture::new(
+                    device.as_ref(),
+                    &TextureCreateInfo::new(
+                        TextureType::_2d,
+                        depth_format,
+                        TextureUsageFlags::DepthStencilTarget,
+                        Point::new(width, height),
+                        1, // layer count / depth
+                        1, // mip levels
+                        SampleCount::One,
+                    ),
+                )?);
+            }
+            let depth = depth.as_ref().unwrap();
+
+            let color_target = ColorTargetInfo::new(
+                tex,
+                0,
+                0,
+                RgbaF32::new(0.1, 0.12, 0.15, 1.0),
+                LoadOp::Clear,
+                StoreOp::Store,
+                None,
+                (0, 0),
+                Cycle::No,
+                CycleResolveTexture::No,
+            );
+            let depth_target = DepthStencilTargetInfo::new(
+                depth.as_ref(),
+                1.0,
+                (LoadOp::Clear, StoreOp::DontCare),
+                (LoadOp::DontCare, StoreOp::DontCare),
+                Cycle::No,
+                0,
+                (0u8, 0u8),
+            );
+
+            let render_pass =
+                RenderPass::new(cmdbuf.as_ref(), &[color_target], Some(&depth_target))?;
+
+            pipeline.bind(render_pass.as_ref());
+            render_pass.set_viewport(&Viewport::new(
+                Point::new(0.0, 0.0),
+                Point::new(width as f32, height as f32),
+                (0.0, 1.0),
+            ));
+
+            // Center the model (its bounding box is not centered at the
+            // origin: the teapot sits on the y = 0 plane), then rotate it
+            // in place about its center.
+            let model = Mat4::translate(-mesh.center[0], -mesh.center[1], -mesh.center[2])
+                .mul(&Mat4::rot_y(angle));
+            let view = Mat4::translate(0.0, 0.0, -4.5);
+            let proj = Mat4::perspective(
+                60.0f32.to_radians(),
+                width as f32 / height as f32,
+                0.1,
+                100.0,
+            );
+            let mvp = proj.mul(&view).mul(&model);
+
+            let mut uniforms = [0u8; 128];
+            uniforms[..64].copy_from_slice(&mvp.to_bytes());
+            uniforms[64..].copy_from_slice(&model.to_bytes());
+            cmdbuf.push_vertex_uniform_data(0, &uniforms);
+
+            render_pass.bind_vertex_buffers(0, &[BufferBinding::new(vb.as_ref(), 0)]);
+            render_pass.bind_index_buffer(
+                &BufferBinding::new(ib.as_ref(), 0),
+                IndexElementSize::Bits32,
+            );
+            render_pass.draw_indexed_primitives(mesh.indices.len() as u32, 1, 0, 0, 0);
+        }
+
+        // Submitting the command buffer also presents the swapchain texture.
+        cmdbuf.submit()?;
+
+        angle += 0.01;
+    }
+
+    device.wait_idle()?;
+
+    device.release_window(wnd.as_ref());
+    pipeline.drop(device.as_ref());
+    fs.drop(device.as_ref());
+    vs.drop(device.as_ref());
+    ib.drop(device.as_ref());
+    vb.drop(device.as_ref());
+    tb.drop(device.as_ref());
+    if let Some(depth) = depth {
+        depth.drop(device.as_ref());
+    }
+
+    Ok(())
+}
+
+fn main() {
+    if let Err(e) = run() {
+        halcyon::log_error!("An unexpected error occurred: {e}");
+    }
+}

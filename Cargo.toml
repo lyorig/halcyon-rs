@@ -16,6 +16,7 @@ sdl3-ttf-sys = "0.6.0"
 
 [dev-dependencies]
 rustest = "0.3.1"
+tobj = "4.0.5"
 
 [profile.release-max]
 inherits = "release"
