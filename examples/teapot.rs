@@ -1,6 +1,5 @@
-// Renders the Utah teapot (`models/teapot.obj`) with the GPU API.
-// Shaders are compiled to Metal on macOS and HLSL/DXIL on Windows (see
-// `shaders/src/teapot.metal` and `shaders/src/teapot.hlsl`).
+//! Renders the Utah teapot (`models/teapot.obj`) with the GPU API.
+
 #![windows_subsystem = "windows"]
 
 use std::mem::ManuallyDrop;

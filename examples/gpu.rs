@@ -1,3 +1,5 @@
+//! The graphics programming world's "hello world" program, i.e. a colored triangle.
+
 #![windows_subsystem = "windows"]
 
 use std::mem::ManuallyDrop;
