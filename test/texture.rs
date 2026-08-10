@@ -4,7 +4,7 @@ use halcyon::{
     Context, properties::Properties, rect::Point, renderer::Renderer, resource::Resource,
     texture::Texture, window::Window,
 };
-use rustest::{Result, main, test};
+use rustest::{Result, test};
 use sdl3_sys::{
     pixels::SDL_PixelFormat,
     render::{SDL_PROP_TEXTURE_CREATE_WIDTH_NUMBER, SDL_TextureAccess},
@@ -12,7 +12,7 @@ use sdl3_sys::{
 
 /// `Texture::builder` with `SDL_CreateTextureWithProperties`.
 #[test]
-fn builder() -> Result {
+fn texture_builder() -> Result {
     let _ctx = Context::new();
     let props = Properties::new()?;
 
@@ -38,7 +38,7 @@ fn builder() -> Result {
 
 /// `Texture::properties` reflects what was used at creation.
 #[test]
-fn properties() -> Result {
+fn texture_properties() -> Result {
     let _ctx = Context::new();
     let props = Properties::new()?;
 
@@ -68,7 +68,7 @@ fn properties() -> Result {
 
 /// `build_cleanup` clears the texture creation properties.
 #[test]
-fn build_cleanup() -> Result {
+fn texture_build_cleanup() -> Result {
     let _ctx = Context::new();
     let props = Properties::new()?;
 
@@ -92,6 +92,3 @@ fn build_cleanup() -> Result {
 
     Ok(())
 }
-
-#[main]
-fn main() {}

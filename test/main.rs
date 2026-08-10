@@ -14,9 +14,18 @@ use halcyon::{
     window::Window,
 };
 
+mod clipboard;
+mod color;
+mod error;
+mod event;
+mod log;
+mod properties;
+mod texture;
+mod ttf;
+
 /// Basic initialization stuff.
 #[test]
-fn init() -> Result {
+fn main_init() -> Result {
     let _ctx = Context::new();
 
     const WINDOW_SIZE: PointI32 = Point::new(128, 128);
@@ -46,7 +55,7 @@ fn init() -> Result {
 }
 
 #[test]
-fn subsystems() {
+fn main_subsystems() {
     let ctx = Context::new();
 
     {
@@ -58,7 +67,7 @@ fn subsystems() {
 }
 
 #[test]
-fn manually_drop() {
+fn main_manually_drop() {
     {
         let ctx = Context::new();
 

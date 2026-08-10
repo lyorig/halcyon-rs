@@ -1,7 +1,7 @@
 use std::ffi::CString;
 
 use halcyon::properties::Properties;
-use rustest::{Result, main, test};
+use rustest::{Result, test};
 
 fn c(s: &str) -> CString {
     let mut vec = Vec::with_capacity(s.len() + 1);
@@ -15,7 +15,7 @@ static MARKER: u64 = 42;
 
 /// Every property is visited exactly once, with its name.
 #[test]
-fn enumerate_keys() -> Result {
+fn properties_enumerate_keys() -> Result {
     let props = Properties::new()?;
     props.set_number(c"one", 1)?;
     props.set_number(c"two", 2)?;
@@ -35,7 +35,7 @@ fn enumerate_keys() -> Result {
 
 /// The properties ID passed to the callback can be used to read values back.
 #[test]
-fn enumerate_values() -> Result {
+fn properties_enumerate_values() -> Result {
     let props = Properties::new()?;
     props.set_number(c"answer", 42)?;
     props.set_number(c"negative", -7)?;
@@ -58,7 +58,7 @@ fn enumerate_values() -> Result {
 
 /// All property types survive the round-trip through the callback.
 #[test]
-fn enumerate_all_types() -> Result {
+fn properties_enumerate_all_types() -> Result {
     let props = Properties::new()?;
     props.set_number(c"num", 10)?;
     props.set_float(c"flt", 2.5)?;
@@ -92,7 +92,7 @@ fn enumerate_all_types() -> Result {
 
 /// An empty property group never invokes the callback.
 #[test]
-fn enumerate_empty() -> Result {
+fn properties_enumerate_empty() -> Result {
     let props = Properties::new()?;
 
     let mut calls = 0;
@@ -102,6 +102,3 @@ fn enumerate_empty() -> Result {
 
     Ok(())
 }
-
-#[main]
-fn main() {}

@@ -1,11 +1,11 @@
 use std::mem::size_of;
 
 use halcyon::color::{OpacityBounds, RgbF32, RgbU8, RgbaU8};
-use rustest::{main, test};
+use rustest::test;
 use sdl3_sys::pixels::SDL_Color;
 
 #[test]
-fn rgb_new() {
+fn color_rgb_new() {
     let c = RgbU8::new(10, 20, 30);
     assert_eq!(c.r, 10);
     assert_eq!(c.g, 20);
@@ -13,7 +13,7 @@ fn rgb_new() {
 }
 
 #[test]
-fn rgba_new() {
+fn color_rgba_new() {
     let c = RgbaU8::new(10, 20, 30, 40);
     assert_eq!(c.rgb.r, 10);
     assert_eq!(c.rgb.g, 20);
@@ -22,7 +22,7 @@ fn rgba_new() {
 }
 
 #[test]
-fn rgba_rgb() {
+fn color_rgba_rgb() {
     let c = RgbaU8::rgb(15, 25, 35);
     assert_eq!(c.rgb.r, 15);
     assert_eq!(c.rgb.g, 25);
@@ -31,7 +31,7 @@ fn rgba_rgb() {
 }
 
 #[test]
-fn rgb_to_rgba() {
+fn color_rgb_to_rgba() {
     let rgb = RgbU8::RED;
     let rgba: RgbaU8 = rgb.to_rgba();
     assert_eq!(rgba, RgbaU8::RED);
@@ -41,7 +41,7 @@ fn rgb_to_rgba() {
 }
 
 #[test]
-fn rgb_u8_to_f32() {
+fn color_rgb_u8_to_f32() {
     // Boundary: black
     let f: RgbF32 = RgbU8::BLACK.into();
     assert!((f.r - 0.0).abs() < f32::EPSILON);
@@ -62,7 +62,7 @@ fn rgb_u8_to_f32() {
 }
 
 #[test]
-fn rgb_f32_to_u8() {
+fn color_rgb_f32_to_u8() {
     // Boundary: black
     let u: RgbU8 = RgbF32::BLACK.into();
     assert_eq!(u, RgbU8::BLACK);
@@ -77,7 +77,7 @@ fn rgb_f32_to_u8() {
 }
 
 #[test]
-fn rgb_u8_f32_roundtrip() {
+fn color_rgb_u8_f32_roundtrip() {
     for val in [0u8, 1, 127, 128, 254, 255] {
         let orig = RgbU8::new(val, val, val);
         let f: RgbF32 = orig.into();
@@ -87,14 +87,14 @@ fn rgb_u8_f32_roundtrip() {
 }
 
 #[test]
-fn rgb_into_rgba() {
+fn color_rgb_into_rgba() {
     let rgb = RgbU8::new(1, 2, 3);
     let rgba: RgbaU8 = rgb.into();
     assert_eq!(rgba, RgbaU8::new(1, 2, 3, u8::MAX_OPACITY));
 }
 
 #[test]
-fn rgba_u8_hex() {
+fn color_rgba_u8_hex() {
     // rgb_hex: 0x00FF00 = green (R=0x00, G=0xFF, B=0x00)
     assert_eq!(
         RgbaU8::rgb_hex(0x00FF00),
@@ -124,7 +124,7 @@ fn rgba_u8_hex() {
 }
 
 #[test]
-fn rgba_u8_to_sdl_color() {
+fn color_rgba_u8_to_sdl_color() {
     let rgba = RgbaU8::new(10, 20, 30, 40);
     let sdl: SDL_Color = rgba.into();
 
@@ -135,7 +135,7 @@ fn rgba_u8_to_sdl_color() {
 }
 
 #[test]
-fn rgba_u8_to_sdl_color_transparent() {
+fn color_rgba_u8_to_sdl_color_transparent() {
     let rgba = RgbaU8::TRANSPARENT;
     let sdl: SDL_Color = rgba.into();
 
@@ -146,7 +146,7 @@ fn rgba_u8_to_sdl_color_transparent() {
 }
 
 #[test]
-fn rgba_layout_matches_sdl_color() {
+fn color_rgba_layout_matches_sdl_color() {
     assert_eq!(size_of::<RgbaU8>(), size_of::<SDL_Color>());
     assert_eq!(size_of::<RgbU8>(), 3);
     assert_eq!(size_of::<SDL_Color>(), 4);
@@ -160,6 +160,3 @@ fn rgba_layout_matches_sdl_color() {
     let sdl_bytes = unsafe { &*(&sdl as *const SDL_Color as *const [u8; 4]) };
     assert_eq!(rgba_bytes, sdl_bytes);
 }
-
-#[main]
-fn main() {}

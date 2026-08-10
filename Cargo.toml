@@ -18,37 +18,6 @@ sdl3-ttf-sys = "0.6.0"
 rustest = "0.3.1"
 
 [[test]]
-name = "clipboard"
-harness = false
-
-[[test]]
-name = "color"
-harness = false
-
-[[test]]
-name = "error"
-harness = false
-
-[[test]]
-name = "event"
-harness = false
-
-[[test]]
-name = "init"
-harness = false
-
-[[test]]
-name = "log"
-harness = false
-
-[[test]]
-name = "properties"
-harness = false
-
-[[test]]
-name = "texture"
-harness = false
-
-[[test]]
-name = "ttf"
+name = "haltest"
+path = "test/main.rs"
 harness = false

@@ -1,10 +1,10 @@
 use halcyon::{Result, error::Error};
-use rustest::{main, test};
+use rustest::test;
 use sdl3_sys::error::{SDL_ClearError, SDL_SetError};
 
 /// [`Error::current()`] reads the current SDL error string.
 #[test]
-fn current() {
+fn error_current() {
     unsafe { SDL_SetError(c"failed to frobnicate".as_ptr()) };
 
     let err = Error::current();
@@ -25,21 +25,21 @@ fn snapshot() {
 
 /// After [`SDL_ClearError()`], [`Error::current()`] is empty.
 #[test]
-fn empty_after_clear() {
+fn error_empty_after_clear() {
     SDL_ClearError();
     assert_eq!(Error::current().as_str(), "");
 }
 
 /// The [`Display`] implementation forwards to the error string.
 #[test]
-fn display() {
+fn error_display() {
     unsafe { SDL_SetError(c"a displayable error".as_ptr()) };
     assert_eq!(Error::current().to_string(), "a displayable error");
 }
 
 /// [`Error::into_cstring()`] yields a nul-terminated copy of the string.
 #[test]
-fn into_cstring() {
+fn error_into_cstring() {
     unsafe { SDL_SetError(c"an error for C".as_ptr()) };
 
     let cstr = Error::current().into_cstring();
@@ -52,14 +52,14 @@ fn into_cstring() {
 
 /// [`Error::current()`] handles non-ASCII UTF-8 messages.
 #[test]
-fn utf8() {
+fn error_utf8() {
     unsafe { SDL_SetError(c"blåbær 日本語 🦀".as_ptr()) };
     assert_eq!(Error::current().as_str(), "blåbær 日本語 🦀");
 }
 
 /// [`Error`] implements [`std::error::Error`], so it works with `?` and `Box<dyn Error>`.
 #[test]
-fn std_error() {
+fn error_std_error() {
     fn propagate() -> Result<()> {
         unsafe { SDL_SetError(c"propagated".as_ptr()) };
         Err(Error::current())
@@ -71,6 +71,3 @@ fn std_error() {
     let boxed: Box<dyn std::error::Error> = Box::new(Error::current());
     assert_eq!(boxed.to_string(), "propagated");
 }
-
-#[main]
-fn main() {}
