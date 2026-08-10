@@ -10,7 +10,7 @@
 //! # Builders
 //! Since each [`Properties`]-constructible SDL object has a finite well-documented set of properties,
 //! Halcyon exposes an intuitive builder for each such object via the associated `builder()` function.
-//! Each builder "attaches" to an existing property group, enabling efficient grouping of properties.
+//! Each builder "attaches" to an existing property group, enabling efficient memory usage.
 //!
 //! For example:
 //!
@@ -85,6 +85,15 @@ fn ptrify(c: Option<&CStr>) -> *const c_char {
     }
 }
 
+fn unptrify<'a>(ptr: *const c_char) -> Option<&'a CStr> {
+    if ptr.is_null() {
+        None
+    } else {
+        let cs = unsafe { CStr::from_ptr(ptr) };
+        Some(cs)
+    }
+}
+
 pub enum Property<'p> {
     Pointer(*mut c_void),
     String(Option<&'p CStr>),
@@ -119,28 +128,14 @@ impl PropertiesHandle {
         NonZero::new(handle.0).map(|handle| Self { handle })
     }
 
-    pub fn id(&self) -> SDL_PropertiesID {
-        SDL_PropertiesID::new(self.handle.get())
-    }
-
     #[doc(alias = "SDL_GetNumberProperty")]
     pub fn number(&self, key: &CStr, default: i64) -> i64 {
         unsafe { SDL_GetNumberProperty(self.id(), key.as_ptr(), default) }
     }
 
-    #[doc(alias = "SDL_SetNumberProperty")]
-    pub fn set_number(&self, key: &CStr, value: i64) -> Result {
-        to_result(unsafe { SDL_SetNumberProperty(self.id(), key.as_ptr(), value) })
-    }
-
     #[doc(alias = "SDL_GetFloatProperty")]
     pub fn float(&self, key: &CStr, default: f32) -> f32 {
         unsafe { SDL_GetFloatProperty(self.id(), key.as_ptr(), default) }
-    }
-
-    #[doc(alias = "SDL_SetFloatProperty")]
-    pub fn set_float(&self, key: &CStr, value: f32) -> Result {
-        to_result(unsafe { SDL_SetFloatProperty(self.id(), key.as_ptr(), value) })
     }
 
     #[doc(alias = "SDL_GetPointerProperty")]
@@ -149,20 +144,31 @@ impl PropertiesHandle {
         unsafe { SDL_GetPointerProperty(self.id(), key.as_ptr(), default) }
     }
 
+    #[doc(alias = "SDL_GetStringProperty")]
+    pub fn string(&self, key: &CStr, default: Option<&CStr>) -> Option<&CStr> {
+        let ptr = unsafe { SDL_GetStringProperty(self.id(), key.as_ptr(), ptrify(default)) };
+        unptrify(ptr)
+    }
+
+    #[doc(alias = "SDL_GetBooleanProperty")]
+    pub fn bool(&self, key: &CStr, default: bool) -> bool {
+        unsafe { SDL_GetBooleanProperty(self.id(), key.as_ptr(), default) }
+    }
+
+    #[doc(alias = "SDL_SetNumberProperty")]
+    pub fn set_number(&self, key: &CStr, value: i64) -> Result {
+        to_result(unsafe { SDL_SetNumberProperty(self.id(), key.as_ptr(), value) })
+    }
+
+    #[doc(alias = "SDL_SetFloatProperty")]
+    pub fn set_float(&self, key: &CStr, value: f32) -> Result {
+        to_result(unsafe { SDL_SetFloatProperty(self.id(), key.as_ptr(), value) })
+    }
+
     #[doc(alias = "SDL_SetPointerProperty")]
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
     pub fn set_pointer(&self, key: &CStr, value: *mut c_void) -> Result {
         to_result(unsafe { SDL_SetPointerProperty(self.id(), key.as_ptr(), value) })
-    }
-
-    #[doc(alias = "SDL_GetStringProperty")]
-    pub fn string(&self, key: &CStr, default: Option<&CStr>) -> Option<&CStr> {
-        let ptr = unsafe { SDL_GetStringProperty(self.id(), key.as_ptr(), ptrify(default)) };
-        if ptr.is_null() {
-            None
-        } else {
-            Some(unsafe { CStr::from_ptr(ptr) })
-        }
     }
 
     #[doc(alias = "SDL_SetStringProperty")]
@@ -170,7 +176,36 @@ impl PropertiesHandle {
         to_result(unsafe { SDL_SetStringProperty(self.id(), key.as_ptr(), ptrify(value)) })
     }
 
-    pub fn get(&self, key: &CStr) -> Option<Property<'_>> {
+    #[doc(alias = "SDL_SetBooleanProperty")]
+    pub fn set_bool(&self, key: &CStr, value: bool) -> Result {
+        to_result(unsafe { SDL_SetBooleanProperty(self.id(), key.as_ptr(), value) })
+    }
+
+    #[doc(alias = "SDL_ClearProperty")]
+    pub fn clear(&self, key: &CStr) -> Result {
+        to_result(unsafe { SDL_ClearProperty(self.id(), key.as_ptr()) })
+    }
+
+    #[doc(alias = "SDL_CopyProperties")]
+    fn copy_to(&self, dst: Ref<Properties>) -> Result {
+        to_result(unsafe { SDL_CopyProperties(self.id(), dst.id()) })
+    }
+
+    #[doc(alias = "SDL_HasProperty")]
+    pub fn has(&self, key: &CStr) -> bool {
+        unsafe { SDL_HasProperty(self.id(), key.as_ptr()) }
+    }
+
+    #[doc(alias = "SDL_GetPropertyType")]
+    fn type_of(&self, key: &CStr) -> SDL_PropertyType {
+        unsafe { SDL_GetPropertyType(self.id(), key.as_ptr()) }
+    }
+
+    pub fn id(&self) -> SDL_PropertiesID {
+        SDL_PropertiesID::new(self.handle.get())
+    }
+
+    fn get(&self, key: &CStr) -> Option<Property<'_>> {
         use Property::*;
 
         let tp = self.type_of(key);
@@ -193,38 +228,11 @@ impl PropertiesHandle {
         }
     }
 
-    pub fn set(&self, key: &CStr, value: Property) -> Result {
-        use Property::*;
-
-        match value {
-            Pointer(p) => self.set_pointer(key, p),
-            String(s) => self.set_string(key, s),
-            Number(n) => self.set_number(key, n),
-            Float(f) => self.set_float(key, f),
-            Bool(b) => self.set_bool(key, b),
-        }
-    }
-
-    #[doc(alias = "SDL_GetBooleanProperty")]
-    pub fn bool(&self, key: &CStr, default: bool) -> bool {
-        unsafe { SDL_GetBooleanProperty(self.id(), key.as_ptr(), default) }
-    }
-
-    #[doc(alias = "SDL_SetBooleanProperty")]
-    pub fn set_bool(&self, key: &CStr, value: bool) -> Result {
-        to_result(unsafe { SDL_SetBooleanProperty(self.id(), key.as_ptr(), value) })
-    }
-
-    /// Enumerate all properties. Accepts a function with a key-value pair as parameters.
+    /// Enumerate all properties in a group. Accepts a function with a key-value pair as parameters.
     #[doc(alias = "SDL_EnumerateProperties")]
     pub fn enumerate<F: FnMut(&str, Property)>(&self, f: F) -> Result {
         type DynCbk<'a> = dyn FnMut(&str, Property) + 'a;
 
-        // SDL invokes the callback synchronously inside `SDL_EnumerateProperties`,
-        // so the closure can live in a `Box` on the stack for the duration of the
-        // call, with the `Box` itself handed to SDL as the opaque `userdata`
-        // pointer. This only involves thin pointer casts, unlike the previous
-        // version which transmuted between function and data pointers.
         unsafe extern "C" fn wrap(
             userdata: *mut c_void,
             props: SDL_PropertiesID,
@@ -245,26 +253,6 @@ impl PropertiesHandle {
         let userdata = std::ptr::from_mut(&mut f).cast::<c_void>();
 
         to_result(unsafe { SDL_EnumerateProperties(self.id(), Some(wrap), userdata) })
-    }
-
-    #[doc(alias = "SDL_ClearProperty")]
-    pub fn clear(&self, key: &CStr) -> Result {
-        to_result(unsafe { SDL_ClearProperty(self.id(), key.as_ptr()) })
-    }
-
-    #[doc(alias = "SDL_CopyProperties")]
-    fn copy_to(&self, dst: Ref<Properties>) -> Result {
-        to_result(unsafe { SDL_CopyProperties(self.id(), dst.id()) })
-    }
-
-    #[doc(alias = "SDL_HasProperty")]
-    pub fn has(&self, key: &CStr) -> bool {
-        unsafe { SDL_HasProperty(self.id(), key.as_ptr()) }
-    }
-
-    #[doc(alias = "SDL_GetPropertyType")]
-    fn type_of(&self, key: &CStr) -> SDL_PropertyType {
-        unsafe { SDL_GetPropertyType(self.id(), key.as_ptr()) }
     }
 }
 
