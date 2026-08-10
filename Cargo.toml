@@ -17,6 +17,13 @@ sdl3-ttf-sys = "0.6.0"
 [dev-dependencies]
 rustest = "0.3.1"
 
+[profile.release-max]
+inherits = "release"
+panic = "abort"
+lto = "fat"
+codegen-units = 1
+strip = true
+
 [[test]]
 name = "haltest"
 path = "test/main.rs"
