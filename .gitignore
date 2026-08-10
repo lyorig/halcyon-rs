@@ -1,3 +1,5 @@
 /target
 
 SDL3*.lib
+
+examples/scratch.rs

@@ -200,7 +200,10 @@ impl TextureCreateInfo {
 
 #[doc(alias = "SDL_GPUTextureTransferInfo")]
 #[derive(Clone, Copy)]
-pub struct TextureTransferInfo<'tb>(SDL_GPUTextureTransferInfo, PhantomData<&'tb TransferBuffer>);
+pub struct TextureTransferInfo<'tb>(
+    SDL_GPUTextureTransferInfo,
+    PhantomData<Ref<'tb, TransferBuffer>>,
+);
 impl TextureTransferInfo<'_> {
     pub fn new<'tb>(
         tb: Ref<'tb, TransferBuffer>,
@@ -221,7 +224,7 @@ impl TextureTransferInfo<'_> {
 
 #[doc(alias = "SDL_GPUTextureRegion")]
 #[derive(Clone, Copy)]
-pub struct TextureRegion<'t>(SDL_GPUTextureRegion, PhantomData<&'t Texture>);
+pub struct TextureRegion<'t>(SDL_GPUTextureRegion, PhantomData<Ref<'t, Texture>>);
 impl TextureRegion<'_> {
     pub fn new<'t>(
         tex: Ref<'t, Texture>,
@@ -248,7 +251,10 @@ impl TextureRegion<'_> {
 
 #[doc(alias = "SDL_GPUTextureLocation")]
 #[derive(Clone, Copy)]
-pub struct TextureLocation<'t>(pub(crate) SDL_GPUTextureLocation, PhantomData<&'t Texture>);
+pub struct TextureLocation<'t>(
+    pub(crate) SDL_GPUTextureLocation,
+    PhantomData<Ref<'t, Texture>>,
+);
 impl TextureLocation<'_> {
     pub fn new<'t>(
         tex: Ref<'t, Texture>,
@@ -273,8 +279,8 @@ impl TextureLocation<'_> {
 #[derive(Clone, Copy)]
 pub struct TextureSamplerBinding<'t, 's>(
     SDL_GPUTextureSamplerBinding,
-    PhantomData<&'t Texture>,
-    PhantomData<&'s Sampler>,
+    PhantomData<Ref<'t, Texture>>,
+    PhantomData<Ref<'s, Sampler>>,
 );
 
 impl TextureSamplerBinding<'_, '_> {
@@ -297,7 +303,7 @@ impl TextureSamplerBinding<'_, '_> {
 #[derive(Clone, Copy)]
 pub struct StorageTextureReadWriteBinding<'t>(
     SDL_GPUStorageTextureReadWriteBinding,
-    PhantomData<&'t Texture>,
+    PhantomData<Ref<'t, Texture>>,
 );
 
 impl StorageTextureReadWriteBinding<'_> {
@@ -322,7 +328,7 @@ impl StorageTextureReadWriteBinding<'_> {
 
 #[doc(alias = "SDL_GPUBlitRegion")]
 #[derive(Clone, Copy)]
-pub struct BlitRegion<'t>(pub(crate) SDL_GPUBlitRegion, PhantomData<&'t Texture>);
+pub struct BlitRegion<'t>(pub(crate) SDL_GPUBlitRegion, PhantomData<Ref<'t, Texture>>);
 impl BlitRegion<'_> {
     pub fn new<'t>(
         tex: Ref<'t, Texture>,

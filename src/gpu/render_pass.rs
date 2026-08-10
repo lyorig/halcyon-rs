@@ -84,8 +84,8 @@ pub enum StoreOp {
 #[derive(Clone, Copy)]
 pub struct ColorTargetInfo<'t, 'rt>(
     SDL_GPUColorTargetInfo,
-    PhantomData<&'t Texture>,
-    PhantomData<&'rt Texture>,
+    PhantomData<Ref<'t, Texture>>,
+    PhantomData<Ref<'rt, Texture>>,
 );
 
 impl ColorTargetInfo<'_, '_> {
@@ -126,7 +126,7 @@ impl ColorTargetInfo<'_, '_> {
 
 #[doc(alias = "SDL_GPUDepthStencilTargetInfo")]
 #[derive(Clone, Copy)]
-pub struct DepthStencilTargetInfo<'t>(SDL_GPUDepthStencilTargetInfo, PhantomData<&'t Texture>);
+pub struct DepthStencilTargetInfo<'t>(SDL_GPUDepthStencilTargetInfo, PhantomData<Ref<'t, Texture>>);
 impl DepthStencilTargetInfo<'_> {
     pub fn new<'t>(
         tex: Ref<'t, Texture>,

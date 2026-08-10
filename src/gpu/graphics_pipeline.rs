@@ -38,8 +38,8 @@ pub enum PrimitiveType {
 #[derive(Clone, Copy)]
 pub struct GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd>(
     SDL_GPUGraphicsPipelineCreateInfo,
-    PhantomData<&'vs Shader>,
-    PhantomData<&'fs Shader>,
+    PhantomData<Ref<'vs, Shader>>,
+    PhantomData<Ref<'fs, Shader>>,
     PhantomData<&'vbd [VertexBufferDescription]>,
     PhantomData<&'va [VertexAttribute]>,
     PhantomData<&'ctd [ColorTargetDescription]>,

@@ -42,7 +42,7 @@ impl BufferCreateInfo {
 
 #[doc(alias = "SDL_GPUBufferRegion")]
 #[derive(Clone, Copy)]
-pub struct BufferRegion<'b>(SDL_GPUBufferRegion, PhantomData<&'b Buffer>);
+pub struct BufferRegion<'b>(SDL_GPUBufferRegion, PhantomData<Ref<'b, Buffer>>);
 impl BufferRegion<'_> {
     pub fn new<'b>(buffer: Ref<'b, Buffer>, offset: u32, size: u32) -> BufferRegion<'b> {
         let buffer = buffer.handle.as_ptr();
@@ -57,7 +57,10 @@ impl BufferRegion<'_> {
 
 #[doc(alias = "SDL_GPUBufferBinding")]
 #[derive(Clone, Copy)]
-pub struct BufferBinding<'b>(pub(crate) SDL_GPUBufferBinding, PhantomData<&'b Buffer>);
+pub struct BufferBinding<'b>(
+    pub(crate) SDL_GPUBufferBinding,
+    PhantomData<Ref<'b, Buffer>>,
+);
 impl BufferBinding<'_> {
     pub fn new<'b>(buffer: Ref<'b, Buffer>, offset: u32) -> BufferBinding<'b> {
         BufferBinding(
@@ -72,7 +75,10 @@ impl BufferBinding<'_> {
 
 #[doc(alias = "SDL_GPUBufferLocation")]
 #[derive(Clone, Copy)]
-pub struct BufferLocation<'b>(pub(crate) SDL_GPUBufferLocation, PhantomData<&'b Buffer>);
+pub struct BufferLocation<'b>(
+    pub(crate) SDL_GPUBufferLocation,
+    PhantomData<Ref<'b, Buffer>>,
+);
 impl BufferLocation<'_> {
     pub fn new<'b>(buffer: Ref<'b, Buffer>, offset: u32) -> BufferLocation<'b> {
         BufferLocation(
@@ -89,7 +95,7 @@ impl BufferLocation<'_> {
 #[derive(Clone, Copy)]
 pub struct StorageBufferReadWriteBinding<'b>(
     SDL_GPUStorageBufferReadWriteBinding,
-    PhantomData<&'b Buffer>,
+    PhantomData<Ref<'b, Buffer>>,
 );
 
 impl StorageBufferReadWriteBinding<'_> {

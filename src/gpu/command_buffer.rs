@@ -57,8 +57,8 @@ pub enum FlipMode {
 #[derive(Clone, Copy)]
 pub struct BlitInfo<'s, 'd>(
     SDL_GPUBlitInfo,
-    PhantomData<&'s Texture>,
-    PhantomData<&'d Texture>,
+    PhantomData<Ref<'s, Texture>>,
+    PhantomData<Ref<'d, Texture>>,
 );
 
 impl BlitInfo<'_, '_> {
