@@ -12,7 +12,7 @@ use halcyon::{
     gpu::*,
     properties::Properties,
     rect::Point,
-    resource::Resource,
+    resource::{Ref, Resource},
     subsystem::Video,
     window::Window,
 };
@@ -39,10 +39,10 @@ struct Mat4([f32; 16]);
 impl Mat4 {
     const fn identity() -> Mat4 {
         Mat4([
-            1.0, 0.0, 0.0, 0.0, //
-            0.0, 1.0, 0.0, 0.0, //
-            0.0, 0.0, 1.0, 0.0, //
-            0.0, 0.0, 0.0, 1.0, //
+            1.0, 0.0, 0.0, 0.0, // comments
+            0.0, 1.0, 0.0, 0.0, // included
+            0.0, 0.0, 1.0, 0.0, // for
+            0.0, 0.0, 0.0, 1.0, // formatting
         ])
     }
 
@@ -190,19 +190,18 @@ fn load_teapot() -> MeshData {
 
 /// Pick a depth format the device supports. D24_UNORM is not available on all
 /// backends (e.g. the Metal backend only offers D16_UNORM and D32_FLOAT).
-fn pick_depth_format(device: &Device) -> TextureFormat {
-    const CANDIDATES: [TextureFormat; 2] = [TextureFormat::D16Unorm, TextureFormat::D24Unorm];
-    for format in CANDIDATES {
-        if device.texture_supports_format(
-            format,
-            TextureType::_2d,
-            TextureUsageFlags::DepthStencilTarget,
-        ) {
-            return format;
-        }
-    }
-
-    TextureFormat::D32Float // every device supports at least this
+fn pick_depth_format(device: Ref<Device>) -> TextureFormat {
+    [TextureFormat::D16Unorm, TextureFormat::D24Unorm]
+        .iter()
+        .copied()
+        .find(|&f| {
+            device.texture_supports_format(
+                f,
+                TextureType::_2d,
+                TextureUsageFlags::DepthStencilTarget,
+            )
+        })
+        .unwrap_or(TextureFormat::D32Float) // every device supports at least this
 }
 
 fn run() -> Result {
@@ -213,8 +212,7 @@ fn run() -> Result {
     let props = Properties::global()?;
 
     let device = Device::builder(props)
-        .debug_mode(true)
-        .prefer_low_power(false)
+        .debug_mode(false)
         .shaders_metallib(true)
         .shaders_dxil(true)
         .build_cleanup()?;
@@ -352,7 +350,7 @@ fn run() -> Result {
 
     // The depth texture and the pipeline must use the same, device-supported
     // format.
-    let depth_format = pick_depth_format(&device);
+    let depth_format = pick_depth_format(device.as_ref());
     halcyon::log!(
         "Depth format: {}",
         match depth_format {
