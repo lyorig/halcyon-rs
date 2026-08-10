@@ -15,7 +15,6 @@ boolenum!(EnableDepthBias);
 boolenum!(EnableDepthClip);
 boolenum!(EnableDepthTest);
 boolenum!(EnableDepthWrite);
-boolenum!(EnableMask);
 boolenum!(EnableStencilTest);
 boolenum!(HasDepthStencilTarget);
 boolenum!(WaitAll);

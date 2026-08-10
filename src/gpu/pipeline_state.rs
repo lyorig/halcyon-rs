@@ -228,16 +228,11 @@ impl RasterizerState {
 #[derive(Clone, Copy)]
 pub struct MultisampleState(pub(crate) SDL_GPUMultisampleState);
 impl MultisampleState {
-    pub fn new(
-        sample_count: SampleCount,
-        sample_mask: u32,
-        em: EnableMask,
-        eatc: EnableAlphaToCoverage,
-    ) -> Self {
+    pub fn new(sample_count: SampleCount, eatc: EnableAlphaToCoverage) -> Self {
         Self(SDL_GPUMultisampleState {
             sample_count: SDL_GPUSampleCount::new(sample_count as _),
-            sample_mask,
-            enable_mask: em.into(),
+            sample_mask: 0,     // "Reserved for future use. Must be set to 0."
+            enable_mask: false, // "Reserved for future use. Must be set to false."
             enable_alpha_to_coverage: eatc.into(),
             ..Default::default()
         })

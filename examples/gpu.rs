@@ -126,12 +126,7 @@ fn run() -> Result {
             EnableDepthBias::No,
             EnableDepthClip::Yes,
         ),
-        MultisampleState::new(
-            SampleCount::One,
-            0,
-            EnableMask::No,
-            EnableAlphaToCoverage::No,
-        ),
+        MultisampleState::new(SampleCount::One, EnableAlphaToCoverage::Yes),
         DepthStencilState::new(
             CompareOp::Always,
             stencil,
