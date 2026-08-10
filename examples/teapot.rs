@@ -1,5 +1,7 @@
 // Renders the Utah teapot (`models/teapot.obj`) with the GPU API.
-// macOS-only: the shaders are compiled to Metal (see `shaders/src/teapot.metal`).
+// Shaders are compiled to Metal on macOS and HLSL/DXIL on Windows (see
+// `shaders/src/teapot.metal` and `shaders/src/teapot.hlsl`).
+#![windows_subsystem = "windows"]
 
 use std::mem::ManuallyDrop;
 
@@ -15,9 +17,18 @@ use halcyon::{
     window::Window,
 };
 
-const VS_CODE: &[u8] = include_bytes!("shaders/teapot.metallib");
-const FS_CODE: &[u8] = VS_CODE;
-const SHADER_FMT: ShaderFormat = ShaderFormat::Metallib;
+cfg_select! {
+    target_os = "macos" => {
+        const VS_CODE: &[u8] = include_bytes!("shaders/teapot.metallib");
+        const FS_CODE: &[u8] = VS_CODE;
+        const SHADER_FMT: ShaderFormat = ShaderFormat::Metallib;
+    },
+    target_os = "windows" => {
+        const VS_CODE: &[u8] = include_bytes!("shaders/teapot_vs.dxil");
+        const FS_CODE: &[u8] = include_bytes!("shaders/teapot_fs.dxil");
+        const SHADER_FMT: ShaderFormat = ShaderFormat::Dxil;
+    }
+}
 
 const OBJ: &str = include_str!("models/teapot.obj");
 
@@ -202,9 +213,10 @@ fn run() -> Result {
     let props = Properties::global()?;
 
     let device = Device::builder(props)
-        .debug_mode(false)
-        .prefer_low_power(true)
+        .debug_mode(true)
+        .prefer_low_power(false)
         .shaders_metallib(true)
+        .shaders_dxil(true)
         .build_cleanup()?;
 
     let wnd = Window::builder(props)

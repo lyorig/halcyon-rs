@@ -3,23 +3,27 @@
     Compiles HLSL source files into executable IR.
 
     .DESCRIPTION
-    Compiles HLSL shaders for use with halcyon-rs' GPU example on Windows.
-    Requires the Visual Studio Build Tools, and a dxc.exe that can be located by the script.
-    To find where dxc is on your system, open the Native Tools (or Developer) Command Prompt, and run "which dxc".
+    Compiles HLSL shaders for use with halcyon-rs' GPU examples on Windows.
+    Requires the Visual Studio Build Tools, and a `dxc[.exe]` that can be located by the script.
+    To find where `dxc` is on your system, open the Native Tools (or Developer) Command Prompt, and run `which dxc`.
 #>
 
 $DxcExists = [bool] (Get-Command dxc -ErrorAction Ignore)
 
-if ($DxcExists) {
+if ($DxcExists)
+{
     Write-Verbose "dxc found on PATH"
-} else {
+} else
+{
     $DxcFallbackDir = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64"
     $DxcExists = [bool] (Get-Command "$DxcFallbackDir\dxc.exe" -ErrorAction Ignore)
 
-    if ($DxcExists) {
+    if ($DxcExists)
+    {
         Write-Verbose "dxc found in fallback dir ($DxcFallbackDir)"
         Set-Alias -Name dxc -Value "$DxcFallbackDir\dxc.exe"
-    } else {
+    } else
+    {
         Write-Host @"
 dxc not found. Make sure that:
 - you have the Visual Studio Build Tools installed
@@ -27,12 +31,17 @@ dxc not found. Make sure that:
     - on your PATH
     - in the directory specified by `$DxcFallbackDir
 
-To find where dxc is on your system, you can open the Native Tools (or Developer) Command Prompt, and run "which dxc".
+To find where `dxc` is on your system, you can open the Native Tools (or Developer) Command Prompt, and run `which dxc`.
 Either add the containing directory to your PATH, or replace `$DxcFallbackDir with it.
 "@
         return
     }
 }
 
+# `examples/gpu.rs`
 dxc -T vs_6_0 -E vs_main examples/shaders/src/triangle.hlsl -Fo examples/shaders/triangle_vs.dxil
 dxc -T ps_6_0 -E fs_main examples/shaders/src/triangle.hlsl -Fo examples/shaders/triangle_fs.dxil
+
+# `examples/teapot.rs`
+dxc -T vs_6_0 -E vs_main examples/shaders/src/teapot.hlsl -Fo examples/shaders/teapot_vs.dxil
+dxc -T ps_6_0 -E fs_main examples/shaders/src/teapot.hlsl -Fo examples/shaders/teapot_fs.dxil
