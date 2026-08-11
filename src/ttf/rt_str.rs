@@ -8,7 +8,7 @@ use std::ffi::c_char;
 /// function read past the end of the string. This struct prevents that error.
 ///
 /// Construct a "TTF-ready" string from a `&str`:
-/// - [`RtStr::new()`] checks for an empty string. In that case, the pointer it set to `c""`.
+/// - [`RtStr::new`] checks for an empty string. In that case, the pointer it set to `c""`.
 /// - [`RtStr::new_unchecked`] skips the check. Use when you know that the string is not empty.
 #[derive(Clone, Copy)]
 pub struct RtStr<'a> {

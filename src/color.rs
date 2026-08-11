@@ -132,14 +132,14 @@ impl<T: OpacityBounds> Rgba<T> {
 impl RgbaU8 {
     /// Create an [`RgbaU8`] from a hex (0xRRGGBB) representation.
     /// This forwards the extracted red, green, and blue components
-    /// to [`RgbaU8::rgb()`].
+    /// to [`RgbaU8::rgb`].
     pub const fn rgb_hex(val: u32) -> Self {
         Self::rgb((val >> 16) as u8, (val >> 8) as u8, val as u8)
     }
 
     /// Create an [`RgbaU8`] from a hex (0xRRGGBBAA) representation.
     /// This forwards the extracted red, green, blue, and alpha components
-    /// to [`RgbaU8::new()`].
+    /// to [`RgbaU8::new`].
     pub const fn rgba_hex(val: u32) -> Self {
         Self::new(
             (val >> 24) as u8,

@@ -24,7 +24,7 @@ macro_rules! boolenum {
 }
 
 /// Converts an [`Option`] holding a reference to a pointer.
-/// As you would expect, `None` produces [`std::ptr::null()`], while
+/// As you would expect, `None` produces [`std::ptr::null`], while
 /// `Some` returns `&T` as a pointer.
 ///
 /// This function's purpose is to facilitate interfacing with C FFI libraries.

@@ -35,14 +35,14 @@ pub mod ttf;
 pub mod util;
 pub mod window;
 
-/// A zero-sized type that only exists to call [`SDL_Quit()`].
+/// A zero-sized type that only exists to call [`SDL_Quit`].
 /// As such, think of it as a guard that creates a scope for
 /// the initialization of subsystems, ensuring they're properly
 /// quit once it goes out of scope.
 pub struct Context;
 
 impl Context {
-    /// Like [`Self::new()`], without the safety checks.
+    /// Like [`Self::new`], without the safety checks.
     ///
     /// # Safety
     /// Only call this on the main thread.
@@ -60,10 +60,10 @@ impl Context {
     ///
     /// let _ctx = Context::new();
     /// ```
-    /// If [`Self::new()`] returned [`Err`], this snippet would silently skip
+    /// If [`Self::new`] returned [`Err`], this snippet would silently skip
     /// the destructor and not quit SDL in case of an error. Not running on
     /// the main thread isn't really something that can happen by chance and you
-    /// can recover from. If necessary, check yourself via [`crate::is_main_thread()`].
+    /// can recover from. If necessary, check yourself via [`crate::is_main_thread`].
     ///
     /// In addition, [`Result`] is only intended to originate from SDL API calls.
     /// Since [`Context`] is a ZST providing an abstraction over SDL initialization,

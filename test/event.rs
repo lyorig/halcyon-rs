@@ -54,7 +54,7 @@ fn event_timestamp() {
     assert_eq!(unsafe { sdl.common }.timestamp, ticks);
 }
 
-/// [`Event::push()`] testing.
+/// [`Event::push`] testing.
 #[test]
 fn event_push() {
     // Should fail, since events aren't initialized.
