@@ -11,8 +11,8 @@ fn run() -> Result {
     if clipboard::has_data(DESIRED_MIME) {
         halcyon::log!("Clipboard has MIME data");
         halcyon::log!("-- begin MIME type enumeration --");
-        for ptr in clipboard::mime_types()? {
-            let cs = unsafe { CStr::from_ptr(ptr) };
+        for ptr in clipboard::mime_types()?.iter() {
+            let cs = unsafe { CStr::from_ptr(*ptr) };
             halcyon::log!("{}", cs.to_string_lossy());
         }
         halcyon::log!("-- end MIME type enumeration --");

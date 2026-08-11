@@ -3,19 +3,19 @@ use std::{
     fmt::Display,
 };
 
-use crate::{Result, boxed};
+use crate::{Result, boxed::Box};
 
 /// An SDL-allocated string.
 /// Unlike [`std::string::String`], it isn't growable or otherwise mutable.
 pub struct String {
-    handle: boxed::Box<c_char>,
+    handle: Box<c_char>,
 }
 
 impl String {
     /// # Safety
-    /// See the safety requirements of [`boxed::Box::from_raw()`].
-    pub(crate) unsafe fn from_ptr(handle: *mut c_char) -> Result<Self> {
-        unsafe { boxed::Box::from_raw(handle).map(|handle| Self { handle }) }
+    /// See the safety requirements of [`Box::from_raw()`].
+    pub(crate) unsafe fn from_raw(handle: *mut c_char) -> Result<Self> {
+        unsafe { Box::from_raw(handle) }.map(|handle| Self { handle })
     }
 
     /// Convert this SDL string to a byte slice.
@@ -35,6 +35,16 @@ impl String {
     pub fn count_bytes(&self) -> usize {
         let cs = unsafe { CStr::from_ptr(self.handle.as_ptr()) };
         cs.count_bytes()
+    }
+
+    /// Transforms `self` into a boxed `str`.
+    /// This involves calculating the length via [`Self::count_bytes()`].
+    pub fn into_boxed_str(self) -> Box<str> {
+        let len = self.count_bytes();
+        let ptr = self.handle.into_raw().as_ptr();
+        let slice = unsafe { std::slice::from_raw_parts_mut(ptr, len) };
+
+        unsafe { Box::from_raw(std::ptr::from_mut(slice) as *mut str).unwrap_unchecked() }
     }
 }
 
