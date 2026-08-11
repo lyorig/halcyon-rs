@@ -13,9 +13,9 @@ pub struct String {
 
 impl String {
     /// # Safety
-    /// See the safety requirements of [`boxed::Box::from_ptr()`].
+    /// See the safety requirements of [`boxed::Box::from_raw()`].
     pub(crate) unsafe fn from_ptr(handle: *mut c_char) -> Result<Self> {
-        unsafe { boxed::Box::from_ptr(handle).map(|handle| Self { handle }) }
+        unsafe { boxed::Box::from_raw(handle).map(|handle| Self { handle }) }
     }
 
     /// Convert this SDL string to a byte slice.

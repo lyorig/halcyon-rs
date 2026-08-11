@@ -10,39 +10,28 @@ pub struct Box<T: ?Sized> {
 }
 
 impl<T> Box<T> {
-    /// Create an `SdlBox` from an owned pointer, most likely
-    /// provided by SDL. This takes care of checking whether
-    /// the pointer is null, and if so, returning the error.
+    /// Create a [`Box`] from an owned pointer provided by SDL.
+    /// Returns [`Err`] if `ptr` is null.
     ///
     /// # Safety
-    /// `ptr` must point to an SDL allocation.
-    pub unsafe fn from_ptr(ptr: *mut T) -> Result<Self> {
+    /// `ptr` must point to an SDL allocation of `T`.
+    pub unsafe fn from_raw(ptr: *mut T) -> Result<Self> {
         opt2res_map(NonNull::new(ptr), |ptr| Self { ptr })
     }
 
-    /// Create an `SdlBox` from an SDL-provided pointer, having
-    /// guaranteed that it is not null. This function is still unsafe,
-    /// however, as the function doesn't check the pointer's provenance.
-    ///
-    /// # Safety
-    /// `ptr` must point to an SDL allocation.
-    pub unsafe fn from_nonnull(ptr: NonNull<T>) -> Self {
-        Self { ptr }
-    }
-
-    pub fn as_ptr(&self) -> *const T {
+    /// Convenience method to directly access the inner pointer.
+    pub(crate) fn as_ptr(&self) -> *mut T {
         self.ptr.as_ptr()
     }
 }
 
 impl<T> Box<[T]> {
-    /// Create an `SdlBox` from an owned pointer to `len` initialized elements,
-    /// most likely provided by SDL. This takes care of checking whether the
-    /// pointer is null, and if so, returning the error.
+    /// Create a [`Box`] from an SDL-provided pointer to `len` initialized elements.
+    /// Returns [`Err`] if `ptr` is null.
     ///
     /// # Safety
     /// `ptr` must point to an SDL allocation of at least `len` initialized
-    /// elements.
+    /// elements of type `T`.
     pub unsafe fn from_raw_parts(ptr: *mut T, len: usize) -> Result<Self> {
         opt2res_map(NonNull::new(ptr), |ptr| Self {
             ptr: NonNull::slice_from_raw_parts(ptr, len),
