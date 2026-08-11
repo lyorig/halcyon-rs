@@ -7,6 +7,10 @@ use crate::{Result, boxed::Box};
 
 /// An SDL-allocated string.
 /// Unlike [`std::string::String`], it isn't growable or otherwise mutable.
+///
+/// Since SDL only provides the pointer itself and no size information (it's null-terminated),
+/// this struct only contains a [`Box<c_char>`] (the length isn't stored). You can convert it
+/// into a `str` via the [`String::into_boxed_str`] method.
 pub struct String {
     handle: Box<c_char>,
 }
