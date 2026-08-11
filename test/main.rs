@@ -14,6 +14,7 @@ use halcyon::{
     window::Window,
 };
 
+mod boxed;
 mod clipboard;
 mod color;
 mod error;

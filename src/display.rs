@@ -88,8 +88,7 @@ impl Display {
         let mut count = MaybeUninit::uninit();
         let ptr = unsafe { SDL_GetDisplays(count.as_mut_ptr()) };
 
-        // SAFETY: On success, SDL allocates `count` displays.
-        unsafe { Box::from_raw_parts(ptr.cast(), count.assume_init() as _) }
+        unsafe { Box::from_raw_parts_nullchk(ptr.cast(), count.assume_init() as _) }
     }
 
     #[doc(alias = "SDL_GetPrimaryDisplay")]
@@ -174,7 +173,7 @@ impl Display {
         let ptr = unsafe { SDL_GetFullscreenDisplayModes(self.id(), count.as_mut_ptr()) };
 
         // SAFETY: On success, SDL allocates `count` display modes.
-        unsafe { Box::from_raw_parts(ptr.cast(), count.assume_init() as _) }
+        unsafe { Box::from_raw_parts_nullchk(ptr.cast(), count.assume_init() as _) }
     }
 
     #[doc(alias = "SDL_GetDisplayContentScale")]
