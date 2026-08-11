@@ -19,9 +19,9 @@
 
 use crate::{
     Result, boolenum,
+    boxed::Box,
     error::Error,
     rect::{PointI32, RectI32},
-    sdl_box::{SdlBox, SdlBoxArr},
     util::opt2res_map,
 };
 
@@ -84,12 +84,12 @@ impl Display {
     }
 
     #[doc(alias = "SDL_GetDisplays")]
-    pub fn all() -> Result<SdlBoxArr<Self>> {
+    pub fn all() -> Result<Box<[Self]>> {
         let mut count = MaybeUninit::uninit();
         let ptr = unsafe { SDL_GetDisplays(count.as_mut_ptr()) };
-        let sb = SdlBox::from_ptr(ptr.cast())?;
 
-        Ok(unsafe { SdlBoxArr::new(sb, count.assume_init() as _) })
+        // SAFETY: On success, SDL allocates `count` displays.
+        unsafe { Box::from_raw_parts(ptr.cast(), count.assume_init() as _) }
     }
 
     #[doc(alias = "SDL_GetPrimaryDisplay")]
@@ -169,12 +169,12 @@ impl Display {
     }
 
     #[doc(alias = "SDL_GetFullscreenDisplayModes")]
-    pub fn fullscreen_modes(&self) -> Result<SdlBoxArr<NonNull<SDL_DisplayMode>>> {
+    pub fn fullscreen_modes(&self) -> Result<Box<[NonNull<SDL_DisplayMode>]>> {
         let mut count = MaybeUninit::uninit();
         let ptr = unsafe { SDL_GetFullscreenDisplayModes(self.id(), count.as_mut_ptr()) };
-        let sb = SdlBox::from_ptr(ptr.cast())?;
 
-        Ok(unsafe { SdlBoxArr::new(sb, count.assume_init() as _) })
+        // SAFETY: On success, SDL allocates `count` display modes.
+        unsafe { Box::from_raw_parts(ptr.cast(), count.assume_init() as _) }
     }
 
     #[doc(alias = "SDL_GetDisplayContentScale")]

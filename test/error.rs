@@ -13,7 +13,7 @@ fn error_current() {
 
 /// [`Error`] owns its string, so it isn't affected by later SDL errors.
 #[test]
-fn snapshot() {
+fn error_snapshot() {
     unsafe { SDL_SetError(c"first error".as_ptr()) };
     let err = Error::current();
 

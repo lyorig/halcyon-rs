@@ -9,7 +9,7 @@ these topics are covered by the [sdl3-sys docs](https://docs.rs/sdl3-sys/latest/
 
 ## Concepts
 SDL works with raw pointers and ownership rules are mostly described via function documentation, halcyon-rs aims
-to disambiguate with *handles*, *owned objects* and *references*. For an arbitrary type `Foo`:
+to disambiguate with _handles_, _owned objects_ and _references_. For an arbitrary type `Foo`:
 - The handle `FooHandle` is where the API is actually implemented.
 - The owned object `Foo` contains a handle and is responsible for `Drop`ping it.
 - The reference `Ref<'a, Foo>` contains a handle, is lifetime-bound to an owned object, and doesn't drop anything.
@@ -20,6 +20,7 @@ In an attempt to justify the time spent on this project, here is a list of thing
 make halcyon-rs much neater to use over raw SDL bindings:
 
 - `Drop` impl'd where applicable
+  - Certain SDL_gpu objects are an exception, as their destructors require
 - `Ref` for borrowing opaque handles with no extra indirection
 - `halcyon::Result<T>` instead of `SDL_GetError()`
 - Descriptive bool-enums instead of bool parameters

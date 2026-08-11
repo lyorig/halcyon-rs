@@ -11,7 +11,7 @@ use sdl3_sys::{
 
 use crate::{sdl_string::SdlString, subsystem::Subsystem, util::c_ptr_to_str};
 
-mod sdl_box;
+mod boxed;
 
 pub mod clipboard;
 pub mod color;
