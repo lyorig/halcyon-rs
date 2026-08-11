@@ -430,3 +430,9 @@ impl<'a, T> IntoIterator for &'a mut Box<[T]> {
         unsafe { &mut *self.ptr.as_ptr() }.iter_mut()
     }
 }
+
+impl Box<str> {
+    pub fn as_str(&self) -> &str {
+        &self
+    }
+}
