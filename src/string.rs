@@ -5,9 +5,8 @@ use std::{
 
 use crate::{Result, boxed};
 
-/// An SDL-allocated string. In the spirit of zero-cost abstraction, its length
-/// is not pre-computed (since it's null-terminated). The [`String::count_bytes()`]
-/// method is available to signal that it's not an O(1) operation.
+/// An SDL-allocated string.
+/// Unlike [`std::string::String`], it isn't growable or otherwise mutable.
 pub struct String {
     handle: boxed::Box<c_char>,
 }
@@ -19,15 +18,17 @@ impl String {
         unsafe { boxed::Box::from_ptr(handle).map(|handle| Self { handle }) }
     }
 
+    /// Convert this SDL string to a byte slice.
+    /// This involves calculating the length via [`Self::count_bytes()`].
+    pub fn to_bytes(&self) -> &[u8] {
+        unsafe { core::slice::from_raw_parts(self.handle.as_ptr().cast(), self.count_bytes()) }
+    }
+
     /// Convert this SDL string to a string slice. This can be done,
     /// since all strings originating from SDL are guaranteed UTF-8.
-    /// This involves calculating its length via [`Self::count_bytes`].
+    /// This involves calculating its length via [`Self::count_bytes()`].
     pub fn to_str(&self) -> &str {
-        use core::slice::from_raw_parts;
-        unsafe {
-            let slice = from_raw_parts(self.handle.as_ptr().cast(), self.count_bytes());
-            str::from_utf8_unchecked(slice)
-        }
+        unsafe { str::from_utf8_unchecked(self.to_bytes()) }
     }
 
     /// Analogous to [`CStr::count_bytes()`].
