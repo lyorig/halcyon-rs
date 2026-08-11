@@ -160,6 +160,7 @@ macro_rules! resource_new_tied {
                     std::ptr::NonNull::new(handle).map(|handle| Self { handle })
                 }
 
+                /// Convenience method to directly access the underlying pointer.
                 pub(crate) fn as_ptr(&self) -> *mut $sdl {
                     self.handle.as_ptr()
                 }
