@@ -5,17 +5,24 @@ use sdl3_sys::stdinc::SDL_free;
 use crate::{Result, util::opt2res_map};
 
 /// [`std::boxed::Box`] but for SDL allocations, freed with [`SDL_free()`].
+///
+/// # Differences from [`std::boxed::Box`]
+///
+/// halcyon-rs' [`Box`] is tailored towards usage with SDL, so it's not exactly 1:1 in terms of
+/// method availablity and signatures. The point is, first and foremost, to abstract the things
+/// that SDL wants you to manually free, since it can sometimes be a hassle to figure out what
+/// the library owns, as opposed to what it throws on the heap for fun & profit.
 pub struct Box<T: ?Sized> {
     ptr: NonNull<T>,
 }
 
 impl<T: ?Sized> Box<T> {
     /// Create a [`Box`] from an owned pointer provided by SDL.
-    /// Returns [`Err`] if `ptr` is null.
+    /// Returns the current error if `ptr` is null.
     ///
     /// # Safety
     /// `ptr` must point to an SDL allocation of `T`.
-    pub unsafe fn from_raw(ptr: *mut T) -> Result<Self> {
+    pub(crate) unsafe fn from_raw(ptr: *mut T) -> Result<Self> {
         opt2res_map(NonNull::new(ptr), |ptr| Self { ptr })
     }
 
@@ -26,7 +33,7 @@ impl<T: ?Sized> Box<T> {
 
     /// Consume the [`Box`] and return the underlying pointer, without freeing
     /// the allocation.
-    pub fn into_raw(self) -> NonNull<T> {
+    pub(crate) fn into_raw(self) -> NonNull<T> {
         let ptr = self.ptr;
         std::mem::forget(self);
         ptr
@@ -35,11 +42,10 @@ impl<T: ?Sized> Box<T> {
 
 impl<T> Box<[T]> {
     /// Create a [`Box`] from an SDL-provided pointer to `len` initialized elements.
-    /// Returns [`Err`] if `ptr` is null.
+    /// Returns the current error if `ptr` is null.
     ///
     /// # Safety
-    /// `ptr` must point to an SDL allocation of at least `len` initialized
-    /// elements of type `T`.
+    /// `ptr` must point to an SDL allocation of at least `len` initialized elements of type `T`.
     pub unsafe fn from_raw_parts(ptr: *mut T, len: usize) -> Result<Self> {
         opt2res_map(NonNull::new(ptr), |ptr| Self {
             ptr: NonNull::slice_from_raw_parts(ptr, len),
