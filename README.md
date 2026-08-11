@@ -32,9 +32,3 @@ in my eyes, make halcyon-rs much neater to use over raw SDL bindings:
 - Encapsulation of reserved struct parameters
 
 [^1]: Certain SDL_gpu objects are an exception, since their destructors require an extra parameter. Such objects have a "manual" `drop()` method, and have proper documentation of this fact.
-
-## Code sample
-
-What you'd code in C:
-
-is expressed like this in halcyon-rs.
