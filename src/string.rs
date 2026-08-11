@@ -1,26 +1,22 @@
 use std::{
     ffi::{CStr, c_char},
-    fmt::{Debug, Display},
-    ptr::NonNull,
+    fmt::Display,
 };
 
-use sdl3_sys::stdinc::SDL_free;
+use crate::{Result, boxed};
 
-use crate::{Result, error::Error};
-
-/// Like an owned [`String`], but it gets dropped via SDL's
-/// custom [`SDL_free()`] function.
-#[derive(Debug)]
-pub struct SdlString {
-    handle: NonNull<c_char>,
+/// An SDL-allocated string. In the spirit of zero-cost abstraction, its length
+/// is not pre-computed (since it's null-terminated). The [`String::count_bytes()`]
+/// method is available to signal that it's not an O(1) operation.
+pub struct String {
+    handle: boxed::Box<c_char>,
 }
 
-impl SdlString {
-    pub(crate) fn from_ptr(handle: *mut c_char) -> Result<Self> {
-        match NonNull::new(handle) {
-            Some(handle) => Ok(Self { handle }),
-            None => Err(Error::current()),
-        }
+impl String {
+    /// # Safety
+    /// See the safety requirements of [`boxed::Box::from_ptr()`].
+    pub(crate) unsafe fn from_ptr(handle: *mut c_char) -> Result<Self> {
+        unsafe { boxed::Box::from_ptr(handle).map(|handle| Self { handle }) }
     }
 
     /// Convert this SDL string to a string slice. This can be done,
@@ -34,29 +30,22 @@ impl SdlString {
         }
     }
 
-    /// Analogous to [`CStr::count_bytes`].
+    /// Analogous to [`CStr::count_bytes()`].
     pub fn count_bytes(&self) -> usize {
         let cs = unsafe { CStr::from_ptr(self.handle.as_ptr()) };
         cs.count_bytes()
     }
 }
 
-impl Display for SdlString {
+impl Display for String {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let str = self.to_str();
         <str as Display>::fmt(str, f)
     }
 }
 
-impl PartialEq for SdlString {
+impl PartialEq for String {
     fn eq(&self, other: &Self) -> bool {
         self.to_str() == other.to_str()
-    }
-}
-
-impl Drop for SdlString {
-    #[doc(alias = "SDL_free")]
-    fn drop(&mut self) {
-        unsafe { SDL_free(self.handle.as_ptr().cast()) };
     }
 }

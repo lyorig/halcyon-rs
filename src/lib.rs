@@ -9,7 +9,7 @@ use sdl3_sys::{
     timer::{SDL_GetTicks, SDL_GetTicksNS},
 };
 
-use crate::{sdl_string::SdlString, subsystem::Subsystem, util::c_ptr_to_str};
+use crate::{string::String, subsystem::Subsystem, util::c_ptr_to_str};
 
 mod boxed;
 
@@ -26,7 +26,7 @@ pub mod properties;
 pub mod rect;
 pub mod renderer;
 pub mod resource;
-pub mod sdl_string;
+pub mod string;
 pub mod subsystem;
 pub mod surface;
 pub mod texture;
@@ -110,9 +110,11 @@ pub fn base_path() -> &'static str {
 }
 
 #[doc(alias = "SDL_GetPrefPath")]
-pub fn pref_path(org: &CStr, app: &CStr) -> Result<SdlString> {
-    let ptr = unsafe { SDL_GetPrefPath(org.as_ptr(), app.as_ptr()) };
-    SdlString::from_ptr(ptr)
+pub fn pref_path(org: &CStr, app: &CStr) -> Result<String> {
+    unsafe {
+        let ptr = SDL_GetPrefPath(org.as_ptr(), app.as_ptr());
+        String::from_ptr(ptr)
+    }
 }
 
 #[doc(alias = "SDL_IsMainThread")]

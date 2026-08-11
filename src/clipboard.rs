@@ -15,7 +15,7 @@ use std::{ffi::CStr, mem::MaybeUninit};
 
 use sdl3_sys::clipboard::*;
 
-use crate::{Result, boxed::Box, sdl_string::SdlString, util::to_result};
+use crate::{Result, boxed::Box, string::String, util::to_result};
 
 #[doc(alias = "SDL_ClearClipboardData")]
 pub fn clear_data() -> Result {
@@ -39,11 +39,11 @@ pub fn mime_types() -> Result<Box<[*mut i8]>> {
 }
 
 #[doc(alias = "SDL_GetClipboardText")]
-pub fn text() -> SdlString {
+pub fn text() -> String {
     let ptr = unsafe { SDL_GetClipboardText() };
 
     // SAFETY: `SDL_GetClipboardText()` always returns a valid string.
-    unsafe { SdlString::from_ptr(ptr).unwrap_unchecked() }
+    unsafe { String::from_ptr(ptr).unwrap_unchecked() }
 }
 
 #[doc(alias = "SDL_HasClipboardData")]

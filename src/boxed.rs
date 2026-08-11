@@ -13,12 +13,25 @@ impl<T> Box<T> {
     /// Create an `SdlBox` from an owned pointer, most likely
     /// provided by SDL. This takes care of checking whether
     /// the pointer is null, and if so, returning the error.
-    pub fn from_ptr(ptr: *mut T) -> Result<Self> {
+    ///
+    /// # Safety
+    /// `ptr` must point to an SDL allocation.
+    pub unsafe fn from_ptr(ptr: *mut T) -> Result<Self> {
         opt2res_map(NonNull::new(ptr), |ptr| Self { ptr })
     }
 
-    pub fn from_nonnull(handle: NonNull<T>) -> Self {
-        Self { ptr: handle }
+    /// Create an `SdlBox` from an SDL-provided pointer, having
+    /// guaranteed that it is not null. This function is still unsafe,
+    /// however, as the function doesn't check the pointer's provenance.
+    ///
+    /// # Safety
+    /// `ptr` must point to an SDL allocation.
+    pub unsafe fn from_nonnull(ptr: NonNull<T>) -> Self {
+        Self { ptr }
+    }
+
+    pub fn as_ptr(&self) -> *const T {
+        self.ptr.as_ptr()
     }
 }
 
