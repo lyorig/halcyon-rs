@@ -11,62 +11,25 @@ use std::{
     ptr::NonNull,
 };
 
-use sdl3_sys::stdinc::{SDL_free, SDL_malloc};
+use sdl3_sys::stdinc::SDL_free;
 
 use crate::{Result, util::opt2res_map};
 
-/// Mirror of [`std::boxed::Box`], with (de)allocation performed via
-/// [`SDL_malloc`]/[`SDL_free`] instead of the global allocator.
-///
-/// The pointee's alignment must not exceed the fundamental alignment
-/// (16 bytes on 64-bit platforms), which is what SDL's allocator
-/// guarantees. This holds for all standard types; only over-aligned types
-/// (e.g. SIMD vectors, `#[repr(align(32))]` structs) are excluded.
+/// Mirror of [`std::boxed::Box`], with deallocation performed
+/// via [`SDL_free`] instead of the global allocator.
 pub struct Box<T: ?Sized> {
     ptr: NonNull<T>,
-}
-
-impl<T> Box<T> {
-    /// Allocate memory for `T` via [`SDL_malloc`] and move `x` into it.
-    /// Panics if the allocation fails.
-    #[doc(alias = "SDL_malloc")]
-    pub fn new(x: T) -> Self {
-        match Self::try_new(x) {
-            Some(b) => b,
-            None => panic!("allocation failed"),
-        }
-    }
-
-    /// Like [`Self::new`], but returns `None` instead of panicking if the
-    /// allocation fails.
-    #[doc(alias = "SDL_malloc")]
-    pub fn try_new(x: T) -> Option<Self> {
-        // `SDL_malloc` only guarantees the fundamental alignment.
-        debug_assert!(align_of::<T>() <= align_of::<usize>() * 2);
-
-        // SAFETY: `SDL_malloc` returns NULL on failure (handled by
-        // `NonNull::new`), and otherwise returns at least `size_of::<T>()`
-        // bytes of memory with the alignment asserted above.
-        let ptr = NonNull::new(unsafe { SDL_malloc(size_of::<T>()) }.cast())?;
-
-        // SAFETY: `ptr` is a fresh, uninitialized allocation for `T`.
-        unsafe { ptr.cast::<T>().as_ptr().write(x) };
-
-        Some(Self { ptr })
-    }
 }
 
 impl<T: ?Sized> Box<T> {
     /// Consume the [`Box`], returning the underlying pointer without freeing
     /// the allocation.
-    pub fn into_raw(self) -> *mut T {
-        let ptr = self.ptr.as_ptr();
-        std::mem::forget(self);
-        ptr
+    pub(crate) fn into_raw(self) -> *mut T {
+        self.into_raw_non_null().as_ptr()
     }
 
     /// Like [`Self::into_raw`], but preserves the non-null invariant.
-    pub fn into_raw_non_null(self) -> NonNull<T> {
+    pub(crate) fn into_raw_non_null(self) -> NonNull<T> {
         let ptr = self.ptr;
         std::mem::forget(self);
         ptr
@@ -78,12 +41,22 @@ impl<T: ?Sized> Box<T> {
     /// # Safety
     /// `raw` must have been obtained from a [`Box`] of this module and must
     /// not have been freed.
-    pub unsafe fn from_raw(raw: *mut T) -> Self {
+    pub(crate) unsafe fn from_raw(raw: *mut T) -> Self {
         // SAFETY: Per the contract, `raw` is a valid, aligned, non-null
         // pointer obtained from `into_raw`.
-        Self {
-            ptr: unsafe { NonNull::new_unchecked(raw) },
-        }
+        unsafe { Self::from_raw_non_null(NonNull::new_unchecked(raw)) }
+    }
+
+    /// Reconstruct a [`Box`] from a pointer obtained via [`Self::into_raw`]
+    /// (or [`Self::into_raw_non_null`]).
+    ///
+    /// # Safety
+    /// `raw` must have been obtained from a [`Box`] of this module and must
+    /// not have been freed.
+    pub(crate) unsafe fn from_raw_non_null(raw: NonNull<T>) -> Self {
+        // SAFETY: Per the contract, `raw` is a valid, aligned
+        // pointer obtained from `into_raw`.
+        Self { ptr: raw }
     }
 
     /// Create a [`Box`] from an SDL allocation.
@@ -91,19 +64,8 @@ impl<T: ?Sized> Box<T> {
     ///
     /// # Safety
     /// `raw` must be allocated via SDL.
-    pub(crate) unsafe fn from_raw_nullchk(raw: *mut T) -> Result<Self> {
+    pub(crate) unsafe fn from_raw_nullck(raw: *mut T) -> Result<Self> {
         opt2res_map(NonNull::new(raw), |ptr| Self { ptr })
-    }
-
-    /// Consume the [`Box`] and leak the allocation, returning a mutable
-    /// reference valid for the rest of the program's life.
-    pub fn leak(self) -> &'static mut T {
-        let ptr = self.ptr.as_ptr();
-        std::mem::forget(self);
-
-        // SAFETY: The allocation is intentionally leaked, so the reference
-        // is valid for `'static`.
-        unsafe { ptr.as_mut_unchecked() }
     }
 
     pub fn as_ptr(&self) -> *const T {
@@ -116,13 +78,26 @@ impl<T: ?Sized> Box<T> {
 }
 
 impl<T> Box<[T]> {
-    /// Create a [`Box`] from an SDL allocation of `len` elements.
+    /// Create a [`Box`] from a pointer and a length.
     ///
     /// # Safety
-    /// `ptr` must have been obtained from an SDL allocation and must be valid
-    /// for `len` * `size_of::<T>()` bytes.
-    pub unsafe fn from_raw_parts(ptr: *mut T, len: usize) -> Self {
-        let ptr = unsafe { NonNull::new_unchecked(ptr) };
+    /// `ptr` must be:
+    /// - obtained from an SDL allocation
+    /// - valid for `len` * `size_of::<T>()` bytes.
+    pub(crate) unsafe fn from_raw_parts(ptr: *mut T, len: usize) -> Self {
+        unsafe {
+            let ptr = NonNull::new_unchecked(ptr);
+            Self::from_raw_parts_non_null(ptr, len)
+        }
+    }
+
+    /// Create a [`Box`] from a pointer and a length.
+    ///
+    /// # Safety
+    /// `ptr` must be:
+    /// - obtained from an SDL allocation
+    /// - valid for `len` * `size_of::<T>()` bytes.
+    pub(crate) unsafe fn from_raw_parts_non_null(ptr: NonNull<T>, len: usize) -> Self {
         let slice = NonNull::slice_from_raw_parts(ptr, len);
         Self { ptr: slice }
     }
@@ -133,79 +108,10 @@ impl<T> Box<[T]> {
     /// # Safety
     /// `ptr` must have been obtained from an SDL allocation and must be valid
     /// for `len` * `size_of::<T>()` bytes.
-    pub(crate) unsafe fn from_raw_parts_nullchk(ptr: *mut T, len: usize) -> Result<Self> {
-        opt2res_map(NonNull::new(ptr), |nn| {
-            let slice = NonNull::slice_from_raw_parts(nn, len);
-            Self { ptr: slice }
+    pub(crate) unsafe fn from_raw_parts_nullck(ptr: *mut T, len: usize) -> Result<Self> {
+        opt2res_map(NonNull::new(ptr), |nn| unsafe {
+            Self::from_raw_parts_non_null(nn, len)
         })
-    }
-
-    /// Allocate space for `len` uninitialized `T`s via [`SDL_malloc`],
-    /// panicking on failure.
-    #[doc(alias = "SDL_malloc")]
-    fn alloc(len: usize) -> NonNull<u8> {
-        // `SDL_malloc` only guarantees the fundamental alignment.
-        debug_assert!(align_of::<T>() <= align_of::<usize>() * 2);
-
-        let size = size_of::<T>().checked_mul(len).expect("size overflow");
-
-        // SAFETY: `SDL_malloc` returns NULL on failure (handled by
-        // `NonNull::new`), and otherwise returns `size` bytes with the
-        // alignment asserted above. A size of 0 is handled by SDL, which
-        // allocates at least 1 byte in that case.
-        NonNull::new(unsafe { SDL_malloc(size) }.cast()).expect("allocation failed")
-    }
-
-    /// Allocate a boxed slice and clone each element of `slice` into it.
-    #[doc(alias = "SDL_malloc")]
-    pub fn from_slice(slice: &[T]) -> Self
-    where
-        T: Clone,
-    {
-        let len = slice.len();
-        let ptr = Self::alloc(len);
-        let dst = ptr.cast::<T>().as_ptr();
-
-        for (i, x) in slice.iter().enumerate() {
-            // SAFETY: `i` is below `len`, so the slot is in-bounds and
-            // uninitialized.
-            unsafe { dst.add(i).write(x.clone()) };
-        }
-
-        Self {
-            ptr: NonNull::slice_from_raw_parts(ptr.cast(), len),
-        }
-    }
-}
-
-impl<T> FromIterator<T> for Box<[T]> {
-    /// Allocate a boxed slice and move the iterator's elements into it.
-    #[doc(alias = "SDL_malloc")]
-    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
-        let items: Vec<T> = iter.into_iter().collect();
-        let len = items.len();
-        let ptr = Self::alloc(len);
-        let dst = ptr.cast::<T>().as_ptr();
-
-        for (i, item) in items.into_iter().enumerate() {
-            // SAFETY: `i` is below `len`, so the slot is in-bounds and
-            // uninitialized.
-            unsafe { dst.add(i).write(item) };
-        }
-
-        Self {
-            ptr: NonNull::slice_from_raw_parts(ptr.cast(), len),
-        }
-    }
-}
-
-impl<T, const N: usize> From<Box<[T; N]>> for Box<[T]> {
-    fn from(b: Box<[T; N]>) -> Self {
-        let raw = b.into_raw();
-
-        // SAFETY: `[T; N]` and `[T]` share the same layout for a length of
-        // `N`, so the allocation is valid as a slice without resizing.
-        unsafe { Self::from_raw(std::ptr::slice_from_raw_parts_mut(raw as *mut T, N)) }
     }
 }
 
@@ -268,48 +174,6 @@ impl<T: Display + ?Sized> Display for Box<T> {
     }
 }
 
-impl<T: Clone> Clone for Box<T> {
-    fn clone(&self) -> Self {
-        Self::new(T::clone(self))
-    }
-}
-
-impl<T: Clone> Clone for Box<[T]> {
-    fn clone(&self) -> Self {
-        Self::from_slice(self)
-    }
-}
-
-impl<T: Default> Default for Box<T> {
-    fn default() -> Self {
-        Self::new(T::default())
-    }
-}
-
-impl<T> Default for Box<[T]> {
-    fn default() -> Self {
-        Self::from_iter(std::iter::empty())
-    }
-}
-
-impl<T> From<T> for Box<T> {
-    fn from(x: T) -> Self {
-        Self::new(x)
-    }
-}
-
-impl<T: Copy> From<&T> for Box<T> {
-    fn from(x: &T) -> Self {
-        Self::new(*x)
-    }
-}
-
-impl<T: Clone> From<&[T]> for Box<[T]> {
-    fn from(slice: &[T]) -> Self {
-        Self::from_slice(slice)
-    }
-}
-
 impl<T: PartialEq + ?Sized> PartialEq for Box<T> {
     fn eq(&self, other: &Self) -> bool {
         **self == **other
@@ -352,7 +216,7 @@ impl<T: Hash + ?Sized> Hash for Box<T> {
     }
 }
 
-/// Owned iterator over the elements of a [`Box<[T]>`], moving them out by
+/// Owned iterator over the elements of a `Box<[T]>`, moving them out by
 /// value. Yields each element exactly once; elements not yet yielded when the
 /// iterator is dropped still get their destructors run.
 pub struct IntoIter<T> {
@@ -433,6 +297,6 @@ impl<'a, T> IntoIterator for &'a mut Box<[T]> {
 
 impl Box<str> {
     pub fn as_str(&self) -> &str {
-        &self
+        self
     }
 }

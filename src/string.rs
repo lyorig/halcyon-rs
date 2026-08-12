@@ -19,7 +19,7 @@ impl String {
     /// # Safety
     /// See the safety requirements of [`Box::from_raw`].
     pub(crate) unsafe fn from_raw(handle: *mut c_char) -> Result<Self> {
-        unsafe { Box::from_raw_nullchk(handle) }.map(|handle| Self { handle })
+        unsafe { Box::from_raw_nullck(handle) }.map(|handle| Self { handle })
     }
 
     /// Convert this SDL string to a byte slice.
@@ -45,10 +45,11 @@ impl String {
     /// This involves calculating the length via [`Self::count_bytes`].
     pub fn into_boxed_str(self) -> Box<str> {
         let len = self.count_bytes();
-        let ptr = self.handle.into_raw();
-        let slice = unsafe { std::slice::from_raw_parts_mut(ptr, len) };
+        let ptr = self.handle.into_raw_non_null().cast::<u8>();
+        let slice = unsafe { std::slice::from_raw_parts_mut(ptr.as_ptr(), len) };
+        let slice_ptr = std::ptr::from_mut(slice);
 
-        unsafe { Box::from_raw(std::ptr::from_mut(slice) as *mut str) }
+        unsafe { Box::from_raw(slice_ptr as *mut str) }
     }
 }
 

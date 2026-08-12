@@ -1,8 +1,8 @@
 use halcyon::{Context, Result, display::Display, subsystem::Video};
 
 fn run() -> Result {
-    let context = Context::new();
-    let _video: Video = context.init()?;
+    let ctx = Context::new();
+    let _vid = Video::new(&ctx)?;
 
     for (i, disp) in Display::all()?.iter().copied().enumerate() {
         halcyon::log!(
