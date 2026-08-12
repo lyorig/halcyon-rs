@@ -43,7 +43,7 @@ pub fn text() -> String {
     let ptr = unsafe { SDL_GetClipboardText() };
 
     // SAFETY: `SDL_GetClipboardText()` always returns a valid string.
-    unsafe { String::from_raw(ptr).unwrap_unchecked() }
+    unsafe { String::from_raw(ptr) }
 }
 
 #[doc(alias = "SDL_HasClipboardData")]

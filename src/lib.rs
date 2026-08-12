@@ -113,7 +113,7 @@ pub fn base_path() -> &'static str {
 pub fn pref_path(org: &CStr, app: &CStr) -> Result<String> {
     unsafe {
         let ptr = SDL_GetPrefPath(org.as_ptr(), app.as_ptr());
-        String::from_raw(ptr)
+        String::from_raw_nullck(ptr)
     }
 }
 

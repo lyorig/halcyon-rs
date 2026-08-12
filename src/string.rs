@@ -6,11 +6,11 @@ use std::{
 use crate::{Result, boxed::Box};
 
 /// An SDL-allocated string.
-/// Unlike [`std::string::String`], it isn't growable or otherwise mutable.
 ///
-/// Since SDL only provides the pointer itself and no size information (it's null-terminated),
-/// this struct only contains a [`Box<c_char>`] (the length isn't stored). You can convert it
-/// into a `str` via the [`String::into_boxed_str`] method.
+/// Unlike [`std::string::String`] which wraps a [`Vec<u8>`], [`String`] wraps a [`Box<c_char>`],
+/// as SDL always provides a null-terminated string pointer. This makes it borrow some [`CStr`](std::ffi::CStr)
+/// semantics (i.e. [`Self::count_bytes`]). However, SDL also often makes UTF-8 guarantees about string contents,
+/// so certain conversion methods become infallible (such as [`String::into_boxed_str`]).
 pub struct String {
     handle: Box<c_char>,
 }
@@ -18,7 +18,14 @@ pub struct String {
 impl String {
     /// # Safety
     /// See the safety requirements of [`Box::from_raw`].
-    pub(crate) unsafe fn from_raw(handle: *mut c_char) -> Result<Self> {
+    pub(crate) unsafe fn from_raw(handle: *mut c_char) -> Self {
+        let handle = unsafe { Box::from_raw(handle) };
+        Self { handle }
+    }
+
+    /// # Safety
+    /// See the safety requirements of [`Box::from_raw_nullck`].
+    pub(crate) unsafe fn from_raw_nullck(handle: *mut c_char) -> Result<Self> {
         unsafe { Box::from_raw_nullck(handle) }.map(|handle| Self { handle })
     }
 
