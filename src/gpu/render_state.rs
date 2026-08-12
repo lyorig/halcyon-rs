@@ -5,22 +5,9 @@
 
 use std::marker::PhantomData;
 
-use sdl3_sys::{
-    properties::SDL_PropertiesID,
-    render::{
-        SDL_CreateGPURenderState, SDL_DestroyGPURenderState, SDL_GPURenderState,
-        SDL_GPURenderStateCreateInfo, SDL_SetGPURenderStateFragmentUniforms,
-    },
-};
+use sdl3_sys::{properties::SDL_PropertiesID, render::*};
 
-use crate::{
-    Result,
-    gpu::{Buffer, Shader, Texture, TextureSamplerBinding},
-    renderer::Renderer,
-    resource::Ref,
-    resource_new,
-    util::to_result,
-};
+use crate::{Result, gpu::*, renderer::Renderer, resource::Ref, resource_new, util::to_result};
 
 pub struct RenderStateCreateInfo<'frag, 'sbin, 'sbin_t, 'sbin_s, 'stex, 'stex_t, 'sbuf, 'sbuf_b>(
     SDL_GPURenderStateCreateInfo,

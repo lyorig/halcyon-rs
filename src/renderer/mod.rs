@@ -61,7 +61,7 @@
 //! - [x] SDL_SetRenderDrawBlendMode
 //! - [x] SDL_SetRenderDrawColor
 //! - [x] SDL_SetRenderDrawColorFloat
-//! - [ ] SDL_SetRenderGPUState
+//! - [x] SDL_SetRenderGPUState
 //! - [ ] SDL_SetRenderLogicalPresentation
 //! - [ ] SDL_SetRenderScale
 //! - [x] SDL_SetRenderTarget
