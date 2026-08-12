@@ -140,6 +140,7 @@ pub use builder::*;
 pub use properties::*;
 
 #[bitmask(u64)]
+#[doc(alias = "SDL_WindowFlags")]
 pub enum WindowFlags {
     Fullscreen = SDL_WINDOW_FULLSCREEN.0,
     OpenGL = SDL_WINDOW_OPENGL.0,
@@ -156,15 +157,29 @@ pub enum WindowFlags {
     Modal = SDL_WINDOW_MODAL.0,
     HighPixelDensity = SDL_WINDOW_HIGH_PIXEL_DENSITY.0,
     MouseCapture = SDL_WINDOW_MOUSE_CAPTURE.0,
+    MouseRelativeMode = SDL_WINDOW_MOUSE_RELATIVE_MODE.0,
     AlwaysOnTop = SDL_WINDOW_ALWAYS_ON_TOP.0,
     Utility = SDL_WINDOW_UTILITY.0,
     Tooltip = SDL_WINDOW_TOOLTIP.0,
     PopupMenu = SDL_WINDOW_POPUP_MENU.0,
     KeyboardGrabbed = SDL_WINDOW_KEYBOARD_GRABBED.0,
+    FillDocument = SDL_WINDOW_FILL_DOCUMENT.0,
     Vulkan = SDL_WINDOW_VULKAN.0,
     Metal = SDL_WINDOW_METAL.0,
     Transparent = SDL_WINDOW_TRANSPARENT.0,
     NotFocusable = SDL_WINDOW_NOT_FOCUSABLE.0,
+}
+
+impl From<WindowFlags> for SDL_WindowFlags {
+    fn from(value: WindowFlags) -> Self {
+        SDL_WindowFlags::new(value.bits())
+    }
+}
+
+impl From<SDL_WindowFlags> for WindowFlags {
+    fn from(value: SDL_WindowFlags) -> Self {
+        WindowFlags::from(value.0)
+    }
 }
 
 #[repr(i32)]
@@ -351,8 +366,8 @@ impl WindowHandle {
     }
 
     #[doc(alias = "SDL_GetWindowFlags")]
-    pub fn flags(&self) -> SDL_WindowFlags {
-        unsafe { SDL_GetWindowFlags(self.handle.as_ptr()) }
+    pub fn flags(&self) -> WindowFlags {
+        unsafe { SDL_GetWindowFlags(self.handle.as_ptr()) }.into()
     }
 
     #[doc(alias = "SDL_GetRenderer")]
@@ -734,8 +749,8 @@ impl Window {
     }
 
     #[doc(alias = "SDL_CreateWindow")]
-    pub fn new(title: &CStr, size: PointI32, flags: SDL_WindowFlags) -> Result<Self> {
-        Self::from_ptr(unsafe { SDL_CreateWindow(title.as_ptr(), size.x, size.y, flags) })
+    pub fn new(title: &CStr, size: PointI32, flags: WindowFlags) -> Result<Self> {
+        Self::from_ptr(unsafe { SDL_CreateWindow(title.as_ptr(), size.x, size.y, flags.into()) })
     }
 
     #[doc(alias = "SDL_CreatePopupWindow")]
@@ -743,7 +758,7 @@ impl Window {
         parent: Ref<Window>,
         offset: PointI32,
         size: PointI32,
-        flags: SDL_WindowFlags,
+        flags: WindowFlags,
     ) -> Result<Self> {
         Self::from_ptr(unsafe {
             SDL_CreatePopupWindow(
@@ -752,7 +767,7 @@ impl Window {
                 offset.y,
                 size.x,
                 size.y,
-                flags,
+                flags.into(),
             )
         })
     }
@@ -761,7 +776,7 @@ impl Window {
     pub fn with_renderer(
         title: &CStr,
         size: PointI32,
-        flags: SDL_WindowFlags,
+        flags: WindowFlags,
     ) -> (Result<Self>, Result<Renderer>) {
         let mut ret = MaybeUninit::<(*mut SDL_Window, *mut SDL_Renderer)>::uninit();
         let ptr = ret.as_mut_ptr();
@@ -771,7 +786,7 @@ impl Window {
                 title.as_ptr(),
                 size.x,
                 size.y,
-                flags,
+                flags.into(),
                 &raw mut (*ptr).0,
                 &raw mut (*ptr).1,
             );
