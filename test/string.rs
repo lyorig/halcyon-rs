@@ -6,7 +6,7 @@ fn string_into_boxed_str() -> Result {
     let s = pp.into_boxed_str();
     let s_copy = s.to_owned();
 
-    assert_eq!(s.as_str(), &s_copy);
+    assert_eq!(s.as_ref(), &s_copy);
 
     Ok(())
 }
