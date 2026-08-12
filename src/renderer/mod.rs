@@ -3,12 +3,10 @@
 //! Implementation checklist ([source](https://wiki.libsdl.org/SDL3/CategoryRender)):
 //! - [ ] SDL_AddVulkanRenderSemaphores
 //! - [ ] SDL_ConvertEventToRenderCoordinates
-//! - [ ] SDL_CreateGPURenderer
-//! - [ ] SDL_CreateGPURenderState
+//! - [x] SDL_CreateGPURenderer
 //! - [x] SDL_CreateRenderer
 //! - [x] SDL_CreateRendererWithProperties
 //! - [ ] SDL_CreateSoftwareRenderer
-//! - [ ] SDL_DestroyGPURenderState
 //! - [x] SDL_DestroyRenderer
 //! - [x] SDL_FlushRenderer
 //! - [x] SDL_GetCurrentRenderOutputSize
@@ -58,7 +56,6 @@
 //! - [ ] SDL_RenderTextureRotated
 //! - [x] SDL_RenderTextureTiled
 //! - [ ] SDL_RenderViewportSet
-//! - [ ] SDL_SetGPURenderStateFragmentUniforms
 //! - [ ] SDL_SetRenderClipRect
 //! - [ ] SDL_SetRenderColorScale
 //! - [x] SDL_SetRenderDrawBlendMode
@@ -79,6 +76,7 @@ use sdl3_sys::{blendmode::SDL_BlendMode, render::*};
 use crate::{
     Result,
     color::{RgbaF32, RgbaU8},
+    gpu::{Device, RenderState},
     properties::{Properties, PropertiesHandle},
     rect::{PointF32, PointI32, RectF32, RectI32},
     resource::Ref,
@@ -562,6 +560,15 @@ impl RendererHandle {
         self.set_draw_color_f32(col);
         old
     }
+
+    pub fn set_render_state(&self, rs: Ref<RenderState>) -> Result {
+        to_result(unsafe { SDL_SetGPURenderState(self.as_ptr(), rs.as_ptr()) })
+    }
+
+    #[doc(alias = "SDL_SetGPURenderState")]
+    pub fn clear_render_state(&self) -> Result {
+        to_result(unsafe { SDL_SetGPURenderState(self.as_ptr(), std::ptr::null_mut()) })
+    }
 }
 
 impl BlendMode for RendererHandle {
@@ -583,8 +590,8 @@ impl BlendMode for RendererHandle {
 }
 
 impl Renderer {
-    const VSYNC_DISABLED: i32 = SDL_RENDERER_VSYNC_DISABLED;
-    const VSYNC_ADAPTIVE: i32 = SDL_RENDERER_VSYNC_ADAPTIVE;
+    pub const VSYNC_DISABLED: i32 = SDL_RENDERER_VSYNC_DISABLED;
+    pub const VSYNC_ADAPTIVE: i32 = SDL_RENDERER_VSYNC_ADAPTIVE;
 
     /// Bind the builder to an existing property group.
     ///
@@ -603,6 +610,11 @@ impl Renderer {
                 name.map_or(std::ptr::null(), CStr::as_ptr),
             )
         })
+    }
+
+    #[doc(alias = "SDL_CreateGPURenderer")]
+    pub fn new_gpu(device: Ref<Device>, wnd: Ref<Window>) -> Result<Self> {
+        Self::from_ptr(unsafe { SDL_CreateGPURenderer(device.as_ptr(), wnd.as_ptr()) })
     }
 
     #[doc(alias = "SDL_GetNumRenderDrivers")]
