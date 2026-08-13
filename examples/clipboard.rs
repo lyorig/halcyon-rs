@@ -22,6 +22,8 @@ fn run() -> Result {
     } else if clipboard::has_text() {
         println!("Clipboard has text");
         println!("Text: \"{}\"", clipboard::text());
+    } else {
+        println!("Clipboard has neither MIME data nor text");
     }
 
     Ok(())
