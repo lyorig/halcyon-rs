@@ -1,11 +1,12 @@
 # halcyon-rs
 
-An SDL3 wrapper. Aims for as close to 100% API coverage, while making it neater & safer to use via various Rust mechanisms (see _Enhancements_).
+An SDL & SDL_ttf (3.x) wrapper. Aims for as close to 100% API coverage, while making it neater & safer to use via various Rust mechanisms (see _Enhancements_).
 As I'm primarily a C++ developer, this library is probably unsound in various places. These ought to be weeded out over time after reaching full API coverage.
 
 > [!Important]
-> This is purely an API wrapper. It isn't concerned with how you find, and link with, SDL on your system;
-> these topics are covered by the [sdl3-sys docs](https://docs.rs/sdl3-sys/latest/sdl3_sys/).
+> This is purely an API wrapper. It isn't concerned with how you find, and link with,
+> SDL and its satellite libraries on your system; these topics are covered by the
+> [sdl3-sys docs](https://docs.rs/sdl3-sys/latest/sdl3_sys/).
 
 ## Concepts
 
