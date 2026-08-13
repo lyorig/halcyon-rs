@@ -10,13 +10,13 @@ fn run() -> halcyon::Result<()> {
     props.set_pointer(c"Null and void", std::ptr::null_mut())?;
     props.set_float(c"All the digits", PI)?;
 
-    props.enumerate(|k, v| halcyon::log!("\"{k}\" = {v}"))?;
+    props.enumerate(|k, v| println!("\"{k}\" = {v}"))?;
 
     Ok(())
 }
 
 fn main() {
     if let Err(e) = run() {
-        halcyon::log!("Oops, error: \"{e}\"");
+        println!("Oops, error: \"{e}\"");
     }
 }

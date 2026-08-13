@@ -9,19 +9,19 @@ fn run() -> Result {
     let _vid = Video::new(&ctx)?;
 
     if clipboard::has_data(DESIRED_MIME) {
-        halcyon::log!("Clipboard has MIME data");
-        halcyon::log!("-- begin MIME type enumeration --");
+        println!("Clipboard has MIME data");
+        println!("-- begin MIME type enumeration --");
         for ptr in clipboard::mime_types()? {
             let cs = unsafe { CStr::from_ptr(ptr) };
-            halcyon::log!("{}", cs.to_string_lossy());
+            println!("{}", cs.to_string_lossy());
         }
-        halcyon::log!("-- end MIME type enumeration --");
+        println!("-- end MIME type enumeration --");
 
         let data = clipboard::data(DESIRED_MIME)?;
-        halcyon::log!("Clipboard data is {} bytes", data.len());
+        println!("Clipboard data is {} bytes", data.len());
     } else if clipboard::has_text() {
-        halcyon::log!("Clipboard has text");
-        halcyon::log!("Text: \"{}\"", clipboard::text());
+        println!("Clipboard has text");
+        println!("Text: \"{}\"", clipboard::text());
     }
 
     Ok(())
@@ -29,6 +29,6 @@ fn run() -> Result {
 
 fn main() {
     if let Err(e) = run() {
-        halcyon::log!("Something went wrong: {e}");
+        println!("Something went wrong: {e}");
     }
 }

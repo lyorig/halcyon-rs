@@ -5,7 +5,7 @@ fn run() -> Result {
     let _vid = Video::new(&ctx)?;
 
     for (i, disp) in Display::all()?.iter().copied().enumerate() {
-        halcyon::log!(
+        println!(
             "Display #{}: \"{}\", bounds {} (usable {}), content scale = {:.2}",
             i,
             disp.name()?.to_string_lossy(),
@@ -17,26 +17,26 @@ fn run() -> Result {
 
     let p = Display::primary()?;
 
-    halcyon::log!("All primary desktop display modes:");
+    println!("All primary desktop display modes:");
     for (x, y, hz) in p.fullscreen_modes()?.iter().map(|dm| {
         let dm = unsafe { dm.read() };
         (dm.w, dm.h, dm.refresh_rate)
     }) {
-        halcyon::log!("{x}x{y}, {hz} Hz");
+        println!("{x}x{y}, {hz} Hz");
     }
 
-    halcyon::log!(
+    println!(
         "Primary display has ID {}, and name \"{}\"",
         p.id().0,
         p.name()?.to_string_lossy(),
     );
 
     if let Some(o) = p.current_orientation() {
-        halcyon::log!("Current orientation is available and is \"{o}\"");
+        println!("Current orientation is available and is \"{o}\"");
     }
 
     if let Some(o) = p.natural_orientation() {
-        halcyon::log!("Natural orientation is available and is \"{o}\"");
+        println!("Natural orientation is available and is \"{o}\"");
     }
 
     Ok(())
@@ -44,6 +44,6 @@ fn run() -> Result {
 
 fn main() {
     if let Err(e) = run() {
-        halcyon::log!("Something went wrong: {e}");
+        println!("Something went wrong: {e}");
     }
 }
