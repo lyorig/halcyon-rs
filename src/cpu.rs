@@ -18,7 +18,9 @@
 //! - [x] SDL_HasSSE3
 //! - [x] SDL_HasSSE41
 //! - [x] SDL_HasSSE42
-//! - [ ] SDL_HasSVE2 (requires `sdl3-sys` with SDL 3.6.0)
+//! - [ ] SDL_HasSVE2 (will be available in SDL 3.6.0)
+
+use std::num::NonZero;
 
 use sdl3_sys::cpuinfo::*;
 
@@ -37,13 +39,15 @@ pub fn simd_alignment() -> usize {
     unsafe { SDL_GetSIMDAlignment() }
 }
 
+/// Returns zero if the page size cannot be determined,
+/// so the returned value is wrapped in [`Option<NonZero<_>>>`].
 #[doc(alias = "SDL_GetSystemPageSize")]
-pub fn system_page_size() -> i32 {
-    unsafe { SDL_GetSystemPageSize() }
+pub fn system_page_size() -> Option<NonZero<i32>> {
+    NonZero::new(unsafe { SDL_GetSystemPageSize() })
 }
 
 #[doc(alias = "SDL_GetSystemRAM")]
-pub fn system_ram() -> i32 {
+pub fn system_ram_mib() -> i32 {
     unsafe { SDL_GetSystemRAM() }
 }
 
@@ -108,11 +112,11 @@ pub fn has_sse3() -> bool {
 }
 
 #[doc(alias = "SDL_HasSSE41")]
-pub fn has_sse41() -> bool {
+pub fn has_sse4_1() -> bool {
     unsafe { SDL_HasSSE41() }
 }
 
 #[doc(alias = "SDL_HasSSE42")]
-pub fn has_sse42() -> bool {
+pub fn has_sse4_2() -> bool {
     unsafe { SDL_HasSSE42() }
 }
