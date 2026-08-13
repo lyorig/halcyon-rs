@@ -128,7 +128,7 @@ use sdl3_sys::{
 
 use std::{
     ffi::{CStr, c_char},
-    mem::MaybeUninit,
+    mem::{MaybeUninit, transmute},
     num::NonZero,
     ptr::NonNull,
 };
@@ -289,7 +289,7 @@ pub fn current_video_driver() -> Option<&'static str> {
 #[doc(alias = "SDL_GetSystemTheme")]
 pub fn system_theme() -> SystemTheme {
     // SAFETY: `SystemTheme` has the same representation as `SDL_SystemTheme`.
-    unsafe { std::mem::transmute(SDL_GetSystemTheme()) }
+    unsafe { transmute(SDL_GetSystemTheme()) }
 }
 
 #[doc(alias = "SDL_GetGrabbedWindow")]
@@ -561,7 +561,10 @@ impl WindowHandle {
         if ps == SDL_ProgressState::INVALID {
             Err(Error::current())
         } else {
-            Ok(unsafe { std::mem::transmute(ps) })
+            type Src = SDL_ProgressState;
+            type Dst = ProgressState;
+
+            Ok(unsafe { transmute::<Src, Dst>(ps) })
         }
     }
 
@@ -735,7 +738,12 @@ impl WindowHandle {
 
     #[doc(alias = "SDL_SetWindowProgressState")]
     pub fn set_progress_state(&self, state: ProgressState) -> Result {
-        to_result(unsafe { SDL_SetWindowProgressState(self.as_ptr(), std::mem::transmute(state)) })
+        type Src = ProgressState;
+        type Dst = SDL_ProgressState;
+
+        to_result(unsafe {
+            SDL_SetWindowProgressState(self.as_ptr(), transmute::<Src, Dst>(state))
+        })
     }
 
     #[doc(alias = "SDL_SetWindowProgressValue")]
