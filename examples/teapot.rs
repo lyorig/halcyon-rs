@@ -222,6 +222,8 @@ fn run() -> Result {
         .shaders_spirv(true)
         .build_cleanup()?;
 
+    halcyon::log!("Driver = {}", device.driver().unwrap_or("[unknown]"));
+
     let wnd = Window::builder(props)
         .title(c"halcyon-rs Teapot Example")
         .size(Point::new(1280, 720))

@@ -1,9 +1,9 @@
 <#
     .SYNOPSIS
-    Compiles HLSL source files into executable IR.
+    Compiles HLSL source files into SPIR-V.
 
     .DESCRIPTION
-    Compiles HLSL shaders for use with halcyon-rs' GPU examples on Windows.
+    Compiles HLSL shaders into SPIR-V for use with halcyon-rs' GPU examples on Windows.
     Requires the Visual Studio Build Tools, and a `dxc[.exe]` that can be located by the script.
     To find where `dxc` is on your system, open the Native Tools (or Developer) Command Prompt, and run `which dxc`.
 #>
@@ -39,9 +39,9 @@ Either add the containing directory to your PATH, or replace `$DxcFallbackDir wi
 }
 
 # `examples/gpu.rs`
-dxc -O3 -T vs_6_0 -E vs_main examples/shaders/src/triangle.hlsl -Fo examples/shaders/triangle_vs.dxil
-dxc -O3 -T ps_6_0 -E fs_main examples/shaders/src/triangle.hlsl -Fo examples/shaders/triangle_fs.dxil
+dxc -spirv -O3 -T vs_6_0 -E vs_main examples/shaders/src/triangle.hlsl -Fo examples/shaders/triangle_vs.spv
+dxc -spirv -O3 -T ps_6_0 -E fs_main examples/shaders/src/triangle.hlsl -Fo examples/shaders/triangle_fs.spv
 
 # `examples/teapot.rs`
-dxc -O3 -T vs_6_0 -E vs_main examples/shaders/src/teapot.hlsl -Fo examples/shaders/teapot_vs.dxil
-dxc -O3 -T ps_6_0 -E fs_main examples/shaders/src/teapot.hlsl -Fo examples/shaders/teapot_fs.dxil
+dxc -spirv -O3 -T vs_6_0 -E vs_main examples/shaders/src/teapot.hlsl -Fo examples/shaders/teapot_vs.spv
+dxc -spirv -O3 -T ps_6_0 -E fs_main examples/shaders/src/teapot.hlsl -Fo examples/shaders/teapot_fs.spv
