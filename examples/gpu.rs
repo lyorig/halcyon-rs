@@ -54,9 +54,9 @@ fn run() -> Result {
 
     let device = Device::builder(props)
         .debug_mode(false)
-        .prefer_low_power(true)
         .shaders_metallib(true)
         .shaders_dxil(true)
+        .shaders_spirv(true)
         .build_cleanup()?;
 
     let wnd = Window::builder(props)

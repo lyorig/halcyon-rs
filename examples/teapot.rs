@@ -219,6 +219,7 @@ fn run() -> Result {
         .debug_mode(false)
         .shaders_metallib(true)
         .shaders_dxil(true)
+        .shaders_spirv(true)
         .build_cleanup()?;
 
     let wnd = Window::builder(props)
