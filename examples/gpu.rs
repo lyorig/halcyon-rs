@@ -27,6 +27,11 @@ cfg_select! {
         const FS_CODE: &[u8] = include_bytes!("shaders/triangle_fs.dxil");
         const SHADER_FMT: ShaderFormat = ShaderFormat::Dxil;
     }
+    target_os = "linux" => {
+        const VS_CODE: &[u8] = include_bytes!("shaders/triangle_vs.spv");
+        const FS_CODE: &[u8] = include_bytes!("shaders/triangle_fs.spv");
+        const SHADER_FMT: ShaderFormat = ShaderFormat::SpirV;
+    }
 }
 
 fn print_properties(props: DeviceProperties) {

@@ -1,6 +1,7 @@
 /target
 
 SDL3*.lib
+*.spv
 *.dxil
 *.metallib
 

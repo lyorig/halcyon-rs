@@ -27,6 +27,11 @@ cfg_select! {
         const FS_CODE: &[u8] = include_bytes!("shaders/teapot_fs.dxil");
         const SHADER_FMT: ShaderFormat = ShaderFormat::Dxil;
     }
+    target_os = "linux" => {
+        const VS_CODE: &[u8] = include_bytes!("shaders/teapot_vs.spv");
+        const FS_CODE: &[u8] = include_bytes!("shaders/teapot_fs.spv");
+        const SHADER_FMT: ShaderFormat = ShaderFormat::SpirV;
+    }
 }
 
 const OBJ: &str = include_str!("models/teapot.obj");
