@@ -32,6 +32,7 @@ impl<'tb> TransferBufferLocation<'tb> {
 }
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUTransferBufferUsage")]
 pub enum TransferBufferUsage {
     Upload = SDL_GPUTransferBufferUsage::UPLOAD.0,
@@ -54,18 +55,45 @@ impl TransferBufferCreateInfo {
 resource_new_no_drop!(SDL_GPUTransferBuffer, TransferBuffer);
 impl TransferBuffer {
     #[doc(alias = "SDL_CreateGPUTransferBuffer")]
-    pub fn new(device: Ref<Device>, create_info: &TransferBufferCreateInfo) -> Result<Self> {
+    fn new(device: Ref<Device>, create_info: &TransferBufferCreateInfo) -> Result<Self> {
         let handle = unsafe { SDL_CreateGPUTransferBuffer(device.handle.as_ptr(), &create_info.0) };
         Self::from_ptr(handle)
     }
 
+    /// Creates a new [`TransferBuffer`], maps it, calls `write` with the mapped data, then unmaps.
+    /// Basically calls the following functions/methods, in order:
+    /// 1. [`TransferBuffer::new`]
+    /// 2. [`TransferBuffer::map`]
+    /// 3. `write`
+    /// 4. [`TransferBuffer::unmap`]
+    ///
+    /// The buffer must still be dropped manually.
+    pub fn new_with<F: FnOnce(&mut [u8])>(
+        device: Ref<Device>,
+        create_info: &TransferBufferCreateInfo,
+        cycle: Cycle,
+        write: F,
+    ) -> Result<Self> {
+        let tb = Self::new(device, create_info)?;
+        let ptr = tb.map(device, cycle)?;
+        let slice = unsafe {
+            std::slice::from_raw_parts_mut(ptr.as_ptr().cast::<u8>(), create_info.0.size as _)
+        };
+
+        write(slice);
+
+        tb.unmap(device);
+
+        Ok(tb)
+    }
+
     #[doc(alias = "SDL_ReleaseGPUTransferBuffer")]
-    pub fn drop(self, dev: Ref<Device>) {
-        unsafe { SDL_ReleaseGPUTransferBuffer(dev.handle.as_ptr(), self.handle.as_ptr()) };
+    pub fn drop(self, device: Ref<Device>) {
+        unsafe { SDL_ReleaseGPUTransferBuffer(device.handle.as_ptr(), self.handle.as_ptr()) };
     }
 
     #[doc(alias = "SDL_MapGPUTransferBuffer")]
-    pub fn map(&self, device: Ref<Device>, cycle: Cycle) -> Result<NonNull<u8>> {
+    fn map(&self, device: Ref<Device>, cycle: Cycle) -> Result<NonNull<u8>> {
         let ptr = unsafe {
             SDL_MapGPUTransferBuffer(device.handle.as_ptr(), self.handle.as_ptr(), cycle.into())
         };
@@ -73,7 +101,7 @@ impl TransferBuffer {
     }
 
     #[doc(alias = "SDL_UnmapGPUTransferBuffer")]
-    pub fn unmap(&self, device: Ref<Device>) {
+    fn unmap(&self, device: Ref<Device>) {
         unsafe { SDL_UnmapGPUTransferBuffer(device.handle.as_ptr(), self.handle.as_ptr()) };
     }
 }

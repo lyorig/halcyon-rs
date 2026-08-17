@@ -279,29 +279,21 @@ fn run() -> Result {
         &BufferCreateInfo::new(BufferUsageFlags::Index, idx_bytes),
     )?;
 
-    // One transfer buffer holds both vertex and index data; `map` returns a
-    // raw pointer that we fill in before uploading.
-    let tb = TransferBuffer::new(
-        device.as_ref(),
-        &TransferBufferCreateInfo::new(TransferBufferUsage::Upload, vert_bytes + idx_bytes),
-    )?;
+    let tbci = TransferBufferCreateInfo::new(TransferBufferUsage::Upload, vert_bytes + idx_bytes);
+    let tb = TransferBuffer::new_with(device.as_ref(), &tbci, Cycle::No, |dst| {
+        let vert_slice = unsafe {
+            std::slice::from_raw_parts(mesh.vertices.as_ptr().cast::<u8>(), vert_bytes as usize)
+        };
 
-    let mapped = tb.map(device.as_ref(), Cycle::No)?;
-    let dst = unsafe {
-        std::slice::from_raw_parts_mut(mapped.as_ptr(), (vert_bytes + idx_bytes) as usize)
-    };
+        let idx_slice = unsafe {
+            std::slice::from_raw_parts(mesh.indices.as_ptr().cast::<u8>(), idx_bytes as usize)
+        };
 
-    let vert_slice = unsafe {
-        std::slice::from_raw_parts(mesh.vertices.as_ptr().cast::<u8>(), vert_bytes as usize)
-    };
+        let (vert, idx) = dst.split_at_mut(vert_bytes as _);
 
-    let idx_slice = unsafe {
-        std::slice::from_raw_parts(mesh.indices.as_ptr().cast::<u8>(), idx_bytes as usize)
-    };
-
-    dst[..vert_bytes as usize].copy_from_slice(vert_slice);
-    dst[vert_bytes as usize..].copy_from_slice(idx_slice);
-    tb.unmap(device.as_ref());
+        vert.copy_from_slice(vert_slice);
+        idx.copy_from_slice(idx_slice);
+    })?;
 
     // Copy the transfer buffer into the real buffers inside a copy pass.
     let cmdbuf = CommandBuffer::new(device.as_ref())?;
