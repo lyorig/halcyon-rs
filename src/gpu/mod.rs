@@ -14,44 +14,27 @@
 //! - [x] SDL_GPUSupportsShaderFormats
 //! - [x] SDL_GPUTextureFormatTexelBlockSize
 
-pub mod buffer;
-pub mod command_buffer;
-pub mod compute_pass;
-pub mod compute_pipeline;
-pub mod copy_pass;
-pub mod device;
-pub mod enums;
-pub mod fence;
-pub mod graphics_pipeline;
-pub mod pipeline_state;
-pub mod render_pass;
-pub mod render_state;
-pub mod sampler;
-pub mod shader;
-pub mod texture;
-pub mod transfer_buffer;
-
-pub use buffer::*;
-pub use command_buffer::*;
-pub use compute_pass::*;
-pub use compute_pipeline::*;
-pub use copy_pass::*;
-pub use device::*;
-pub use enums::*;
-pub use fence::*;
-pub use graphics_pipeline::*;
-pub use pipeline_state::*;
-pub use render_pass::*;
-pub use render_state::*;
-pub use sampler::*;
-pub use shader::*;
-pub use texture::*;
-pub use transfer_buffer::*;
+mod_reexport!(buffer);
+mod_reexport!(command_buffer);
+mod_reexport!(compute_pass);
+mod_reexport!(compute_pipeline);
+mod_reexport!(copy_pass);
+mod_reexport!(device);
+mod_reexport!(enums);
+mod_reexport!(fence);
+mod_reexport!(graphics_pipeline);
+mod_reexport!(pipeline_state);
+mod_reexport!(render_pass);
+mod_reexport!(render_state);
+mod_reexport!(sampler);
+mod_reexport!(shader);
+mod_reexport!(texture);
+mod_reexport!(transfer_buffer);
 
 use bitmask_enum::bitmask;
 use sdl3_sys::{gpu::*, pixels::SDL_PixelFormat, properties::SDL_PropertiesID};
 
-use crate::util::c_ptr_to_str;
+use crate::{mod_reexport, util::c_ptr_to_str};
 
 /// Non-bitmask variant of `SDL_GPUShaderFormat`.
 #[repr(u32)]

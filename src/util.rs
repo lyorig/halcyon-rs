@@ -3,6 +3,14 @@ use std::ffi::{CStr, c_char};
 use crate::{Result, error::Error};
 
 #[macro_export]
+macro_rules! mod_reexport {
+    ($name:ident) => {
+        pub mod $name;
+        pub use $name::*;
+    };
+}
+
+#[macro_export]
 macro_rules! boolenum {
     ($name:ident) => {
         #[repr(u8)]

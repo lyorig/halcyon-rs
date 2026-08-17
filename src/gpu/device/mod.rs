@@ -26,6 +26,7 @@ use crate::{
     Result,
     error::Error,
     gpu::{EnableDebug, WaitAll},
+    mod_reexport,
     properties::{Properties, PropertiesHandle},
     resource::Ref,
     resource_new,
@@ -39,11 +40,8 @@ use super::{
     texture::{SampleCount, TextureFormat, TextureType, TextureUsageFlags},
 };
 
-pub mod builder;
-pub mod properties;
-
-pub use builder::*;
-pub use properties::*;
+mod_reexport!(builder);
+mod_reexport!(properties);
 
 #[repr(i32)]
 #[doc(alias = "SDL_GPUPresentMode")]

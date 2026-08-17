@@ -121,21 +121,16 @@
 //! - [x] TTF_Version
 //! - [x] TTF_WasInit
 
-pub mod engine;
-pub mod font;
-pub mod rt_str;
-pub mod text;
-
-// pub use engine::*;
-pub use font::*;
-pub use rt_str::*;
-pub use text::*;
+// mod_use!(engine);
+mod_reexport!(font);
+mod_reexport!(rt_str);
+mod_reexport!(text);
 
 use std::ffi::CStr;
 
 use sdl3_ttf_sys::ttf::*;
 
-use crate::{Result, error::Error};
+use crate::{Result, error::Error, mod_reexport};
 
 #[doc(alias = "TTF_WasInit")]
 pub fn num_init() -> i32 {

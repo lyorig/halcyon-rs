@@ -77,6 +77,7 @@ use crate::{
     Result,
     color::{RgbaF32, RgbaU8},
     gpu::{Device, RenderState},
+    mod_reexport,
     properties::{Properties, PropertiesHandle},
     rect::{PointF32, PointI32, RectF32, RectI32},
     resource::Ref,
@@ -88,11 +89,8 @@ use crate::{
     window::{Window, WindowHandle},
 };
 
-pub mod builder;
-pub mod properties;
-
-pub use builder::*;
-pub use properties::*;
+mod_reexport!(builder);
+mod_reexport!(properties);
 
 resource_new!(SDL_Renderer, Renderer, SDL_DestroyRenderer);
 

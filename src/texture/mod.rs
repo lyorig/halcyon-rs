@@ -38,6 +38,7 @@ use sdl3_sys::{
 use crate::{
     Result,
     color::{RgbF32, RgbU8},
+    mod_reexport,
     properties::{Properties, PropertiesHandle},
     rect::{PointF32, PointI32},
     renderer::{Renderer, RendererHandle},
@@ -47,11 +48,8 @@ use crate::{
     traits::{BlendMode, ColorModF32, ColorModU8},
 };
 
-pub mod builder;
-pub mod properties;
-
-pub use builder::*;
-pub use properties::*;
+mod_reexport!(builder);
+mod_reexport!(properties);
 
 resource_new!(SDL_Texture, Texture, SDL_DestroyTexture);
 

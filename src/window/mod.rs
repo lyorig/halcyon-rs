@@ -110,6 +110,7 @@ use crate::{
     boxed::Box,
     display::Display,
     error::Error,
+    mod_reexport,
     properties::{Properties, PropertiesHandle},
     rect::{PointI32, RectI32},
     renderer::{Renderer, RendererHandle},
@@ -133,11 +134,8 @@ use std::{
     ptr::NonNull,
 };
 
-pub mod builder;
-pub mod properties;
-
-pub use builder::*;
-pub use properties::*;
+mod_reexport!(builder);
+mod_reexport!(properties);
 
 #[bitmask(u64)]
 #[doc(alias = "SDL_WindowFlags")]
