@@ -102,7 +102,9 @@ impl TransferBuffer {
     pub fn drop(self, device: Ref<Device>) {
         unsafe { SDL_ReleaseGPUTransferBuffer(device.handle.as_ptr(), self.handle.as_ptr()) };
     }
+}
 
+impl TransferBufferHandle {
     #[doc(alias = "SDL_MapGPUTransferBuffer")]
     fn map(&self, device: Ref<Device>, cycle: Cycle) -> Result<NonNull<u8>> {
         let ptr = unsafe {

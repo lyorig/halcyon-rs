@@ -10,11 +10,16 @@ use std::{ffi::CStr, marker::PhantomData};
 use bitmask_enum::bitmask;
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
-use crate::{Result, gpu::Cycle, rect::Point, resource::Ref, resource_new_no_drop};
+use crate::{
+    Result, gpu::Cycle, mod_reexport, properties::Properties, rect::Point, resource::Ref,
+    resource_new_no_drop,
+};
 
 use super::{
     copy_pass::CopyPass, device::Device, sampler::Sampler, transfer_buffer::TransferBuffer,
 };
+
+mod_reexport!(builder);
 
 #[repr(i32)]
 #[doc(alias = "SDL_GPUTextureType")]
@@ -168,6 +173,8 @@ impl From<SDL_GPUTextureFormat> for TextureFormat {
 #[derive(Clone, Copy)]
 pub struct TextureCreateInfo(SDL_GPUTextureCreateInfo);
 impl TextureCreateInfo {
+    /// Create a [`TextureCreateInfo`] with no properties.
+    /// To set properties, use [`Texture::builder`].
     pub const fn new(
         kind: TextureType,
         format: TextureFormat,
@@ -177,23 +184,18 @@ impl TextureCreateInfo {
         num_levels: u32,
         samples: SampleCount,
     ) -> Self {
-        let r#type = SDL_GPUTextureType::new(kind as _);
-        let usage = SDL_GPUTextureUsageFlags::new(usage.bits());
-        let props = SDL_PropertiesID::new(0);
-        let sample_count = SDL_GPUSampleCount::new(samples as _);
-        let format = SDL_GPUTextureFormat::new(format as _);
-
         let inner = SDL_GPUTextureCreateInfo {
-            r#type,
-            format,
-            usage,
+            r#type: SDL_GPUTextureType::new(kind as _),
+            format: SDL_GPUTextureFormat::new(format as _),
+            usage: SDL_GPUTextureUsageFlags::new(usage.bits()),
             width: size.x,
             height: size.y,
             layer_count_or_depth,
             num_levels,
-            sample_count,
-            props,
+            sample_count: SDL_GPUSampleCount::new(samples as _),
+            props: SDL_PropertiesID::new(0),
         };
+
         Self(inner)
     }
 }
@@ -204,6 +206,7 @@ pub struct TextureTransferInfo<'tb>(
     SDL_GPUTextureTransferInfo,
     PhantomData<Ref<'tb, TransferBuffer>>,
 );
+
 impl<'tb> TextureTransferInfo<'tb> {
     pub fn new(
         tb: Ref<'tb, TransferBuffer>,
@@ -256,6 +259,7 @@ pub struct TextureLocation<'t>(
     pub(crate) SDL_GPUTextureLocation,
     PhantomData<Ref<'t, Texture>>,
 );
+
 impl<'t> TextureLocation<'t> {
     pub fn new(
         tex: Ref<'t, Texture>,
@@ -347,6 +351,10 @@ impl<'t> BlitRegion<'t> {
 
 resource_new_no_drop!(SDL_GPUTexture, Texture);
 impl Texture {
+    pub fn builder<'p>(props: Ref<'p, Properties>) -> TextureBuilder<'p> {
+        TextureBuilder::new(props)
+    }
+
     #[doc(alias = "SDL_CreateGPUTexture")]
     pub fn new(device: Ref<Device>, create_info: &TextureCreateInfo) -> Result<Self> {
         let handle = unsafe { SDL_CreateGPUTexture(device.handle.as_ptr(), &create_info.0) };

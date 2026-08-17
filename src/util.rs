@@ -5,7 +5,7 @@ use crate::{Result, error::Error};
 #[macro_export]
 macro_rules! mod_reexport {
     ($name:ident) => {
-        pub mod $name;
+        mod $name;
         pub use $name::*;
     };
 }

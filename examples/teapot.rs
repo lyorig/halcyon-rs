@@ -389,18 +389,21 @@ fn run() -> Result {
             .wait_for_swapchain_texture(wnd.as_ref(), (Some(&mut width), Some(&mut height)))?
         {
             if depth.is_none() {
-                depth = Some(Texture::new(
-                    device.as_ref(),
-                    &TextureCreateInfo::new(
-                        TextureType::_2d,
-                        depth_format,
-                        TextureUsageFlags::DepthStencilTarget,
-                        Point::new(width, height),
-                        1, // layer count / depth
-                        1, // mip levels
-                        SampleCount::One,
-                    ),
-                )?);
+                let tci = TextureCreateInfo::new(
+                    TextureType::_2d,
+                    depth_format,
+                    TextureUsageFlags::DepthStencilTarget,
+                    Point::new(width, height),
+                    1, // layer count / depth
+                    1, // mip levels
+                    SampleCount::One,
+                );
+
+                let tex = Texture::builder(props)
+                    .name(c"Teapot Texture")
+                    .build_cleanup(device.as_ref(), tci)?;
+
+                depth = Some(tex);
             }
             let depth = depth.as_ref().unwrap();
 
