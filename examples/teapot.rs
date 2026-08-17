@@ -129,46 +129,23 @@ fn load_teapot() -> MeshData {
     .unwrap_or_else(|e| panic!("failed to parse embedded teapot.obj: {e}"));
     let mesh = &models[0].mesh;
 
-    // The teapot has no normals, so compute smooth (area-weighted, averaged)
-    // vertex normals from the triangle faces.
+    // The teapot's normals are baked into the OBJ (one `vn` per vertex, with
+    // `v//vn` faces), so with `single_index` they align with `positions` and
+    // need no runtime computation.
     let positions: Vec<[f32; 3]> = mesh
         .positions
         .chunks_exact(3)
         .map(|c| [c[0], c[1], c[2]])
         .collect();
-
-    let mut normals = vec![[0.0f32; 3]; positions.len()];
-    for tri in mesh.indices.chunks_exact(3) {
-        let (a, b, c) = (
-            positions[tri[0] as usize],
-            positions[tri[1] as usize],
-            positions[tri[2] as usize],
-        );
-        let ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
-        let ac = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
-        // Cross product, accumulated per vertex for smooth shading.
-        let n = [
-            ab[1] * ac[2] - ab[2] * ac[1],
-            ab[2] * ac[0] - ab[0] * ac[2],
-            ab[0] * ac[1] - ab[1] * ac[0],
-        ];
-        for &i in tri {
-            let v = &mut normals[i as usize];
-            v[0] += n[0];
-            v[1] += n[1];
-            v[2] += n[2];
-        }
-    }
+    let normals: Vec<[f32; 3]> = mesh
+        .normals
+        .chunks_exact(3)
+        .map(|c| [c[0], c[1], c[2]])
+        .collect();
 
     let mut vertices = Vec::with_capacity(positions.len() * 6);
     for (p, n) in positions.iter().zip(&normals) {
-        let len = (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]).sqrt();
-        let (nx, ny, nz) = if len > 0.0 {
-            (n[0] / len, n[1] / len, n[2] / len)
-        } else {
-            (0.0, 0.0, 0.0)
-        };
-        vertices.extend_from_slice(&[p[0], p[1], p[2], nx, ny, nz]);
+        vertices.extend_from_slice(&[p[0], p[1], p[2], n[0], n[1], n[2]]);
     }
 
     let mut min = [f32::INFINITY; 3];
