@@ -54,6 +54,13 @@ impl TransferBufferCreateInfo {
 
 resource_new_no_drop!(SDL_GPUTransferBuffer, TransferBuffer);
 impl TransferBuffer {
+    /// Create a new [`TransferBuffer`].
+    /// This doesn't map or write anything.
+    ///
+    /// # Important
+    /// [`TransferBuffer::new_with`] should be preferred, as it both safer and more ergonomic,
+    /// unless you have a particular reason to directly use this struct's methods. See its
+    /// documentation for more info.
     #[doc(alias = "SDL_CreateGPUTransferBuffer")]
     fn new(device: Ref<Device>, create_info: &TransferBufferCreateInfo) -> Result<Self> {
         let handle = unsafe { SDL_CreateGPUTransferBuffer(device.handle.as_ptr(), &create_info.0) };
@@ -68,6 +75,10 @@ impl TransferBuffer {
     /// 4. [`TransferBuffer::unmap`]
     ///
     /// The buffer must still be dropped manually.
+    ///
+    /// This should be your preferred way to use this struct.
+    /// Although the aforementioned methods this constructor uses are public,
+    /// they are mainly provided to cover the API surface, and enable advanced uses.
     pub fn new_with<F: FnOnce(&mut [u8])>(
         device: Ref<Device>,
         create_info: &TransferBufferCreateInfo,
