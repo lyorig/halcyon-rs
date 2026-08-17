@@ -19,14 +19,15 @@ pub struct TransferBufferLocation<'tb>(
     PhantomData<&'tb TransferBuffer>,
 );
 
-impl TransferBufferLocation<'_> {
-    pub fn new<'tb>(tb: Ref<'tb, TransferBuffer>, offset: u32) -> TransferBufferLocation<'tb> {
+impl<'tb> TransferBufferLocation<'tb> {
+    pub fn new(tb: Ref<'tb, TransferBuffer>, offset: u32) -> Self {
         let transfer_buffer = tb.handle.as_ptr();
         let inner = SDL_GPUTransferBufferLocation {
             transfer_buffer,
             offset,
         };
-        TransferBufferLocation(inner, PhantomData)
+
+        Self(inner, PhantomData)
     }
 }
 

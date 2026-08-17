@@ -43,15 +43,15 @@ impl BufferCreateInfo {
 #[doc(alias = "SDL_GPUBufferRegion")]
 #[derive(Clone, Copy)]
 pub struct BufferRegion<'b>(SDL_GPUBufferRegion, PhantomData<Ref<'b, Buffer>>);
-impl BufferRegion<'_> {
-    pub fn new<'b>(buffer: Ref<'b, Buffer>, offset: u32, size: u32) -> BufferRegion<'b> {
+impl<'b> BufferRegion<'b> {
+    pub fn new(buffer: Ref<'b, Buffer>, offset: u32, size: u32) -> Self {
         let buffer = buffer.handle.as_ptr();
         let inner = SDL_GPUBufferRegion {
             buffer,
             offset,
             size,
         };
-        BufferRegion(inner, PhantomData)
+        Self(inner, PhantomData)
     }
 }
 
@@ -61,9 +61,9 @@ pub struct BufferBinding<'b>(
     pub(crate) SDL_GPUBufferBinding,
     PhantomData<Ref<'b, Buffer>>,
 );
-impl BufferBinding<'_> {
-    pub fn new<'b>(buffer: Ref<'b, Buffer>, offset: u32) -> BufferBinding<'b> {
-        BufferBinding(
+impl<'b> BufferBinding<'b> {
+    pub fn new(buffer: Ref<'b, Buffer>, offset: u32) -> Self {
+        Self(
             SDL_GPUBufferBinding {
                 buffer: buffer.handle.as_ptr(),
                 offset,
@@ -79,9 +79,10 @@ pub struct BufferLocation<'b>(
     pub(crate) SDL_GPUBufferLocation,
     PhantomData<Ref<'b, Buffer>>,
 );
-impl BufferLocation<'_> {
-    pub fn new<'b>(buffer: Ref<'b, Buffer>, offset: u32) -> BufferLocation<'b> {
-        BufferLocation(
+
+impl<'b> BufferLocation<'b> {
+    pub fn new(buffer: Ref<'b, Buffer>, offset: u32) -> Self {
+        Self(
             SDL_GPUBufferLocation {
                 buffer: buffer.handle.as_ptr(),
                 offset,
@@ -98,9 +99,9 @@ pub struct StorageBufferReadWriteBinding<'b>(
     PhantomData<Ref<'b, Buffer>>,
 );
 
-impl StorageBufferReadWriteBinding<'_> {
-    pub fn new<'b>(buffer: Ref<'b, Buffer>, cycle: Cycle) -> StorageBufferReadWriteBinding<'b> {
-        StorageBufferReadWriteBinding(
+impl<'b> StorageBufferReadWriteBinding<'b> {
+    pub fn new(buffer: Ref<'b, Buffer>, cycle: Cycle) -> Self {
+        Self(
             SDL_GPUStorageBufferReadWriteBinding {
                 buffer: buffer.handle.as_ptr(),
                 cycle: cycle.into(),

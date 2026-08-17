@@ -17,8 +17,8 @@ pub struct RtStr<'a> {
     marker: std::marker::PhantomData<&'a str>,
 }
 
-impl RtStr<'_> {
-    pub const fn new<'a>(s: &'a str) -> RtStr<'a> {
+impl<'a> RtStr<'a> {
+    pub const fn new(s: &'a str) -> Self {
         let len = s.len();
         let ptr = if len == 0 {
             c"".as_ptr()
@@ -26,7 +26,7 @@ impl RtStr<'_> {
             s.as_ptr().cast()
         };
 
-        RtStr {
+        Self {
             ptr,
             len,
             marker: std::marker::PhantomData,
@@ -35,7 +35,7 @@ impl RtStr<'_> {
 
     /// # Safety
     /// `s` must not be empty.
-    pub const unsafe fn new_unchecked<'a>(s: &'a str) -> RtStr<'a> {
+    pub const unsafe fn new_unchecked(s: &'a str) -> Self {
         unsafe { std::mem::transmute(s) }
     }
 

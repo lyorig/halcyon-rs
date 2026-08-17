@@ -61,8 +61,8 @@ pub struct BlitInfo<'s, 'd>(
     PhantomData<Ref<'d, Texture>>,
 );
 
-impl BlitInfo<'_, '_> {
-    pub fn new<'s, 'd>(
+impl<'s, 'd> BlitInfo<'s, 'd> {
+    pub fn new(
         source: BlitRegion<'s>,
         destination: BlitRegion<'d>,
         load_op: LoadOp,
@@ -70,8 +70,8 @@ impl BlitInfo<'_, '_> {
         flip_mode: FlipMode,
         filter: Filter,
         cycle: Cycle,
-    ) -> BlitInfo<'s, 'd> {
-        BlitInfo(
+    ) -> Self {
+        Self(
             SDL_GPUBlitInfo {
                 source: source.0,
                 destination: destination.0,

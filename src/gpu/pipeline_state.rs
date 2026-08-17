@@ -168,11 +168,11 @@ pub struct VertexInputState<'vbd, 'va>(
     PhantomData<&'vbd [VertexBufferDescription]>,
     PhantomData<&'va [VertexAttribute]>,
 );
-impl VertexInputState<'_, '_> {
-    pub fn new<'vbd, 'va>(
+impl<'vbd, 'va> VertexInputState<'vbd, 'va> {
+    pub fn new(
         descriptions: &'vbd [VertexBufferDescription],
         attributes: &'va [VertexAttribute],
-    ) -> VertexInputState<'vbd, 'va> {
+    ) -> Self {
         VertexInputState(
             SDL_GPUVertexInputState {
                 vertex_buffer_descriptions: descriptions.as_ptr().cast(),
@@ -338,13 +338,13 @@ pub struct GraphicsPipelineTargetInfo<'ctd>(
     pub(crate) SDL_GPUGraphicsPipelineTargetInfo,
     PhantomData<&'ctd [ColorTargetDescription]>,
 );
-impl GraphicsPipelineTargetInfo<'_> {
-    pub fn new<'ctd>(
+impl<'ctd> GraphicsPipelineTargetInfo<'ctd> {
+    pub fn new(
         descriptions: &'ctd [ColorTargetDescription],
         depth_stencil_format: TextureFormat,
         hdst: HasDepthStencilTarget,
-    ) -> GraphicsPipelineTargetInfo<'ctd> {
-        GraphicsPipelineTargetInfo(
+    ) -> Self {
+        Self(
             SDL_GPUGraphicsPipelineTargetInfo {
                 color_target_descriptions: descriptions.as_ptr().cast(),
                 num_color_targets: descriptions.len() as _,

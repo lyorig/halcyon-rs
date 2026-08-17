@@ -27,15 +27,15 @@ pub struct ShaderCreateInfo<'bc, 'ep>(
     PhantomData<&'ep CStr>,
 );
 
-impl ShaderCreateInfo<'_, '_> {
-    pub const fn new<'bc, 'ep>(
+impl<'bc, 'ep> ShaderCreateInfo<'bc, 'ep> {
+    pub const fn new(
         code: &'bc [u8],
         entrypoint: &'ep CStr,
         fmt: ShaderFormat,
         stage: ShaderStage,
         num_samplers: u32,
         (num_storage_textures, num_storage_buffers, num_uniform_buffers): (u32, u32, u32),
-    ) -> ShaderCreateInfo<'bc, 'ep> {
+    ) -> Self {
         let inner = SDL_GPUShaderCreateInfo {
             code_size: code.len(),
             code: code.as_ptr(),
@@ -49,7 +49,7 @@ impl ShaderCreateInfo<'_, '_> {
             props: SDL_PropertiesID::new(0),
         };
 
-        ShaderCreateInfo(inner, PhantomData, PhantomData)
+        Self(inner, PhantomData, PhantomData)
     }
 }
 

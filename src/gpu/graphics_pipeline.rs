@@ -44,9 +44,9 @@ pub struct GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd>(
     PhantomData<&'va [VertexAttribute]>,
     PhantomData<&'ctd [ColorTargetDescription]>,
 );
-impl GraphicsPipelineCreateInfo<'_, '_, '_, '_, '_> {
+impl<'vs, 'fs, 'vbd, 'va, 'ctd> GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd> {
     #[allow(clippy::too_many_arguments)]
-    pub fn new<'vs, 'fs, 'vbd, 'va, 'ctd>(
+    pub fn new(
         vertex_shader: Ref<'vs, Shader>,
         fragment_shader: Ref<'fs, Shader>,
         vertex_input_state: VertexInputState<'vbd, 'va>,
@@ -55,8 +55,8 @@ impl GraphicsPipelineCreateInfo<'_, '_, '_, '_, '_> {
         multisample_state: MultisampleState,
         depth_stencil_state: DepthStencilState,
         target_info: GraphicsPipelineTargetInfo<'ctd>,
-    ) -> GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd> {
-        GraphicsPipelineCreateInfo(
+    ) -> Self {
+        Self(
             SDL_GPUGraphicsPipelineCreateInfo {
                 vertex_shader: vertex_shader.handle.as_ptr(),
                 fragment_shader: fragment_shader.handle.as_ptr(),

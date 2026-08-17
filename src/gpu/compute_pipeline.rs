@@ -17,8 +17,8 @@ pub struct ComputePipelineCreateInfo<'bc, 'ep>(
     PhantomData<&'bc [u8]>,
     PhantomData<&'ep CStr>,
 );
-impl ComputePipelineCreateInfo<'_, '_> {
-    pub const fn new<'bc, 'ep>(
+impl<'bc, 'ep> ComputePipelineCreateInfo<'bc, 'ep> {
+    pub const fn new(
         code: &'bc [u8],
         entrypoint: &'ep CStr,
         fmt: ShaderFormat,
@@ -31,7 +31,7 @@ impl ComputePipelineCreateInfo<'_, '_> {
             u32,
         ),
         (thr_x, thr_y, thr_z): (u32, u32, u32),
-    ) -> ComputePipelineCreateInfo<'bc, 'ep> {
+    ) -> Self {
         let inner = SDL_GPUComputePipelineCreateInfo {
             code_size: code.len(),
             code: code.as_ptr(),
@@ -49,7 +49,7 @@ impl ComputePipelineCreateInfo<'_, '_> {
             props: SDL_PropertiesID::new(0),
         };
 
-        ComputePipelineCreateInfo(inner, PhantomData, PhantomData)
+        Self(inner, PhantomData, PhantomData)
     }
 }
 

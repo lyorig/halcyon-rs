@@ -88,9 +88,9 @@ pub struct ColorTargetInfo<'t, 'rt>(
     PhantomData<Ref<'rt, Texture>>,
 );
 
-impl ColorTargetInfo<'_, '_> {
+impl<'t, 'rt> ColorTargetInfo<'t, 'rt> {
     #[allow(clippy::too_many_arguments)]
-    pub fn new<'t, 'rt>(
+    pub fn new(
         tex: Ref<'t, Texture>,
         mip_level: u32,
         layer_or_depth_plane: u32,
@@ -101,9 +101,9 @@ impl ColorTargetInfo<'_, '_> {
         (resolve_mip_level, resolve_layer): (u32, u32),
         cycle: Cycle,
         crt: CycleResolveTexture,
-    ) -> ColorTargetInfo<'t, 'rt> {
+    ) -> Self {
         let resolve_texture = resolve_texture.map_or(std::ptr::null_mut(), |t| t.handle.as_ptr());
-        ColorTargetInfo(
+        Self(
             SDL_GPUColorTargetInfo {
                 texture: tex.handle.as_ptr(),
                 mip_level,
@@ -127,8 +127,8 @@ impl ColorTargetInfo<'_, '_> {
 #[doc(alias = "SDL_GPUDepthStencilTargetInfo")]
 #[derive(Clone, Copy)]
 pub struct DepthStencilTargetInfo<'t>(SDL_GPUDepthStencilTargetInfo, PhantomData<Ref<'t, Texture>>);
-impl DepthStencilTargetInfo<'_> {
-    pub fn new<'t>(
+impl<'t> DepthStencilTargetInfo<'t> {
+    pub fn new(
         tex: Ref<'t, Texture>,
         clear_depth: f32,
         (load_op, store_op): (LoadOp, StoreOp),
@@ -136,9 +136,9 @@ impl DepthStencilTargetInfo<'_> {
         cycle: Cycle,
         clear_stencil: u8,
         (mip_level, layer): (u8, u8),
-    ) -> DepthStencilTargetInfo<'t> {
+    ) -> Self {
         let texture = tex.handle.as_ptr();
-        DepthStencilTargetInfo(
+        Self(
             SDL_GPUDepthStencilTargetInfo {
                 texture,
                 clear_depth,

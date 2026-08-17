@@ -166,10 +166,10 @@ macro_rules! resource_new_tied {
                 }
             }
 
-            impl $owned<'_> {
-                pub(crate) fn from_ptr<'a>(handle: *mut $sdl) -> $crate::Result<$owned<'a>> {
+            impl<'a> $owned<'a> {
+                pub(crate) fn from_ptr(handle: *mut $sdl) -> $crate::Result<Self> {
                     match std::ptr::NonNull::new(handle) {
-                        Some(handle) => Ok($owned {
+                        Some(handle) => Ok(Self {
                             inner: [<$owned Handle>] { handle },
                             marker: PhantomData,
                         }),

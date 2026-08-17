@@ -204,13 +204,13 @@ pub struct TextureTransferInfo<'tb>(
     SDL_GPUTextureTransferInfo,
     PhantomData<Ref<'tb, TransferBuffer>>,
 );
-impl TextureTransferInfo<'_> {
-    pub fn new<'tb>(
+impl<'tb> TextureTransferInfo<'tb> {
+    pub fn new(
         tb: Ref<'tb, TransferBuffer>,
         offset: u32,
         pixels_per_row: u32,
         rows_per_layer: u32,
-    ) -> TextureTransferInfo<'tb> {
+    ) -> Self {
         let transfer_buffer = tb.handle.as_ptr();
         let inner = SDL_GPUTextureTransferInfo {
             transfer_buffer,
@@ -218,21 +218,21 @@ impl TextureTransferInfo<'_> {
             pixels_per_row,
             rows_per_layer,
         };
-        TextureTransferInfo(inner, PhantomData)
+        Self(inner, PhantomData)
     }
 }
 
 #[doc(alias = "SDL_GPUTextureRegion")]
 #[derive(Clone, Copy)]
 pub struct TextureRegion<'t>(SDL_GPUTextureRegion, PhantomData<Ref<'t, Texture>>);
-impl TextureRegion<'_> {
-    pub fn new<'t>(
+impl<'t> TextureRegion<'t> {
+    pub fn new(
         tex: Ref<'t, Texture>,
         mip_level: u32,
         layer: u32,
         (x, y, z): (u32, u32, u32),
         (w, h, d): (u32, u32, u32),
-    ) -> TextureRegion<'t> {
+    ) -> Self {
         let texture = tex.handle.as_ptr();
         let inner = SDL_GPUTextureRegion {
             texture,
@@ -245,7 +245,8 @@ impl TextureRegion<'_> {
             h,
             d,
         };
-        TextureRegion(inner, PhantomData)
+
+        Self(inner, PhantomData)
     }
 }
 
@@ -255,13 +256,13 @@ pub struct TextureLocation<'t>(
     pub(crate) SDL_GPUTextureLocation,
     PhantomData<Ref<'t, Texture>>,
 );
-impl TextureLocation<'_> {
-    pub fn new<'t>(
+impl<'t> TextureLocation<'t> {
+    pub fn new(
         tex: Ref<'t, Texture>,
         mip_level: u32,
         layer: u32,
         (x, y, z): (u32, u32, u32),
-    ) -> TextureLocation<'t> {
+    ) -> Self {
         let texture = tex.handle.as_ptr();
         let inner = SDL_GPUTextureLocation {
             texture,
@@ -271,7 +272,7 @@ impl TextureLocation<'_> {
             y,
             z,
         };
-        TextureLocation(inner, PhantomData)
+        Self(inner, PhantomData)
     }
 }
 
@@ -283,12 +284,9 @@ pub struct TextureSamplerBinding<'t, 's>(
     PhantomData<Ref<'s, Sampler>>,
 );
 
-impl TextureSamplerBinding<'_, '_> {
-    pub fn new<'t, 's>(
-        texture: Ref<'t, Texture>,
-        sampler: Ref<'s, Sampler>,
-    ) -> TextureSamplerBinding<'t, 's> {
-        TextureSamplerBinding(
+impl<'t, 's> TextureSamplerBinding<'t, 's> {
+    pub fn new(texture: Ref<'t, Texture>, sampler: Ref<'s, Sampler>) -> Self {
+        Self(
             SDL_GPUTextureSamplerBinding {
                 texture: texture.handle.as_ptr(),
                 sampler: sampler.handle.as_ptr(),
@@ -306,14 +304,9 @@ pub struct StorageTextureReadWriteBinding<'t>(
     PhantomData<Ref<'t, Texture>>,
 );
 
-impl StorageTextureReadWriteBinding<'_> {
-    pub fn new<'t>(
-        texture: Ref<'t, Texture>,
-        mip_level: u32,
-        layer: u32,
-        cycle: Cycle,
-    ) -> StorageTextureReadWriteBinding<'t> {
-        StorageTextureReadWriteBinding(
+impl<'t> StorageTextureReadWriteBinding<'t> {
+    pub fn new(texture: Ref<'t, Texture>, mip_level: u32, layer: u32, cycle: Cycle) -> Self {
+        Self(
             SDL_GPUStorageTextureReadWriteBinding {
                 texture: texture.handle.as_ptr(),
                 mip_level,
@@ -329,15 +322,15 @@ impl StorageTextureReadWriteBinding<'_> {
 #[doc(alias = "SDL_GPUBlitRegion")]
 #[derive(Clone, Copy)]
 pub struct BlitRegion<'t>(pub(crate) SDL_GPUBlitRegion, PhantomData<Ref<'t, Texture>>);
-impl BlitRegion<'_> {
-    pub fn new<'t>(
+impl<'t> BlitRegion<'t> {
+    pub fn new(
         tex: Ref<'t, Texture>,
         mip_level: u32,
         layer_or_depth_plane: u32,
         (x, y, w, h): (u32, u32, u32, u32),
-    ) -> BlitRegion<'t> {
+    ) -> Self {
         let texture = tex.handle.as_ptr();
-        BlitRegion(
+        Self(
             SDL_GPUBlitRegion {
                 texture,
                 mip_level,
