@@ -47,8 +47,8 @@ macro_rules! impl_enum_transmute {
     ($sdl:ident, $wrap:ident) => {
         const _: () = assert!(::std::mem::size_of::<$sdl>() == ::std::mem::size_of::<$wrap>());
 
-        unsafe impl $crate::util::IsCopy for $sdl {}
-        unsafe impl $crate::util::IsCopy for $wrap {}
+        impl $crate::util::IsCopy for $sdl {}
+        impl $crate::util::IsCopy for $wrap {}
 
         impl $wrap {
             const fn from_sdl(value: $sdl) -> Self {
@@ -127,4 +127,4 @@ pub unsafe fn c_ptr_to_str<'a>(ptr: *const c_char) -> &'a str {
     unsafe { str::from_utf8_unchecked(CStr::from_ptr(ptr).to_bytes()) }
 }
 
-pub(crate) unsafe trait IsCopy: Copy {}
+pub(crate) trait IsCopy: Copy {}
