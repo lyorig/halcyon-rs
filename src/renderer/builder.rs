@@ -110,8 +110,8 @@ impl<'p, 'wnd, 'surf> RendererBuilder<'p, 'wnd, 'surf> {
     /// initialized.
     #[doc(alias = "SDL_CreateRendererWithProperties")]
     pub fn build_cleanup(&self) -> Result<Renderer> {
-        let ret = Renderer::from_ptr(unsafe { SDL_CreateRendererWithProperties(self.inner.id()) });
+        let res = Renderer::from_ptr(unsafe { SDL_CreateRendererWithProperties(self.inner.id()) });
         Self::clear_from(self.inner);
-        ret
+        res
     }
 }

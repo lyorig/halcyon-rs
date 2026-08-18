@@ -235,9 +235,9 @@ impl<'p, 'vo> DeviceBuilder<'p, 'vo> {
     /// See the [crate::properties] module docs for more info.
     #[doc(alias = "SDL_CreateGPUDeviceWithProperties")]
     pub fn build_cleanup(&self) -> Result<Device> {
-        let ret = Device::from_ptr(unsafe { SDL_CreateGPUDeviceWithProperties(self.inner.id()) });
+        let res = Device::from_ptr(unsafe { SDL_CreateGPUDeviceWithProperties(self.inner.id()) });
         Self::clear_from(self.inner);
-        ret
+        res
     }
 
     fn set_bool(&mut self, key: *const c_char, value: bool) -> &mut Self {

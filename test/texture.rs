@@ -1,14 +1,16 @@
 use std::ffi::CStr;
 
 use halcyon::{
-    Context, properties::Properties, rect::Point, renderer::Renderer, resource::Resource,
-    texture::Texture, window::Window,
+    Context,
+    properties::Properties,
+    rect::Point,
+    renderer::Renderer,
+    resource::Resource,
+    texture::{PixelFormat, Texture, TextureAccess},
+    window::Window,
 };
 use rustest::{Result, test};
-use sdl3_sys::{
-    pixels::SDL_PixelFormat,
-    render::{SDL_PROP_TEXTURE_CREATE_WIDTH_NUMBER, SDL_TextureAccess},
-};
+use sdl3_sys::render::SDL_PROP_TEXTURE_CREATE_WIDTH_NUMBER;
 
 /// `Texture::builder` with `SDL_CreateTextureWithProperties`.
 #[test]
@@ -26,8 +28,8 @@ fn texture_builder() -> Result {
         .build()?;
 
     let tex = Texture::builder(rnd.as_ref(), props.as_ref())
-        .format(SDL_PixelFormat::RGB24)
-        .access(SDL_TextureAccess::STATIC)
+        .format(PixelFormat::Rgb24)
+        .access(TextureAccess::Static)
         .size(Point::new(16, 16))
         .build()?;
 
@@ -52,14 +54,14 @@ fn texture_properties() -> Result {
         .build()?;
 
     let tex = Texture::builder(rnd.as_ref(), props.as_ref())
-        .format(SDL_PixelFormat::RGB24)
-        .access(SDL_TextureAccess::STATIC)
+        .format(PixelFormat::Rgb24)
+        .access(TextureAccess::Static)
         .size(Point::new(16, 16))
         .build()?;
 
     let tp = tex.properties();
-    assert!(tp.format() == SDL_PixelFormat::RGB24);
-    assert!(tp.access() == SDL_TextureAccess::STATIC);
+    assert!(tp.format() == PixelFormat::Rgb24);
+    assert!(tp.access() == TextureAccess::Static);
     assert_eq!(tp.width(), 16);
     assert_eq!(tp.height(), 16);
 

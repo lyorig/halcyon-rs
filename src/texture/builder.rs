@@ -1,13 +1,14 @@
 use std::ffi::{CStr, c_char};
 
-use sdl3_sys::{
-    pixels::{SDL_Colorspace, SDL_PixelFormat},
-    render::*,
-};
+use sdl3_sys::render::*;
 
 use crate::{
-    Result, properties::Properties, rect::PointI32, renderer::Renderer, resource::Ref,
-    texture::Texture,
+    Result,
+    properties::Properties,
+    rect::PointI32,
+    renderer::Renderer,
+    resource::Ref,
+    texture::{Colorspace, PixelFormat, Texture, TextureAccess},
 };
 
 const CREATE_PROPERTIES: [*const c_char; 7] = [
@@ -36,27 +37,36 @@ impl<'a> TextureBuilder<'a> {
         Self { renderer, inner }
     }
 
-    /// An [`SDL_Colorspace`] value describing the texture colorspace. Defaults
+    /// A [`Colorspace`] value describing the texture colorspace. Defaults
     /// to `SDL_COLORSPACE_SRGB_LINEAR` for floating point textures,
     /// `SDL_COLORSPACE_HDR10` for 10-bit textures, `SDL_COLORSPACE_SRGB` for
     /// other RGB textures and `SDL_COLORSPACE_JPEG` for YUV textures.
     #[doc(alias = "SDL_PROP_TEXTURE_CREATE_COLORSPACE_NUMBER")]
-    pub fn colorspace(&mut self, value: SDL_Colorspace) -> &mut Self {
-        self.set_number(SDL_PROP_TEXTURE_CREATE_COLORSPACE_NUMBER, value.0.into())
+    pub fn colorspace(&mut self, value: Colorspace) -> &mut Self {
+        self.set_number(
+            SDL_PROP_TEXTURE_CREATE_COLORSPACE_NUMBER,
+            i64::from(value as u32),
+        )
     }
 
-    /// One of the enumerated values in [`SDL_PixelFormat`]. Defaults to the
+    /// One of the enumerated values in [`PixelFormat`]. Defaults to the
     /// best RGBA format for the renderer.
     #[doc(alias = "SDL_PROP_TEXTURE_CREATE_FORMAT_NUMBER")]
-    pub fn format(&mut self, value: SDL_PixelFormat) -> &mut Self {
-        self.set_number(SDL_PROP_TEXTURE_CREATE_FORMAT_NUMBER, value.0.into())
+    pub fn format(&mut self, value: PixelFormat) -> &mut Self {
+        self.set_number(
+            SDL_PROP_TEXTURE_CREATE_FORMAT_NUMBER,
+            i64::from(value as i32),
+        )
     }
 
-    /// One of the enumerated values in [`SDL_TextureAccess`]. Defaults to
-    /// `SDL_TEXTUREACCESS_STATIC`.
+    /// One of the enumerated values in [`TextureAccess`]. Defaults to
+    /// [`TextureAccess::Static`].
     #[doc(alias = "SDL_PROP_TEXTURE_CREATE_ACCESS_NUMBER")]
-    pub fn access(&mut self, value: SDL_TextureAccess) -> &mut Self {
-        self.set_number(SDL_PROP_TEXTURE_CREATE_ACCESS_NUMBER, value.0.into())
+    pub fn access(&mut self, value: TextureAccess) -> &mut Self {
+        self.set_number(
+            SDL_PROP_TEXTURE_CREATE_ACCESS_NUMBER,
+            i64::from(value as i32),
+        )
     }
 
     /// The width of the texture in pixels. Required.
@@ -115,11 +125,11 @@ impl<'a> TextureBuilder<'a> {
     /// See the [crate::properties] module docs for more info.
     #[doc(alias = "SDL_CreateTextureWithProperties")]
     pub fn build_cleanup(&self) -> Result<Texture> {
-        let ret = Texture::from_ptr(unsafe {
+        let res = Texture::from_ptr(unsafe {
             SDL_CreateTextureWithProperties(self.renderer.handle.as_ptr(), self.inner.id())
         });
         Self::clear_from(self.inner);
-        ret
+        res
     }
 
     fn set_number(&mut self, key: *const c_char, value: i64) -> &mut Self {

@@ -169,20 +169,18 @@ fn load_teapot() -> MeshData {
     }
 }
 
+fn can_use_format(device: Ref<Device>, fmt: TextureFormat) -> bool {
+    device.texture_supports_format(fmt, TextureType::_2d, TextureUsageFlags::DepthStencilTarget)
+}
+
 /// Pick a depth format the device supports. D24_UNORM is not available on all
 /// backends (e.g. the Metal backend only offers D16_UNORM and D32_FLOAT).
 fn pick_depth_format(device: Ref<Device>) -> TextureFormat {
     [TextureFormat::D16Unorm, TextureFormat::D24Unorm]
         .iter()
         .copied()
-        .find(|&f| {
-            device.texture_supports_format(
-                f,
-                TextureType::_2d,
-                TextureUsageFlags::DepthStencilTarget,
-            )
-        })
-        .unwrap_or(TextureFormat::D32Float) // every device supports at least this
+        .find(|&f| can_use_format(device, f))
+        .unwrap_or(TextureFormat::D32Float)
 }
 
 fn run() -> Result {
@@ -389,19 +387,20 @@ fn run() -> Result {
             .wait_for_swapchain_texture(wnd.as_ref(), (Some(&mut width), Some(&mut height)))?
         {
             if depth.is_none() {
-                let tci = TextureCreateInfo::new(
-                    TextureType::_2d,
-                    depth_format,
-                    TextureUsageFlags::DepthStencilTarget,
-                    Point::new(width, height),
-                    1, // layer count / depth
-                    1, // mip levels
-                    SampleCount::One,
-                );
-
-                let tex = Texture::builder(props)
+                let tci = TextureCreateInfo::builder(props)
                     .name(c"Teapot Texture")
-                    .build_cleanup(device.as_ref(), tci)?;
+                    .build(
+                        TextureType::_2d,
+                        depth_format,
+                        TextureUsageFlags::DepthStencilTarget,
+                        Point::new(width, height),
+                        1, // layer count / depth
+                        1, // mip levels
+                        SampleCount::One,
+                    );
+
+                let tex = Texture::new(device.as_ref(), &tci)?;
+                TextureCreateInfoBuilder::clear_from(props);
 
                 depth = Some(tex);
             }

@@ -250,9 +250,9 @@ impl<'p, 'parent> WindowBuilder<'p, 'parent> {
     /// See the [crate::properties] module docs for more info.
     #[doc(alias = "SDL_CreateWindowWithProperties")]
     pub fn build_cleanup(&self) -> Result<Window> {
-        let ret = Window::from_ptr(unsafe { SDL_CreateWindowWithProperties(self.inner.id()) });
+        let res = Window::from_ptr(unsafe { SDL_CreateWindowWithProperties(self.inner.id()) });
         Self::clear_from(self.inner);
-        ret
+        res
     }
 
     fn set_bool(&mut self, key: *const c_char, value: bool) -> &mut Self {

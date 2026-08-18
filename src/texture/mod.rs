@@ -32,7 +32,10 @@
 use std::mem::MaybeUninit;
 
 use sdl3_sys::{
-    blendmode::SDL_BlendMode, pixels::SDL_PixelFormat, render::*, surface::SDL_ScaleMode,
+    blendmode::SDL_BlendMode,
+    pixels::{SDL_Colorspace, SDL_PixelFormat},
+    render::*,
+    surface::SDL_ScaleMode,
 };
 
 use crate::{
@@ -50,6 +53,139 @@ use crate::{
 
 mod_reexport!(builder);
 mod_reexport!(properties);
+
+#[repr(i32)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+#[doc(alias = "SDL_PixelFormat")]
+pub enum PixelFormat {
+    Unknown = SDL_PixelFormat::UNKNOWN.0,
+    Index1Lsb = SDL_PixelFormat::INDEX1LSB.0,
+    Index1Msb = SDL_PixelFormat::INDEX1MSB.0,
+    Index2Lsb = SDL_PixelFormat::INDEX2LSB.0,
+    Index2Msb = SDL_PixelFormat::INDEX2MSB.0,
+    Index4Lsb = SDL_PixelFormat::INDEX4LSB.0,
+    Index4Msb = SDL_PixelFormat::INDEX4MSB.0,
+    Index8 = SDL_PixelFormat::INDEX8.0,
+    Rgb332 = SDL_PixelFormat::RGB332.0,
+    Xrgb4444 = SDL_PixelFormat::XRGB4444.0,
+    Xbgr4444 = SDL_PixelFormat::XBGR4444.0,
+    Xrgb1555 = SDL_PixelFormat::XRGB1555.0,
+    Xbgr1555 = SDL_PixelFormat::XBGR1555.0,
+    Argb4444 = SDL_PixelFormat::ARGB4444.0,
+    Rgba4444 = SDL_PixelFormat::RGBA4444.0,
+    Abgr4444 = SDL_PixelFormat::ABGR4444.0,
+    Bgra4444 = SDL_PixelFormat::BGRA4444.0,
+    Argb1555 = SDL_PixelFormat::ARGB1555.0,
+    Rgba5551 = SDL_PixelFormat::RGBA5551.0,
+    Abgr1555 = SDL_PixelFormat::ABGR1555.0,
+    Bgra5551 = SDL_PixelFormat::BGRA5551.0,
+    Rgb565 = SDL_PixelFormat::RGB565.0,
+    Bgr565 = SDL_PixelFormat::BGR565.0,
+    Rgb24 = SDL_PixelFormat::RGB24.0,
+    Bgr24 = SDL_PixelFormat::BGR24.0,
+    Xrgb8888 = SDL_PixelFormat::XRGB8888.0,
+    Rgbx8888 = SDL_PixelFormat::RGBX8888.0,
+    Xbgr8888 = SDL_PixelFormat::XBGR8888.0,
+    Bgrx8888 = SDL_PixelFormat::BGRX8888.0,
+    Argb8888 = SDL_PixelFormat::ARGB8888.0,
+    Rgba8888 = SDL_PixelFormat::RGBA8888.0,
+    Abgr8888 = SDL_PixelFormat::ABGR8888.0,
+    Bgra8888 = SDL_PixelFormat::BGRA8888.0,
+    Xrgb2101010 = SDL_PixelFormat::XRGB2101010.0,
+    Xbgr2101010 = SDL_PixelFormat::XBGR2101010.0,
+    Argb2101010 = SDL_PixelFormat::ARGB2101010.0,
+    Abgr2101010 = SDL_PixelFormat::ABGR2101010.0,
+    Rgb48 = SDL_PixelFormat::RGB48.0,
+    Bgr48 = SDL_PixelFormat::BGR48.0,
+    Rgba64 = SDL_PixelFormat::RGBA64.0,
+    Argb64 = SDL_PixelFormat::ARGB64.0,
+    Bgra64 = SDL_PixelFormat::BGRA64.0,
+    Abgr64 = SDL_PixelFormat::ABGR64.0,
+    Rgb48Float = SDL_PixelFormat::RGB48_FLOAT.0,
+    Bgr48Float = SDL_PixelFormat::BGR48_FLOAT.0,
+    Rgba64Float = SDL_PixelFormat::RGBA64_FLOAT.0,
+    Argb64Float = SDL_PixelFormat::ARGB64_FLOAT.0,
+    Bgra64Float = SDL_PixelFormat::BGRA64_FLOAT.0,
+    Abgr64Float = SDL_PixelFormat::ABGR64_FLOAT.0,
+    Rgb96Float = SDL_PixelFormat::RGB96_FLOAT.0,
+    Bgr96Float = SDL_PixelFormat::BGR96_FLOAT.0,
+    Rgba128Float = SDL_PixelFormat::RGBA128_FLOAT.0,
+    Argb128Float = SDL_PixelFormat::ARGB128_FLOAT.0,
+    Bgra128Float = SDL_PixelFormat::BGRA128_FLOAT.0,
+    Abgr128Float = SDL_PixelFormat::ABGR128_FLOAT.0,
+    Yv12 = SDL_PixelFormat::YV12.0,
+    Iyuv = SDL_PixelFormat::IYUV.0,
+    Yuy2 = SDL_PixelFormat::YUY2.0,
+    Uyvy = SDL_PixelFormat::UYVY.0,
+    Yvyu = SDL_PixelFormat::YVYU.0,
+    Nv12 = SDL_PixelFormat::NV12.0,
+    Nv21 = SDL_PixelFormat::NV21.0,
+    P010 = SDL_PixelFormat::P010.0,
+    ExternalOes = SDL_PixelFormat::EXTERNAL_OES.0,
+    Mjpg = SDL_PixelFormat::MJPG.0,
+}
+
+impl From<PixelFormat> for SDL_PixelFormat {
+    fn from(value: PixelFormat) -> Self {
+        Self::new(value as _)
+    }
+}
+
+impl From<SDL_PixelFormat> for PixelFormat {
+    fn from(value: SDL_PixelFormat) -> Self {
+        unsafe { std::mem::transmute(value) }
+    }
+}
+
+#[repr(u32)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+#[doc(alias = "SDL_Colorspace")]
+pub enum Colorspace {
+    Unknown = SDL_Colorspace::UNKNOWN.0,
+    Srgb = SDL_Colorspace::SRGB.0,
+    SrgbLinear = SDL_Colorspace::SRGB_LINEAR.0,
+    Hdr10 = SDL_Colorspace::HDR10.0,
+    Jpeg = SDL_Colorspace::JPEG.0,
+    Bt601Limited = SDL_Colorspace::BT601_LIMITED.0,
+    Bt601Full = SDL_Colorspace::BT601_FULL.0,
+    Bt709Limited = SDL_Colorspace::BT709_LIMITED.0,
+    Bt709Full = SDL_Colorspace::BT709_FULL.0,
+    Bt2020Limited = SDL_Colorspace::BT2020_LIMITED.0,
+    Bt2020Full = SDL_Colorspace::BT2020_FULL.0,
+}
+
+impl From<Colorspace> for SDL_Colorspace {
+    fn from(value: Colorspace) -> Self {
+        Self::new(value as _)
+    }
+}
+
+impl From<SDL_Colorspace> for Colorspace {
+    fn from(value: SDL_Colorspace) -> Self {
+        unsafe { std::mem::transmute(value) }
+    }
+}
+
+#[repr(i32)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+#[doc(alias = "SDL_TextureAccess")]
+pub enum TextureAccess {
+    Static = SDL_TextureAccess::STATIC.0,
+    Streaming = SDL_TextureAccess::STREAMING.0,
+    Target = SDL_TextureAccess::TARGET.0,
+}
+
+impl From<TextureAccess> for SDL_TextureAccess {
+    fn from(value: TextureAccess) -> Self {
+        Self::new(value as _)
+    }
+}
+
+impl From<SDL_TextureAccess> for TextureAccess {
+    fn from(value: SDL_TextureAccess) -> Self {
+        unsafe { std::mem::transmute(value) }
+    }
+}
 
 resource_new!(SDL_Texture, Texture, SDL_DestroyTexture);
 
@@ -254,12 +390,18 @@ impl Texture {
     #[doc(alias = "SDL_CreateTexture")]
     pub fn new(
         rnd: Ref<Renderer>,
-        fmt: SDL_PixelFormat,
-        access: SDL_TextureAccess,
+        fmt: PixelFormat,
+        access: TextureAccess,
         size: PointI32,
     ) -> Result<Texture> {
         Self::from_ptr(unsafe {
-            SDL_CreateTexture(rnd.handle.as_ptr(), fmt, access, size.x, size.y)
+            SDL_CreateTexture(
+                rnd.handle.as_ptr(),
+                fmt.into(),
+                access.into(),
+                size.x,
+                size.y,
+            )
         })
     }
 

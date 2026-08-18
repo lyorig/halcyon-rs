@@ -1,7 +1,6 @@
 use std::mem::ManuallyDrop;
 
 use rustest::{Result, main, test};
-use sdl3_sys::{pixels::SDL_PixelFormat, render::SDL_TextureAccess};
 
 use halcyon::{
     Context,
@@ -10,7 +9,7 @@ use halcyon::{
     renderer::Renderer,
     resource::Resource,
     subsystem::Video,
-    texture::Texture,
+    texture::{PixelFormat, Texture, TextureAccess},
     window::Window,
 };
 
@@ -45,8 +44,8 @@ fn main_init() -> Result {
         .build()?;
 
     let tex = Texture::builder(rnd.as_ref(), props.as_ref())
-        .format(SDL_PixelFormat::RGB24)
-        .access(SDL_TextureAccess::STATIC)
+        .format(PixelFormat::Rgb24)
+        .access(TextureAccess::Static)
         .size(Point::new(16, 16))
         .build()?;
 

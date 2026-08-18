@@ -8,6 +8,7 @@ use sdl3_sys::{
 use crate::{
     properties::{Properties, PropertiesHandle},
     resource::Ref,
+    texture::{Colorspace, PixelFormat, TextureAccess},
 };
 
 /// Read-only properties of a texture, as documented by
@@ -43,19 +44,19 @@ impl<'a> TextureProperties<'a> {
         (!p.is_null()).then_some(p)
     }
 
-    pub fn colorspace(&self) -> SDL_Colorspace {
+    pub fn colorspace(&self) -> Colorspace {
         let cstr = unsafe { CStr::from_ptr(SDL_PROP_TEXTURE_COLORSPACE_NUMBER) };
-        SDL_Colorspace(self.inner.number(cstr, 0) as u32)
+        SDL_Colorspace(self.inner.number(cstr, 0) as u32).into()
     }
 
-    pub fn format(&self) -> SDL_PixelFormat {
+    pub fn format(&self) -> PixelFormat {
         let cstr = unsafe { CStr::from_ptr(SDL_PROP_TEXTURE_FORMAT_NUMBER) };
-        SDL_PixelFormat(self.inner.number(cstr, 0) as c_int)
+        SDL_PixelFormat(self.inner.number(cstr, 0) as c_int).into()
     }
 
-    pub fn access(&self) -> SDL_TextureAccess {
+    pub fn access(&self) -> TextureAccess {
         let cstr = unsafe { CStr::from_ptr(SDL_PROP_TEXTURE_ACCESS_NUMBER) };
-        SDL_TextureAccess(self.inner.number(cstr, 0) as c_int)
+        SDL_TextureAccess(self.inner.number(cstr, 0) as c_int).into()
     }
 
     pub fn width(&self) -> i64 {
