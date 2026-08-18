@@ -21,6 +21,7 @@ pub enum ButtonLayout {
     RightToLeft = SDL_MessageBoxFlags::BUTTONS_RIGHT_TO_LEFT.0,
 }
 
+#[doc(alias = "SDL_ShowSimpleMessageBox")]
 pub fn show(sev: Severity, bl: ButtonLayout, title: &CStr, message: &CStr) -> Result {
     let flags = sev as u32 | bl as u32;
     to_result(unsafe {
