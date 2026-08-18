@@ -125,6 +125,21 @@ pub enum PixelFormat {
     Mjpg = SDL_PixelFormat::MJPG.0,
 }
 
+impl PixelFormat {
+    const fn from_sdl(pf: SDL_PixelFormat) -> Self {
+        unsafe { std::mem::transmute(pf) }
+    }
+
+    pub const RGBA32: Self = Self::from_sdl(SDL_PixelFormat::RGBA8888);
+    pub const ARGB32: Self = Self::from_sdl(SDL_PixelFormat::ARGB8888);
+    pub const BGRA32: Self = Self::from_sdl(SDL_PixelFormat::BGRA8888);
+    pub const ABGR32: Self = Self::from_sdl(SDL_PixelFormat::ABGR8888);
+    pub const RGBX32: Self = Self::from_sdl(SDL_PixelFormat::RGBX8888);
+    pub const XRGB32: Self = Self::from_sdl(SDL_PixelFormat::XRGB8888);
+    pub const BGRX32: Self = Self::from_sdl(SDL_PixelFormat::BGRX8888);
+    pub const XBGR32: Self = Self::from_sdl(SDL_PixelFormat::XBGR8888);
+}
+
 impl From<PixelFormat> for SDL_PixelFormat {
     fn from(value: PixelFormat) -> Self {
         Self::new(value as _)
@@ -133,7 +148,7 @@ impl From<PixelFormat> for SDL_PixelFormat {
 
 impl From<SDL_PixelFormat> for PixelFormat {
     fn from(value: SDL_PixelFormat) -> Self {
-        unsafe { std::mem::transmute(value) }
+        Self::from_sdl(value)
     }
 }
 
