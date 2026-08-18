@@ -86,6 +86,7 @@ impl<'vs, 'fs, 'vbd, 'va, 'ctd, 'p> GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, '
         )
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub(super) fn new_with_props(
         vertex_shader: Ref<'vs, Shader>,
         fragment_shader: Ref<'fs, Shader>,

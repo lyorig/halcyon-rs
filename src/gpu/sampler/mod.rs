@@ -97,6 +97,7 @@ impl<'p> SamplerCreateInfo<'p> {
         Self(inner, PhantomData)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub(super) fn new_with_props(
         min_filter: Filter,
         mag_filter: Filter,
