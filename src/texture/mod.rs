@@ -32,7 +32,6 @@
 use std::mem::MaybeUninit;
 
 use sdl3_sys::{
-    blendmode::SDL_BlendMode,
     pixels::{SDL_Colorspace, SDL_PixelFormat},
     render::*,
     surface::SDL_ScaleMode,
@@ -41,7 +40,7 @@ use sdl3_sys::{
 use crate::{
     Result,
     color::{RgbF32, RgbU8},
-    mod_reexport,
+    impl_enum_conversions, mod_reexport,
     pixels::BlendMode,
     properties::{Properties, PropertiesHandle},
     rect::{PointF32, PointI32},
@@ -127,10 +126,6 @@ pub enum PixelFormat {
 }
 
 impl PixelFormat {
-    const fn from_sdl(pf: SDL_PixelFormat) -> Self {
-        unsafe { std::mem::transmute(pf) }
-    }
-
     pub const RGBA32: Self = Self::from_sdl(SDL_PixelFormat::RGBA8888);
     pub const ARGB32: Self = Self::from_sdl(SDL_PixelFormat::ARGB8888);
     pub const BGRA32: Self = Self::from_sdl(SDL_PixelFormat::BGRA8888);
@@ -141,17 +136,7 @@ impl PixelFormat {
     pub const XBGR32: Self = Self::from_sdl(SDL_PixelFormat::XBGR8888);
 }
 
-impl From<PixelFormat> for SDL_PixelFormat {
-    fn from(value: PixelFormat) -> Self {
-        Self::new(value as _)
-    }
-}
-
-impl From<SDL_PixelFormat> for PixelFormat {
-    fn from(value: SDL_PixelFormat) -> Self {
-        Self::from_sdl(value)
-    }
-}
+impl_enum_conversions!(SDL_PixelFormat, PixelFormat);
 
 #[repr(u32)]
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -170,17 +155,7 @@ pub enum Colorspace {
     Bt2020Full = SDL_Colorspace::BT2020_FULL.0,
 }
 
-impl From<Colorspace> for SDL_Colorspace {
-    fn from(value: Colorspace) -> Self {
-        Self::new(value as _)
-    }
-}
-
-impl From<SDL_Colorspace> for Colorspace {
-    fn from(value: SDL_Colorspace) -> Self {
-        unsafe { std::mem::transmute(value) }
-    }
-}
+impl_enum_conversions!(SDL_Colorspace, Colorspace);
 
 #[repr(i32)]
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -191,17 +166,7 @@ pub enum TextureAccess {
     Target = SDL_TextureAccess::TARGET.0,
 }
 
-impl From<TextureAccess> for SDL_TextureAccess {
-    fn from(value: TextureAccess) -> Self {
-        Self::new(value as _)
-    }
-}
-
-impl From<SDL_TextureAccess> for TextureAccess {
-    fn from(value: SDL_TextureAccess) -> Self {
-        unsafe { std::mem::transmute(value) }
-    }
-}
+impl_enum_conversions!(SDL_TextureAccess, TextureAccess);
 
 resource_new!(SDL_Texture, Texture, SDL_DestroyTexture);
 
@@ -214,17 +179,6 @@ impl TextureHandle {
         // SAFETY: This function only reads struct fields.
         unsafe {
             SDL_GetTextureSize(self.handle.as_ptr(), &raw mut (*ptr).x, &raw mut (*ptr).y);
-            ret.assume_init()
-        }
-    }
-
-    #[doc(alias = "SDL_GetTextureBlendMode")]
-    pub fn blend_mode(&self) -> SDL_BlendMode {
-        let mut ret = MaybeUninit::<SDL_BlendMode>::uninit();
-
-        // SAFETY: This function only reads struct fields.
-        unsafe {
-            SDL_GetTextureBlendMode(self.handle.as_ptr(), ret.as_mut_ptr());
             ret.assume_init()
         }
     }
@@ -245,13 +199,6 @@ impl TextureHandle {
         RendererHandle::from_ptr(unsafe { SDL_GetRendererFromTexture(self.handle.as_ptr()) })
     }
 
-    #[doc(alias = "SDL_SetTextureBlendMode")]
-    pub fn set_blend_mode(&mut self, bm: SDL_BlendMode) {
-        unsafe {
-            SDL_SetTextureBlendMode(self.handle.as_ptr(), bm);
-        }
-    }
-
     #[doc(alias = "SDL_SetTextureScaleMode")]
     pub fn set_scale_mode(&mut self, sm: SDL_ScaleMode) {
         unsafe {
@@ -261,6 +208,7 @@ impl TextureHandle {
 }
 
 impl BlendModeable for TextureHandle {
+    #[doc(alias = "SDL_GetTextureBlendMode")]
     fn blend_mode(&self) -> BlendMode {
         let mut ret = MaybeUninit::uninit();
         unsafe {
@@ -269,6 +217,7 @@ impl BlendModeable for TextureHandle {
         }
     }
 
+    #[doc(alias = "SDL_SetTextureBlendMode")]
     fn set_blend_mode(&self, bm: BlendMode) {
         unsafe {
             SDL_SetTextureBlendMode(self.handle.as_ptr(), bm.into());

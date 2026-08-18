@@ -31,6 +31,39 @@ macro_rules! boolenum {
     };
 }
 
+/// Implement bidirectional [`From`] for two enums, along with two `const fn`s:
+/// - `$wrap::from_sdl($sdl)`
+/// - `$wrap::to_sdl(self)`
+///
+/// This uses [`std::mem::transmute`]; it is your responsibility to ensure
+/// its use for converting between both enums is sound.
+#[macro_export]
+macro_rules! impl_enum_conversions {
+    ($sdl:ident, $wrap:ident) => {
+        impl $wrap {
+            const fn from_sdl(value: $sdl) -> Self {
+                unsafe { ::std::mem::transmute(value) }
+            }
+
+            const fn to_sdl(self) -> $sdl {
+                unsafe { ::std::mem::transmute(self) }
+            }
+        }
+
+        impl From<$sdl> for $wrap {
+            fn from(value: $sdl) -> Self {
+                Self::from_sdl(value)
+            }
+        }
+
+        impl From<$wrap> for $sdl {
+            fn from(value: $wrap) -> Self {
+                value.to_sdl()
+            }
+        }
+    };
+}
+
 /// Converts an [`Option`] holding a reference to a pointer.
 /// As you would expect, `None` produces [`std::ptr::null`], while
 /// `Some` returns `&T` as a pointer.

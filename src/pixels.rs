@@ -1,5 +1,7 @@
 use sdl3_sys::blendmode::SDL_BlendMode;
 
+use crate::impl_enum_conversions;
+
 #[repr(u32)]
 #[derive(Clone, Copy)]
 #[doc(alias = "SDL_BlendMode")]
@@ -13,14 +15,4 @@ pub enum BlendMode {
     Mul = SDL_BlendMode::MUL.0,
 }
 
-impl From<SDL_BlendMode> for BlendMode {
-    fn from(value: SDL_BlendMode) -> Self {
-        unsafe { std::mem::transmute(value) }
-    }
-}
-
-impl From<BlendMode> for SDL_BlendMode {
-    fn from(value: BlendMode) -> Self {
-        unsafe { std::mem::transmute(value) }
-    }
-}
+impl_enum_conversions!(SDL_BlendMode, BlendMode);

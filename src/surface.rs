@@ -71,7 +71,7 @@ use crate::{
     util::{opt2ptr, to_result},
 };
 
-use sdl3_sys::{blendmode::SDL_BlendMode, pixels::SDL_PixelFormat, surface::*};
+use sdl3_sys::{pixels::SDL_PixelFormat, surface::*};
 
 resource_new!(SDL_Surface, Surface, SDL_DestroySurface);
 
@@ -84,16 +84,6 @@ impl SurfaceHandle {
     pub fn format(&self) -> SDL_PixelFormat {
         let ligma = unsafe { self.handle.as_ref() };
         ligma.format
-    }
-
-    #[doc(alias = "SDL_GetSurfaceBlendMode")]
-    pub fn blend_mode(&self) -> SDL_BlendMode {
-        let mut ret = MaybeUninit::uninit();
-
-        unsafe {
-            SDL_GetSurfaceBlendMode(self.handle.as_ptr(), ret.as_mut_ptr());
-            ret.assume_init()
-        }
     }
 
     #[doc(alias = "SDL_FillSurfaceRect")]
@@ -181,11 +171,6 @@ impl SurfaceHandle {
                 scale_mode,
             )
         })
-    }
-
-    #[doc(alias = "SDL_SetSurfaceBlendMode")]
-    pub fn set_blend_mode(&self, bm: SDL_BlendMode) -> Result {
-        to_result(unsafe { SDL_SetSurfaceBlendMode(self.handle.as_ptr(), bm) })
     }
 
     #[doc(alias = "SDL_BlitSurface")]
@@ -290,6 +275,7 @@ impl SurfaceHandle {
 }
 
 impl BlendModeable for SurfaceHandle {
+    #[doc(alias = "SDL_GetSurfaceBlendMode")]
     fn blend_mode(&self) -> BlendMode {
         let mut ret = MaybeUninit::uninit();
         unsafe {
@@ -298,6 +284,7 @@ impl BlendModeable for SurfaceHandle {
         }
     }
 
+    #[doc(alias = "SDL_SetSurfaceBlendMode")]
     fn set_blend_mode(&self, bm: BlendMode) {
         unsafe {
             SDL_SetSurfaceBlendMode(self.handle.as_ptr(), bm.into());
