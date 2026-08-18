@@ -23,6 +23,7 @@ pub mod gpu;
 pub mod keyboard;
 pub mod log;
 pub mod msgbox;
+pub mod pixels;
 pub mod properties;
 pub mod rect;
 pub mod renderer;

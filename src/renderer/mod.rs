@@ -71,20 +71,21 @@
 
 use std::{ffi::CStr, mem::MaybeUninit};
 
-use sdl3_sys::{blendmode::SDL_BlendMode, render::*};
+use sdl3_sys::render::*;
 
 use crate::{
     Result,
     color::{RgbaF32, RgbaU8},
     gpu::{Device, RenderState},
     mod_reexport,
+    pixels::BlendMode,
     properties::{Properties, PropertiesHandle},
     rect::{PointF32, PointI32, RectF32, RectI32},
     resource::Ref,
     resource_new,
     surface::Surface,
     texture::{Texture, TextureHandle},
-    traits::BlendMode,
+    traits::BlendModeable,
     util::{opt2ptr, to_result},
     window::{Window, WindowHandle},
 };
@@ -569,20 +570,20 @@ impl RendererHandle {
     }
 }
 
-impl BlendMode for RendererHandle {
+impl BlendModeable for RendererHandle {
     #[doc(alias = "SDL_GetRenderDrawBlendMode")]
-    fn blend_mode(&self) -> SDL_BlendMode {
+    fn blend_mode(&self) -> BlendMode {
         let mut ret = MaybeUninit::uninit();
         unsafe {
             SDL_GetRenderDrawBlendMode(self.handle.as_ptr(), ret.as_mut_ptr());
-            ret.assume_init()
+            ret.assume_init().into()
         }
     }
 
     #[doc(alias = "SDL_SetRenderDrawBlendMode")]
-    fn set_blend_mode(&self, bm: SDL_BlendMode) {
+    fn set_blend_mode(&self, bm: BlendMode) {
         unsafe {
-            SDL_SetRenderDrawBlendMode(self.handle.as_ptr(), bm);
+            SDL_SetRenderDrawBlendMode(self.handle.as_ptr(), bm.into());
         }
     }
 }

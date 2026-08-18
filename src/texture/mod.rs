@@ -42,13 +42,14 @@ use crate::{
     Result,
     color::{RgbF32, RgbU8},
     mod_reexport,
+    pixels::BlendMode,
     properties::{Properties, PropertiesHandle},
     rect::{PointF32, PointI32},
     renderer::{Renderer, RendererHandle},
     resource::Ref,
     resource_new,
     surface::Surface,
-    traits::{BlendMode, ColorModF32, ColorModU8},
+    traits::{BlendModeable, ColorModF32, ColorModU8},
 };
 
 mod_reexport!(builder);
@@ -259,18 +260,18 @@ impl TextureHandle {
     }
 }
 
-impl BlendMode for TextureHandle {
-    fn blend_mode(&self) -> SDL_BlendMode {
+impl BlendModeable for TextureHandle {
+    fn blend_mode(&self) -> BlendMode {
         let mut ret = MaybeUninit::uninit();
         unsafe {
             SDL_GetTextureBlendMode(self.handle.as_ptr(), ret.as_mut_ptr());
-            ret.assume_init()
+            ret.assume_init().into()
         }
     }
 
-    fn set_blend_mode(&self, bm: SDL_BlendMode) {
+    fn set_blend_mode(&self, bm: BlendMode) {
         unsafe {
-            SDL_SetTextureBlendMode(self.handle.as_ptr(), bm);
+            SDL_SetTextureBlendMode(self.handle.as_ptr(), bm.into());
         }
     }
 }

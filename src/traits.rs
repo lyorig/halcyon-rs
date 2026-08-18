@@ -1,13 +1,13 @@
-use sdl3_sys::blendmode::SDL_BlendMode;
+use crate::{
+    color::{RgbF32, RgbU8, RgbaF32, RgbaU8},
+    pixels::BlendMode,
+};
 
-use crate::color::{RgbF32, RgbU8, RgbaF32, RgbaU8};
+pub trait BlendModeable {
+    fn blend_mode(&self) -> BlendMode;
+    fn set_blend_mode(&self, bm: BlendMode);
 
-
-pub trait BlendMode {
-    fn blend_mode(&self) -> SDL_BlendMode;
-    fn set_blend_mode(&self, bm: SDL_BlendMode);
-
-    fn xchg_blend_mode(&self, bm: SDL_BlendMode) -> SDL_BlendMode {
+    fn xchg_blend_mode(&self, bm: BlendMode) -> BlendMode {
         let old = self.blend_mode();
         self.set_blend_mode(bm);
         old

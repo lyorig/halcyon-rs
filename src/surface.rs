@@ -63,10 +63,11 @@ use std::mem::MaybeUninit;
 use crate::{
     Result,
     color::{RgbU8, RgbaF32, RgbaU8},
+    pixels::BlendMode,
     rect::{PointI32, RectI32},
     resource::Ref,
     resource_new,
-    traits::{BlendMode, ColorModU8},
+    traits::{BlendModeable, ColorModU8},
     util::{opt2ptr, to_result},
 };
 
@@ -288,18 +289,18 @@ impl SurfaceHandle {
     }
 }
 
-impl BlendMode for SurfaceHandle {
-    fn blend_mode(&self) -> SDL_BlendMode {
+impl BlendModeable for SurfaceHandle {
+    fn blend_mode(&self) -> BlendMode {
         let mut ret = MaybeUninit::uninit();
         unsafe {
             SDL_GetSurfaceBlendMode(self.handle.as_ptr(), ret.as_mut_ptr());
-            ret.assume_init()
+            ret.assume_init().into()
         }
     }
 
-    fn set_blend_mode(&self, bm: SDL_BlendMode) {
+    fn set_blend_mode(&self, bm: BlendMode) {
         unsafe {
-            SDL_SetSurfaceBlendMode(self.handle.as_ptr(), bm);
+            SDL_SetSurfaceBlendMode(self.handle.as_ptr(), bm.into());
         }
     }
 }
