@@ -87,7 +87,7 @@ impl TransferBuffer {
     /// unless you have a particular reason to directly use this struct's methods. See its
     /// documentation for more info.
     #[doc(alias = "SDL_CreateGPUTransferBuffer")]
-    fn new(device: Ref<Device>, create_info: &TransferBufferCreateInfo) -> Result<Self> {
+    pub fn new(device: Ref<Device>, create_info: &TransferBufferCreateInfo) -> Result<Self> {
         let handle = unsafe { SDL_CreateGPUTransferBuffer(device.handle.as_ptr(), &create_info.0) };
         Self::from_ptr(handle)
     }
@@ -95,9 +95,9 @@ impl TransferBuffer {
     /// Creates a new [`TransferBuffer`], maps it, calls `write` with the mapped data, then unmaps.
     /// Basically calls the following functions/methods, in order:
     /// 1. [`TransferBuffer::new`]
-    /// 2. [`TransferBuffer::map`]
+    /// 2. [`TransferBufferHandle::map`]
     /// 3. `write`
-    /// 4. [`TransferBuffer::unmap`]
+    /// 4. [`TransferBufferHandle::unmap`]
     ///
     /// The buffer must still be dropped manually.
     ///
@@ -131,7 +131,7 @@ impl TransferBuffer {
 
 impl TransferBufferHandle {
     #[doc(alias = "SDL_MapGPUTransferBuffer")]
-    fn map(&self, device: Ref<Device>, cycle: Cycle) -> Result<NonNull<u8>> {
+    pub fn map(&self, device: Ref<Device>, cycle: Cycle) -> Result<NonNull<u8>> {
         let ptr = unsafe {
             SDL_MapGPUTransferBuffer(device.handle.as_ptr(), self.handle.as_ptr(), cycle.into())
         };
@@ -139,7 +139,7 @@ impl TransferBufferHandle {
     }
 
     #[doc(alias = "SDL_UnmapGPUTransferBuffer")]
-    fn unmap(&self, device: Ref<Device>) {
+    pub fn unmap(&self, device: Ref<Device>) {
         unsafe { SDL_UnmapGPUTransferBuffer(device.handle.as_ptr(), self.handle.as_ptr()) };
     }
 }

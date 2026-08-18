@@ -8,7 +8,7 @@ use crate::{Result, boxed::Box};
 /// An SDL-allocated string.
 ///
 /// Unlike [`std::string::String`] which wraps a [`Vec<u8>`], [`String`] wraps a [`Box<c_char>`],
-/// as SDL always provides a null-terminated string pointer. This makes it borrow some [`CStr`](std::ffi::CStr)
+/// as SDL always provides a null-terminated string pointer. This makes it borrow some [`CStr`]
 /// semantics (i.e. [`Self::count_bytes`]). However, SDL also often makes UTF-8 guarantees about string contents,
 /// so certain conversion methods become infallible (such as [`String::into_boxed_str`]).
 pub struct String {

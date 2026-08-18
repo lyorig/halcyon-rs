@@ -92,7 +92,7 @@ impl Drop for Context {
     }
 }
 
-/// Convenience alias for [`std::result::Result<T, Error>`.]
+/// Convenience alias for [`std::result::Result<T, Error>`].
 /// Used as the return type throughout this crate.
 pub type Result<T = ()> = std::result::Result<T, error::Error>;
 

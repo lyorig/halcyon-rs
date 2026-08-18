@@ -40,7 +40,7 @@ pub fn simd_alignment() -> usize {
 }
 
 /// Returns zero if the page size cannot be determined,
-/// so the returned value is wrapped in [`Option<NonZero<_>>>`].
+/// so the returned value is wrapped in [`Option<NonZero<i32>>`].
 #[doc(alias = "SDL_GetSystemPageSize")]
 pub fn system_page_size() -> Option<NonZero<i32>> {
     NonZero::new(unsafe { SDL_GetSystemPageSize() })
