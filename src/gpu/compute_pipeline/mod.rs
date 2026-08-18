@@ -6,18 +6,25 @@ use std::{ffi::CStr, marker::PhantomData};
 
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
-use crate::{Result, resource::Ref, resource_new_no_drop};
+use crate::{Result, mod_reexport, properties::Properties, resource::Ref, resource_new_no_drop};
 
 use super::{ShaderFormat, device::Device};
 
+mod_reexport!(builder);
+
 #[doc(alias = "SDL_GPUComputePipelineCreateInfo")]
 #[derive(Clone, Copy)]
-pub struct ComputePipelineCreateInfo<'bc, 'ep>(
+pub struct ComputePipelineCreateInfo<'bc, 'ep, 'p>(
     SDL_GPUComputePipelineCreateInfo,
     PhantomData<&'bc [u8]>,
     PhantomData<&'ep CStr>,
+    PhantomData<Ref<'p, Properties>>,
 );
-impl<'bc, 'ep> ComputePipelineCreateInfo<'bc, 'ep> {
+impl<'bc, 'ep, 'p> ComputePipelineCreateInfo<'bc, 'ep, 'p> {
+    pub fn builder(props: Ref<'p, Properties>) -> ComputePipelineCreateInfoBuilder<'p> {
+        ComputePipelineCreateInfoBuilder::new(props)
+    }
+
     pub const fn new(
         code: &'bc [u8],
         entrypoint: &'ep CStr,
@@ -49,7 +56,20 @@ impl<'bc, 'ep> ComputePipelineCreateInfo<'bc, 'ep> {
             props: SDL_PropertiesID::new(0),
         };
 
-        Self(inner, PhantomData, PhantomData)
+        Self(inner, PhantomData, PhantomData, PhantomData)
+    }
+
+    pub(super) fn new_with_props(
+        code: &'bc [u8],
+        entrypoint: &'ep CStr,
+        fmt: ShaderFormat,
+        counts: (u32, u32, u32, u32, u32, u32),
+        thread_count: (u32, u32, u32),
+        props: Ref<'p, Properties>,
+    ) -> Self {
+        let mut info = Self::new(code, entrypoint, fmt, counts, thread_count);
+        info.0.props = props.id();
+        info
     }
 }
 

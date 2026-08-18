@@ -10,9 +10,13 @@ use std::{ffi::CStr, marker::PhantomData};
 use bitmask_enum::bitmask;
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
-use crate::{Result, gpu::Cycle, resource::Ref, resource_new_no_drop};
+use crate::{
+    Result, gpu::Cycle, mod_reexport, properties::Properties, resource::Ref, resource_new_no_drop,
+};
 
 use super::{copy_pass::CopyPass, device::Device, transfer_buffer::TransferBufferLocation};
+
+mod_reexport!(builder);
 
 #[bitmask(u32)]
 #[doc(alias = "SDL_GPUBufferUsageFlags")]
@@ -27,8 +31,12 @@ pub enum BufferUsageFlags {
 
 #[doc(alias = "SDL_GPUBufferCreateInfo")]
 #[derive(Clone, Copy)]
-pub struct BufferCreateInfo(SDL_GPUBufferCreateInfo);
-impl BufferCreateInfo {
+pub struct BufferCreateInfo<'p>(SDL_GPUBufferCreateInfo, PhantomData<Ref<'p, Properties>>);
+impl<'p> BufferCreateInfo<'p> {
+    pub fn builder(props: Ref<'p, Properties>) -> BufferCreateInfoBuilder<'p> {
+        BufferCreateInfoBuilder::new(props)
+    }
+
     pub const fn new(usage: BufferUsageFlags, size: u32) -> Self {
         let usage = SDL_GPUBufferUsageFlags::new(usage.bits());
         let inner = SDL_GPUBufferCreateInfo {
@@ -36,7 +44,17 @@ impl BufferCreateInfo {
             size,
             props: SDL_PropertiesID::new(0),
         };
-        Self(inner)
+        Self(inner, PhantomData)
+    }
+
+    pub(super) fn new_with_props(
+        usage: BufferUsageFlags,
+        size: u32,
+        props: Ref<'p, Properties>,
+    ) -> Self {
+        let mut info = Self::new(usage, size);
+        info.0.props = props.id();
+        info
     }
 }
 

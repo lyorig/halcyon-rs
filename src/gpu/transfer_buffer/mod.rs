@@ -8,9 +8,14 @@ use std::{marker::PhantomData, ptr::NonNull};
 
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
-use crate::{Result, error::Error, gpu::Cycle, resource::Ref, resource_new_no_drop};
+use crate::{
+    Result, error::Error, gpu::Cycle, mod_reexport, properties::Properties, resource::Ref,
+    resource_new_no_drop,
+};
 
 use super::device::Device;
+
+mod_reexport!(builder);
 
 #[doc(alias = "SDL_GPUTransferBufferLocation")]
 #[derive(Clone, Copy)]
@@ -41,14 +46,34 @@ pub enum TransferBufferUsage {
 
 #[doc(alias = "SDL_GPUTransferBufferCreateInfo")]
 #[derive(Clone, Copy)]
-pub struct TransferBufferCreateInfo(SDL_GPUTransferBufferCreateInfo);
-impl TransferBufferCreateInfo {
+pub struct TransferBufferCreateInfo<'p>(
+    SDL_GPUTransferBufferCreateInfo,
+    PhantomData<Ref<'p, Properties>>,
+);
+impl<'p> TransferBufferCreateInfo<'p> {
+    pub fn builder(props: Ref<'p, Properties>) -> TransferBufferCreateInfoBuilder<'p> {
+        TransferBufferCreateInfoBuilder::new(props)
+    }
+
     pub const fn new(usage: TransferBufferUsage, size: u32) -> Self {
-        Self(SDL_GPUTransferBufferCreateInfo {
-            usage: SDL_GPUTransferBufferUsage::new(usage as _),
-            size,
-            props: SDL_PropertiesID::new(0),
-        })
+        Self(
+            SDL_GPUTransferBufferCreateInfo {
+                usage: SDL_GPUTransferBufferUsage::new(usage as _),
+                size,
+                props: SDL_PropertiesID::new(0),
+            },
+            PhantomData,
+        )
+    }
+
+    pub(super) fn new_with_props(
+        usage: TransferBufferUsage,
+        size: u32,
+        props: Ref<'p, Properties>,
+    ) -> Self {
+        let mut info = Self::new(usage, size);
+        info.0.props = props.id();
+        info
     }
 }
 

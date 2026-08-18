@@ -2,16 +2,22 @@
 //! - [x] SDL_CreateGPUSampler
 //! - [x] SDL_ReleaseGPUSampler
 
+use std::marker::PhantomData;
+
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
 use crate::{
     Result,
     gpu::{EnableAnisotropy, EnableCompare},
+    mod_reexport,
+    properties::Properties,
     resource::Ref,
     resource_new_no_drop,
 };
 
 use super::device::Device;
+
+mod_reexport!(builder);
 
 #[repr(i32)]
 #[doc(alias = "SDL_GPUFilter")]
@@ -51,8 +57,12 @@ pub enum CompareOp {
 
 #[doc(alias = "SDL_GPUSamplerCreateInfo")]
 #[derive(Clone, Copy)]
-pub struct SamplerCreateInfo(SDL_GPUSamplerCreateInfo);
-impl SamplerCreateInfo {
+pub struct SamplerCreateInfo<'p>(SDL_GPUSamplerCreateInfo, PhantomData<Ref<'p, Properties>>);
+impl<'p> SamplerCreateInfo<'p> {
+    pub fn builder(props: Ref<'p, Properties>) -> SamplerCreateInfoBuilder<'p> {
+        SamplerCreateInfoBuilder::new(props)
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         min_filter: Filter,
@@ -84,7 +94,38 @@ impl SamplerCreateInfo {
             props: SDL_PropertiesID::new(0),
             ..Default::default()
         };
-        Self(inner)
+        Self(inner, PhantomData)
+    }
+
+    pub(super) fn new_with_props(
+        min_filter: Filter,
+        mag_filter: Filter,
+        mipmap_mode: MipmapMode,
+        address_mode: (AddressMode, AddressMode, AddressMode),
+        mip_lod_bias: f32,
+        max_anisotropy: f32,
+        compare_op: CompareOp,
+        min_lod: f32,
+        max_lod: f32,
+        enable_anisotropy: EnableAnisotropy,
+        enable_compare: EnableCompare,
+        props: Ref<'p, Properties>,
+    ) -> Self {
+        let mut info = Self::new(
+            min_filter,
+            mag_filter,
+            mipmap_mode,
+            address_mode,
+            mip_lod_bias,
+            max_anisotropy,
+            compare_op,
+            min_lod,
+            max_lod,
+            enable_anisotropy,
+            enable_compare,
+        );
+        info.0.props = props.id();
+        info
     }
 }
 

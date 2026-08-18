@@ -10,6 +10,8 @@ use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 use crate::{
     Result,
     gpu::{ColorTargetDescription, VertexAttribute, VertexBufferDescription},
+    mod_reexport,
+    properties::Properties,
     resource::Ref,
     resource_new_no_drop,
 };
@@ -24,6 +26,8 @@ use super::{
     shader::Shader,
 };
 
+mod_reexport!(builder);
+
 #[repr(i32)]
 #[doc(alias = "SDL_GPUPrimitiveType")]
 pub enum PrimitiveType {
@@ -36,15 +40,20 @@ pub enum PrimitiveType {
 
 #[doc(alias = "SDL_GPUGraphicsPipelineCreateInfo")]
 #[derive(Clone, Copy)]
-pub struct GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd>(
+pub struct GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd, 'p>(
     SDL_GPUGraphicsPipelineCreateInfo,
     PhantomData<Ref<'vs, Shader>>,
     PhantomData<Ref<'fs, Shader>>,
     PhantomData<&'vbd [VertexBufferDescription]>,
     PhantomData<&'va [VertexAttribute]>,
     PhantomData<&'ctd [ColorTargetDescription]>,
+    PhantomData<Ref<'p, Properties>>,
 );
-impl<'vs, 'fs, 'vbd, 'va, 'ctd> GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd> {
+impl<'vs, 'fs, 'vbd, 'va, 'ctd, 'p> GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd, 'p> {
+    pub fn builder(props: Ref<'p, Properties>) -> GraphicsPipelineCreateInfoBuilder<'p> {
+        GraphicsPipelineCreateInfoBuilder::new(props)
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         vertex_shader: Ref<'vs, Shader>,
@@ -73,7 +82,33 @@ impl<'vs, 'fs, 'vbd, 'va, 'ctd> GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 
             PhantomData,
             PhantomData,
             PhantomData,
+            PhantomData,
         )
+    }
+
+    pub(super) fn new_with_props(
+        vertex_shader: Ref<'vs, Shader>,
+        fragment_shader: Ref<'fs, Shader>,
+        vertex_input_state: VertexInputState<'vbd, 'va>,
+        primitive_type: PrimitiveType,
+        rasterizer_state: RasterizerState,
+        multisample_state: MultisampleState,
+        depth_stencil_state: DepthStencilState,
+        target_info: GraphicsPipelineTargetInfo<'ctd>,
+        props: Ref<'p, Properties>,
+    ) -> Self {
+        let mut info = Self::new(
+            vertex_shader,
+            fragment_shader,
+            vertex_input_state,
+            primitive_type,
+            rasterizer_state,
+            multisample_state,
+            depth_stencil_state,
+            target_info,
+        );
+        info.0.props = props.id();
+        info
     }
 }
 
