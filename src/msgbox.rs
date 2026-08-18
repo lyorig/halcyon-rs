@@ -6,22 +6,26 @@ use crate::{Result, util::to_result};
 
 #[repr(u32)]
 #[derive(Clone, Copy)]
+#[doc(alias = "SDL_MessageBoxFlags")]
 pub enum Severity {
-    Info = SDL_MESSAGEBOX_INFORMATION.0,
-    Warning = SDL_MESSAGEBOX_WARNING.0,
-    Error = SDL_MESSAGEBOX_ERROR.0,
+    Error = SDL_MessageBoxFlags::ERROR.0,
+    Warning = SDL_MessageBoxFlags::WARNING.0,
+    Info = SDL_MessageBoxFlags::INFORMATION.0,
 }
 
-impl Severity {
-    fn as_flags(&self) -> SDL_MessageBoxFlags {
-        SDL_MessageBoxFlags(*self as _)
-    }
+#[repr(u32)]
+#[derive(Clone, Copy)]
+#[doc(alias = "SDL_MessageBoxFlags")]
+pub enum ButtonLayout {
+    LeftToRight = SDL_MessageBoxFlags::BUTTONS_LEFT_TO_RIGHT.0,
+    RightToLeft = SDL_MessageBoxFlags::BUTTONS_RIGHT_TO_LEFT.0,
 }
 
-pub fn show(sev: Severity, title: &CStr, message: &CStr) -> Result {
+pub fn show(sev: Severity, bl: ButtonLayout, title: &CStr, message: &CStr) -> Result {
+    let flags = sev as u32 | bl as u32;
     to_result(unsafe {
         SDL_ShowSimpleMessageBox(
-            sev.as_flags(),
+            SDL_MessageBoxFlags::new(flags),
             title.as_ptr(),
             message.as_ptr(),
             std::ptr::null_mut(),

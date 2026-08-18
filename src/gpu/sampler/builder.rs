@@ -9,7 +9,7 @@ use crate::{
     resource::Ref,
 };
 
-use super::{AddressMode, CompareOp, Filter, MipmapMode, Sampler, SamplerCreateInfo};
+use super::{CompareOp, Filter, Sampler, SamplerAddressMode, SamplerCreateInfo, SamplerMipmapMode};
 
 const CREATE_PROPERTIES: [*const c_char; 1] = [SDL_PROP_GPU_SAMPLER_CREATE_NAME_STRING];
 
@@ -44,8 +44,8 @@ impl<'p> SamplerCreateInfoBuilder<'p> {
         &self,
         min_filter: Filter,
         mag_filter: Filter,
-        mipmap_mode: MipmapMode,
-        address_mode: (AddressMode, AddressMode, AddressMode),
+        mipmap_mode: SamplerMipmapMode,
+        address_mode: (SamplerAddressMode, SamplerAddressMode, SamplerAddressMode),
         mip_lod_bias: f32,
         max_anisotropy: f32,
         compare_op: CompareOp,

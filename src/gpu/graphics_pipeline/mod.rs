@@ -10,7 +10,7 @@ use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 use crate::{
     Result,
     gpu::{ColorTargetDescription, VertexAttribute, VertexBufferDescription},
-    mod_reexport,
+    impl_enum_transmute, mod_reexport,
     properties::Properties,
     resource::Ref,
     resource_new_no_drop,
@@ -29,6 +29,7 @@ use super::{
 mod_reexport!(builder);
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUPrimitiveType")]
 pub enum PrimitiveType {
     TriangleList = SDL_GPUPrimitiveType::TRIANGLELIST.0,
@@ -37,6 +38,8 @@ pub enum PrimitiveType {
     LineStrip = SDL_GPUPrimitiveType::LINESTRIP.0,
     PointList = SDL_GPUPrimitiveType::POINTLIST.0,
 }
+
+impl_enum_transmute!(SDL_GPUPrimitiveType, PrimitiveType);
 
 #[doc(alias = "SDL_GPUGraphicsPipelineCreateInfo")]
 #[derive(Clone, Copy)]

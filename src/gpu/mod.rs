@@ -34,22 +34,13 @@ mod_reexport!(transfer_buffer);
 use bitmask_enum::bitmask;
 use sdl3_sys::{gpu::*, pixels::SDL_PixelFormat, properties::SDL_PropertiesID};
 
-use crate::{mod_reexport, util::c_ptr_to_str};
+use crate::{impl_enum_transmute, mod_reexport, util::c_ptr_to_str};
 
 /// Non-bitmask variant of `SDL_GPUShaderFormat`.
 #[repr(u32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUShaderFormat")]
 pub enum ShaderFormat {
-    SpirV = SDL_GPUShaderFormat::SPIRV.0,
-    Dxbc = SDL_GPUShaderFormat::DXBC.0,
-    Dxil = SDL_GPUShaderFormat::DXIL.0,
-    Msl = SDL_GPUShaderFormat::MSL.0,
-    Metallib = SDL_GPUShaderFormat::METALLIB.0,
-}
-
-#[bitmask(u32)]
-#[doc(alias = "SDL_GPUShaderFormat")]
-pub enum ShaderFormats {
     SpirV = SDL_GPUShaderFormat::SPIRV.0,
     Dxbc = SDL_GPUShaderFormat::DXBC.0,
     Dxil = SDL_GPUShaderFormat::DXIL.0,
@@ -63,6 +54,18 @@ impl ShaderFormat {
         ShaderFormats { bits: self as u32 }
     }
 }
+
+#[bitmask(u32)]
+#[doc(alias = "SDL_GPUShaderFormat")]
+pub enum ShaderFormats {
+    SpirV = SDL_GPUShaderFormat::SPIRV.0,
+    Dxbc = SDL_GPUShaderFormat::DXBC.0,
+    Dxil = SDL_GPUShaderFormat::DXIL.0,
+    Msl = SDL_GPUShaderFormat::MSL.0,
+    Metallib = SDL_GPUShaderFormat::METALLIB.0,
+}
+
+impl_enum_transmute!(SDL_GPUShaderFormat, ShaderFormats);
 
 impl From<ShaderFormat> for ShaderFormats {
     fn from(value: ShaderFormat) -> Self {

@@ -11,7 +11,8 @@ use bitmask_enum::bitmask;
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
 use crate::{
-    Result, gpu::Cycle, mod_reexport, properties::Properties, resource::Ref, resource_new_no_drop,
+    Result, gpu::Cycle, impl_enum_transmute, mod_reexport, properties::Properties, resource::Ref,
+    resource_new_no_drop,
 };
 
 use super::{copy_pass::CopyPass, device::Device, transfer_buffer::TransferBufferLocation};
@@ -28,6 +29,8 @@ pub enum BufferUsageFlags {
     ComputeStorageRead = SDL_GPUBufferUsageFlags::COMPUTE_STORAGE_READ.0,
     ComputeStorageWrite = SDL_GPUBufferUsageFlags::COMPUTE_STORAGE_WRITE.0,
 }
+
+impl_enum_transmute!(SDL_GPUBufferUsageFlags, BufferUsageFlags);
 
 #[doc(alias = "SDL_GPUBufferCreateInfo")]
 #[derive(Clone, Copy)]

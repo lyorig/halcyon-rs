@@ -11,8 +11,8 @@ use bitmask_enum::bitmask;
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
 use crate::{
-    Result, gpu::Cycle, mod_reexport, properties::Properties, rect::Point, resource::Ref,
-    resource_new_no_drop,
+    Result, gpu::Cycle, impl_enum_transmute, mod_reexport, properties::Properties, rect::Point,
+    resource::Ref, resource_new_no_drop,
 };
 
 use super::{
@@ -22,6 +22,7 @@ use super::{
 mod_reexport!(builder);
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUTextureType")]
 pub enum TextureType {
     _2d = SDL_GPUTextureType::_2D.0,
@@ -44,6 +45,7 @@ pub enum TextureUsageFlags {
 }
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUSampleCount")]
 pub enum SampleCount {
     One = SDL_GPUSampleCount::_1.0,
@@ -163,11 +165,10 @@ pub enum TextureFormat {
     Astc12x12Float = SDL_GPUTextureFormat::ASTC_12x12_FLOAT.0,
 }
 
-impl From<SDL_GPUTextureFormat> for TextureFormat {
-    fn from(value: SDL_GPUTextureFormat) -> Self {
-        unsafe { std::mem::transmute(value) }
-    }
-}
+impl_enum_transmute!(SDL_GPUTextureType, TextureType);
+impl_enum_transmute!(SDL_GPUTextureUsageFlags, TextureUsageFlags);
+impl_enum_transmute!(SDL_GPUSampleCount, SampleCount);
+impl_enum_transmute!(SDL_GPUTextureFormat, TextureFormat);
 
 #[doc(alias = "SDL_GPUTextureCreateInfo")]
 #[derive(Clone, Copy)]

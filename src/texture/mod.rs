@@ -40,7 +40,7 @@ use sdl3_sys::{
 use crate::{
     Result,
     color::{RgbF32, RgbU8},
-    impl_enum_conversions, mod_reexport,
+    impl_enum_transmute, mod_reexport,
     pixels::BlendMode,
     properties::{Properties, PropertiesHandle},
     rect::{PointF32, PointI32},
@@ -136,8 +136,6 @@ impl PixelFormat {
     pub const XBGR32: Self = Self::from_sdl(SDL_PixelFormat::XBGR8888);
 }
 
-impl_enum_conversions!(SDL_PixelFormat, PixelFormat);
-
 #[repr(u32)]
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[doc(alias = "SDL_Colorspace")]
@@ -155,8 +153,6 @@ pub enum Colorspace {
     Bt2020Full = SDL_Colorspace::BT2020_FULL.0,
 }
 
-impl_enum_conversions!(SDL_Colorspace, Colorspace);
-
 #[repr(i32)]
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[doc(alias = "SDL_TextureAccess")]
@@ -166,7 +162,9 @@ pub enum TextureAccess {
     Target = SDL_TextureAccess::TARGET.0,
 }
 
-impl_enum_conversions!(SDL_TextureAccess, TextureAccess);
+impl_enum_transmute!(SDL_PixelFormat, PixelFormat);
+impl_enum_transmute!(SDL_Colorspace, Colorspace);
+impl_enum_transmute!(SDL_TextureAccess, TextureAccess);
 
 resource_new!(SDL_Texture, Texture, SDL_DestroyTexture);
 

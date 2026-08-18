@@ -9,8 +9,8 @@ use std::{marker::PhantomData, ptr::NonNull};
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
 use crate::{
-    Result, error::Error, gpu::Cycle, mod_reexport, properties::Properties, resource::Ref,
-    resource_new_no_drop,
+    Result, error::Error, gpu::Cycle, impl_enum_transmute, mod_reexport, properties::Properties,
+    resource::Ref, resource_new_no_drop,
 };
 
 use super::device::Device;
@@ -43,6 +43,8 @@ pub enum TransferBufferUsage {
     Upload = SDL_GPUTransferBufferUsage::UPLOAD.0,
     Download = SDL_GPUTransferBufferUsage::DOWNLOAD.0,
 }
+
+impl_enum_transmute!(SDL_GPUTransferBufferUsage, TransferBufferUsage);
 
 #[doc(alias = "SDL_GPUTransferBufferCreateInfo")]
 #[derive(Clone, Copy)]

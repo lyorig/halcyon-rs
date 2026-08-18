@@ -22,6 +22,7 @@ use crate::{
     Result,
     color::RgbaF32,
     gpu::Cycle,
+    impl_enum_transmute,
     resource::Ref,
     resource_new_no_drop,
     util::{opt2ptr_mut, to_result},
@@ -45,6 +46,7 @@ fn swapchain_texture<'a>(ptr: *mut SDL_GPUTexture) -> Option<Ref<'a, Texture>> {
 }
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_FlipMode")]
 pub enum FlipMode {
     None = SDL_FlipMode::NONE.0,
@@ -52,6 +54,8 @@ pub enum FlipMode {
     Vertical = SDL_FlipMode::VERTICAL.0,
     HorizontalAndVertical = SDL_FlipMode::HORIZONTAL_AND_VERTICAL.0,
 }
+
+impl_enum_transmute!(SDL_FlipMode, FlipMode);
 
 #[doc(alias = "SDL_GPUBlitInfo")]
 #[derive(Clone, Copy)]

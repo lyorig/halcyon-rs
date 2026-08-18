@@ -27,6 +27,8 @@ use std::{
 
 use sdl3_sys::log::*;
 
+use crate::impl_enum_transmute;
+
 #[repr(i32)]
 #[derive(Clone, Copy)]
 #[doc(alias = "SDL_LogPriority")]
@@ -38,18 +40,6 @@ pub enum Priority {
     Warn = SDL_LogPriority::WARN.0,
     Error = SDL_LogPriority::ERROR.0,
     Critical = SDL_LogPriority::CRITICAL.0,
-}
-
-impl From<SDL_LogPriority> for Priority {
-    fn from(value: SDL_LogPriority) -> Self {
-        unsafe { std::mem::transmute(value) }
-    }
-}
-
-impl From<Priority> for SDL_LogPriority {
-    fn from(value: Priority) -> Self {
-        unsafe { std::mem::transmute(value) }
-    }
 }
 
 #[repr(i32)]
@@ -67,6 +57,9 @@ pub enum Category {
     Test = SDL_LogCategory::TEST.0,
     Gpu = SDL_LogCategory::GPU.0,
 }
+
+impl_enum_transmute!(SDL_LogPriority, Priority);
+impl_enum_transmute!(SDL_LogCategory, Category);
 
 fn args2cstr(args: Arguments) -> CString {
     let s = args.to_string();

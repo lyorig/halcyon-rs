@@ -8,7 +8,7 @@ use std::marker::PhantomData;
 use bitmask_enum::bitmask;
 use sdl3_sys::gpu::*;
 
-use crate::gpu::enums::*;
+use crate::{gpu::enums::*, impl_enum_transmute};
 
 use super::{
     sampler::CompareOp,
@@ -16,6 +16,7 @@ use super::{
 };
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUVertexElementFormat")]
 pub enum VertexElementFormat {
     Invalid = SDL_GPUVertexElementFormat::INVALID.0,
@@ -52,6 +53,7 @@ pub enum VertexElementFormat {
 }
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUVertexInputRate")]
 pub enum VertexInputRate {
     Vertex = SDL_GPUVertexInputRate::VERTEX.0,
@@ -59,6 +61,7 @@ pub enum VertexInputRate {
 }
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUFillMode")]
 pub enum FillMode {
     Fill = SDL_GPUFillMode::FILL.0,
@@ -66,6 +69,7 @@ pub enum FillMode {
 }
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUCullMode")]
 pub enum CullMode {
     None = SDL_GPUCullMode::NONE.0,
@@ -74,6 +78,7 @@ pub enum CullMode {
 }
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUFrontFace")]
 pub enum FrontFace {
     CounterClockwise = SDL_GPUFrontFace::COUNTER_CLOCKWISE.0,
@@ -81,6 +86,7 @@ pub enum FrontFace {
 }
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUBlendFactor")]
 pub enum BlendFactor {
     Invalid = SDL_GPUBlendFactor::INVALID.0,
@@ -100,6 +106,7 @@ pub enum BlendFactor {
 }
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUBlendOp")]
 pub enum BlendOp {
     Invalid = SDL_GPUBlendOp::INVALID.0,
@@ -111,6 +118,7 @@ pub enum BlendOp {
 }
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUStencilOp")]
 pub enum StencilOp {
     Invalid = SDL_GPUStencilOp::INVALID.0,
@@ -132,6 +140,16 @@ pub enum ColorComponentFlags {
     B = SDL_GPUColorComponentFlags::B.0,
     A = SDL_GPUColorComponentFlags::A.0,
 }
+
+impl_enum_transmute!(SDL_GPUVertexElementFormat, VertexElementFormat);
+impl_enum_transmute!(SDL_GPUVertexInputRate, VertexInputRate);
+impl_enum_transmute!(SDL_GPUFillMode, FillMode);
+impl_enum_transmute!(SDL_GPUCullMode, CullMode);
+impl_enum_transmute!(SDL_GPUFrontFace, FrontFace);
+impl_enum_transmute!(SDL_GPUBlendFactor, BlendFactor);
+impl_enum_transmute!(SDL_GPUBlendOp, BlendOp);
+impl_enum_transmute!(SDL_GPUStencilOp, StencilOp);
+impl_enum_transmute!(SDL_GPUColorComponentFlags, ColorComponentFlags);
 
 #[doc(alias = "SDL_GPUVertexBufferDescription")]
 #[derive(Clone, Copy)]

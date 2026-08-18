@@ -26,7 +26,7 @@ use crate::{
     Result,
     error::Error,
     gpu::{EnableDebug, WaitAll},
-    mod_reexport,
+    impl_enum_transmute, mod_reexport,
     properties::{Properties, PropertiesHandle},
     resource::Ref,
     resource_new,
@@ -44,6 +44,7 @@ mod_reexport!(builder);
 mod_reexport!(properties);
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUPresentMode")]
 pub enum PresentMode {
     Vsync = SDL_GPUPresentMode::VSYNC.0,
@@ -52,6 +53,7 @@ pub enum PresentMode {
 }
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUSwapchainComposition")]
 pub enum SwapchainComposition {
     Sdr = SDL_GPUSwapchainComposition::SDR.0,
@@ -59,6 +61,9 @@ pub enum SwapchainComposition {
     HdrExtendedLinear = SDL_GPUSwapchainComposition::HDR_EXTENDED_LINEAR.0,
     Hdr10St2084 = SDL_GPUSwapchainComposition::HDR10_ST2084.0,
 }
+
+impl_enum_transmute!(SDL_GPUPresentMode, PresentMode);
+impl_enum_transmute!(SDL_GPUSwapchainComposition, SwapchainComposition);
 
 resource_new!(SDL_GPUDevice, Device, SDL_DestroyGPUDevice);
 impl Device {

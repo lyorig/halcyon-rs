@@ -21,6 +21,7 @@ use crate::{
     Result, boolenum,
     boxed::Box,
     error::Error,
+    impl_enum_transmute,
     rect::{PointI32, RectI32},
     util::opt2res_map,
 };
@@ -38,6 +39,8 @@ pub enum DisplayOrientation {
     Portrait = SDL_DisplayOrientation::PORTRAIT.0,
     PortraitFlipped = SDL_DisplayOrientation::PORTRAIT_FLIPPED.0,
 }
+
+impl_enum_transmute!(SDL_DisplayOrientation, DisplayOrientation);
 
 impl std::fmt::Display for DisplayOrientation {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {

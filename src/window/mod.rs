@@ -110,7 +110,7 @@ use crate::{
     boxed::Box,
     display::Display,
     error::Error,
-    mod_reexport,
+    impl_enum_transmute, mod_reexport,
     properties::{Properties, PropertiesHandle},
     rect::{PointI32, RectI32},
     renderer::{Renderer, RendererHandle},
@@ -198,18 +198,6 @@ pub enum WindowFlags {
     NotFocusable = SDL_WINDOW_NOT_FOCUSABLE.0,
 }
 
-impl From<WindowFlags> for SDL_WindowFlags {
-    fn from(value: WindowFlags) -> Self {
-        SDL_WindowFlags::new(value.bits())
-    }
-}
-
-impl From<SDL_WindowFlags> for WindowFlags {
-    fn from(value: SDL_WindowFlags) -> Self {
-        WindowFlags::from(value.0)
-    }
-}
-
 #[repr(i32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SystemTheme {
@@ -227,6 +215,10 @@ pub enum ProgressState {
     Paused = SDL_ProgressState::PAUSED.0,
     Error = SDL_ProgressState::ERROR.0,
 }
+
+impl_enum_transmute!(SDL_WindowFlags, WindowFlags);
+impl_enum_transmute!(SDL_SystemTheme, SystemTheme);
+impl_enum_transmute!(SDL_ProgressState, ProgressState);
 
 impl std::fmt::Display for SystemTheme {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {

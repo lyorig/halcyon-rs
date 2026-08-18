@@ -26,6 +26,7 @@ use crate::{
     Result,
     color::RgbaF32,
     gpu::{Buffer, Cycle, CycleResolveTexture},
+    impl_enum_transmute,
     rect::{PointF32, RectI32},
     resource::Ref,
     resource_new,
@@ -39,26 +40,11 @@ use super::{
 };
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUIndexElementSize")]
 pub enum IndexElementSize {
     Bits16 = SDL_GPUIndexElementSize::_16BIT.0,
     Bits32 = SDL_GPUIndexElementSize::_32BIT.0,
-}
-
-#[doc(alias = "SDL_GPUViewport")]
-#[derive(Clone, Copy)]
-pub struct Viewport(SDL_GPUViewport);
-impl Viewport {
-    pub fn new(pos: PointF32, size: PointF32, (min_depth, max_depth): (f32, f32)) -> Self {
-        Self(SDL_GPUViewport {
-            x: pos.x,
-            y: pos.y,
-            w: size.x,
-            h: size.y,
-            min_depth,
-            max_depth,
-        })
-    }
 }
 
 #[repr(i32)]
@@ -78,6 +64,26 @@ pub enum StoreOp {
     DontCare = SDL_GPUStoreOp::DONT_CARE.0,
     Resolve = SDL_GPUStoreOp::RESOLVE.0,
     ResolveAndStore = SDL_GPUStoreOp::RESOLVE_AND_STORE.0,
+}
+
+impl_enum_transmute!(SDL_GPUIndexElementSize, IndexElementSize);
+impl_enum_transmute!(SDL_GPULoadOp, LoadOp);
+impl_enum_transmute!(SDL_GPUStoreOp, StoreOp);
+
+#[doc(alias = "SDL_GPUViewport")]
+#[derive(Clone, Copy)]
+pub struct Viewport(SDL_GPUViewport);
+impl Viewport {
+    pub fn new(pos: PointF32, size: PointF32, (min_depth, max_depth): (f32, f32)) -> Self {
+        Self(SDL_GPUViewport {
+            x: pos.x,
+            y: pos.y,
+            w: size.x,
+            h: size.y,
+            min_depth,
+            max_depth,
+        })
+    }
 }
 
 #[doc(alias = "SDL_GPUColorTargetInfo")]

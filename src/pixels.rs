@@ -1,6 +1,6 @@
 use sdl3_sys::blendmode::SDL_BlendMode;
 
-use crate::impl_enum_conversions;
+use crate::impl_enum_transmute;
 
 #[repr(u32)]
 #[derive(Clone, Copy)]
@@ -15,4 +15,4 @@ pub enum BlendMode {
     Mul = SDL_BlendMode::MUL.0,
 }
 
-impl_enum_conversions!(SDL_BlendMode, BlendMode);
+impl_enum_transmute!(SDL_BlendMode, BlendMode);

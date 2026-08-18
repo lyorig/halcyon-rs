@@ -35,11 +35,21 @@ macro_rules! boolenum {
 /// - `$wrap::from_sdl($sdl)`
 /// - `$wrap::to_sdl(self)`
 ///
-/// This uses [`std::mem::transmute`]; it is your responsibility to ensure
+/// The macro ensures the following pre-requisites at compile-time:
+/// - the two types have equal size ([`std::mem::size_of`])
+/// - both types implement [`Copy`]
+///
+/// The conversion is done via [`std::mem::transmute`].
+/// While the it is your responsibility to ensure
 /// its use for converting between both enums is sound.
 #[macro_export]
-macro_rules! impl_enum_conversions {
+macro_rules! impl_enum_transmute {
     ($sdl:ident, $wrap:ident) => {
+        const _: () = assert!(::std::mem::size_of::<$sdl>() == ::std::mem::size_of::<$wrap>());
+
+        unsafe impl $crate::util::IsCopy for $sdl {}
+        unsafe impl $crate::util::IsCopy for $wrap {}
+
         impl $wrap {
             const fn from_sdl(value: $sdl) -> Self {
                 unsafe { ::std::mem::transmute(value) }
@@ -116,3 +126,5 @@ pub fn to_result(result: bool) -> Result {
 pub unsafe fn c_ptr_to_str<'a>(ptr: *const c_char) -> &'a str {
     unsafe { str::from_utf8_unchecked(CStr::from_ptr(ptr).to_bytes()) }
 }
+
+pub(crate) unsafe trait IsCopy: Copy {}

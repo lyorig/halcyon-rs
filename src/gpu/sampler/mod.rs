@@ -9,7 +9,7 @@ use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 use crate::{
     Result,
     gpu::{EnableAnisotropy, EnableCompare},
-    mod_reexport,
+    impl_enum_transmute, mod_reexport,
     properties::Properties,
     resource::Ref,
     resource_new_no_drop,
@@ -20,6 +20,7 @@ use super::device::Device;
 mod_reexport!(builder);
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUFilter")]
 pub enum Filter {
     Nearest = SDL_GPUFilter::NEAREST.0,
@@ -27,21 +28,24 @@ pub enum Filter {
 }
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUSamplerMipmapMode")]
-pub enum MipmapMode {
+pub enum SamplerMipmapMode {
     Nearest = SDL_GPUSamplerMipmapMode::NEAREST.0,
     Linear = SDL_GPUSamplerMipmapMode::LINEAR.0,
 }
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUSamplerAddressMode")]
-pub enum AddressMode {
+pub enum SamplerAddressMode {
     Repeat = SDL_GPUSamplerAddressMode::REPEAT.0,
     MirroredRepeat = SDL_GPUSamplerAddressMode::MIRRORED_REPEAT.0,
     ClampToEdge = SDL_GPUSamplerAddressMode::CLAMP_TO_EDGE.0,
 }
 
 #[repr(i32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUCompareOp")]
 pub enum CompareOp {
     Invalid = SDL_GPUCompareOp::INVALID.0,
@@ -55,6 +59,11 @@ pub enum CompareOp {
     Always = SDL_GPUCompareOp::ALWAYS.0,
 }
 
+impl_enum_transmute!(SDL_GPUFilter, Filter);
+impl_enum_transmute!(SDL_GPUSamplerMipmapMode, SamplerMipmapMode);
+impl_enum_transmute!(SDL_GPUSamplerAddressMode, SamplerAddressMode);
+impl_enum_transmute!(SDL_GPUCompareOp, CompareOp);
+
 #[doc(alias = "SDL_GPUSamplerCreateInfo")]
 #[derive(Clone, Copy)]
 pub struct SamplerCreateInfo<'p>(SDL_GPUSamplerCreateInfo, PhantomData<Ref<'p, Properties>>);
@@ -67,8 +76,8 @@ impl<'p> SamplerCreateInfo<'p> {
     pub fn new(
         min_filter: Filter,
         mag_filter: Filter,
-        mipmap_mode: MipmapMode,
-        (u, v, w): (AddressMode, AddressMode, AddressMode),
+        mipmap_mode: SamplerMipmapMode,
+        (u, v, w): (SamplerAddressMode, SamplerAddressMode, SamplerAddressMode),
         mip_lod_bias: f32,
         max_anisotropy: f32,
         compare_op: CompareOp,
@@ -101,8 +110,8 @@ impl<'p> SamplerCreateInfo<'p> {
     pub(super) fn new_with_props(
         min_filter: Filter,
         mag_filter: Filter,
-        mipmap_mode: MipmapMode,
-        address_mode: (AddressMode, AddressMode, AddressMode),
+        mipmap_mode: SamplerMipmapMode,
+        address_mode: (SamplerAddressMode, SamplerAddressMode, SamplerAddressMode),
         mip_lod_bias: f32,
         max_anisotropy: f32,
         compare_op: CompareOp,
