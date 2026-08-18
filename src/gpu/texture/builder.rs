@@ -49,12 +49,14 @@ impl<'p> TextureBuilder<'p> {
         self.set_float(SDL_PROP_GPU_TEXTURE_CREATE_D3D12_CLEAR_A_FLOAT, value)
     }
 
+    /// The clear color for D3D12 render targets.
+    ///
     /// Shorthand setter for the following properties:
     /// - [`TextureBuilder::d3d12_clear_r`]
     /// - [`TextureBuilder::d3d12_clear_g`]
     /// - [`TextureBuilder::d3d12_clear_b`]
     /// - [`TextureBuilder::d3d12_clear_a`]
-    pub fn d3d12_clear_rgba(&mut self, value: RgbaF32) -> &mut Self {
+    pub fn d3d12_clear(&mut self, value: RgbaF32) -> &mut Self {
         self.d3d12_clear_r(value.rgb.r);
         self.d3d12_clear_g(value.rgb.g);
         self.d3d12_clear_b(value.rgb.b);
