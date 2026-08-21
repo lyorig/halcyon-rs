@@ -36,6 +36,26 @@
 //! - you intend to re-use it to build something else, and don't want the earlier configuration
 //!   to influence future builds
 //!
+//! # `[Object]CreateInfo` builders
+//!
+//! Many objects in the GPU submodule use a separate structure in place of constructor arguments,
+//! e.g. [`Texture`](crate::gpu::Texture) uses [`TextureCreateInfo`](crate::gpu::TextureCreateInfo).
+//! These internally hold a [`SDL_PropertiesID`](sdl3_sys::properties::SDL_PropertiesID), enabling
+//! setting further options (SDL calls them "extensions"). I considered a few designs wrapping this
+//! behavior in a builder, and finally settled on builders for the `[Object]CreateInfo` structs
+//! themselves. Two build options are provided:
+//!
+//! ```rust
+//! fn build(&self, /* required struct fields */) -> FooCreateInfo<'p>;
+//! fn build_cleanup(&self, ci: &FooCreateInfo) -> Result<Foo>;
+//! ```
+//!
+//! `build` constructs the `CreateInfo` struct with the builder's properties attached.
+//! `build_cleanup` uses an existing `CreateInfo` to create an object, then clears any properties from itself.
+//!
+//! All `CreateInfo` structs expose an associated `new` function that enables them to be created
+//! with only the required components (no properties). In this case, the lifetime is inferred.
+//!
 //! # API checklist ([source](https://wiki.libsdl.org/SDL3/CategoryProperties))
 //! - [x] SDL_ClearProperty
 //! - [x] SDL_CopyProperties

@@ -35,6 +35,7 @@ impl<'frag, 'sbin, 'sbin_t, 'sbin_s, 'stex, 'stex_t, 'sbuf, 'sbuf_b>
                 storage_textures: storage_textures.as_ptr().cast(),
                 num_storage_buffers: storage_buffers.len() as _,
                 storage_buffers: storage_buffers.as_ptr().cast(),
+                // NOTE: No properties are read as of v3.4.14.
                 props: SDL_PropertiesID::new(0),
             },
             PhantomData,
