@@ -16,16 +16,13 @@ macro_rules! boolenum {
         #[repr(u8)]
         #[derive(Clone, Copy)]
         pub enum $name {
-            No = 0,
-            Yes = 1,
+            No = false as _,
+            Yes = true as _,
         }
 
         impl From<$name> for bool {
             fn from(value: $name) -> Self {
-                match value {
-                    $name::No => false,
-                    $name::Yes => true,
-                }
+                unsafe { ::std::mem::transmute(value) }
             }
         }
     };
@@ -40,8 +37,7 @@ macro_rules! boolenum {
 /// - both types implement [`Copy`]
 ///
 /// The conversion is done via [`std::mem::transmute`].
-/// While the it is your responsibility to ensure
-/// its use for converting between both enums is sound.
+/// It is your responsibility to ensure its use for converting between both enums is sound.
 #[macro_export]
 macro_rules! impl_enum_transmute {
     ($sdl:ident, $wrap:ident) => {
