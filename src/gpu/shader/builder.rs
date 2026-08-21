@@ -61,8 +61,8 @@ impl<'p> ShaderCreateInfoBuilder<'p> {
         device: Ref<Device>,
         create_info: &ShaderCreateInfo<'bc, 'ep, 'p>,
     ) -> Result<Shader> {
-        let result = Shader::new(device, create_info);
+        let res = Shader::new(device, create_info);
         Self::clear_from(self.props);
-        result
+        res
     }
 }

@@ -78,8 +78,8 @@ impl<'p> SamplerCreateInfoBuilder<'p> {
         device: Ref<Device>,
         create_info: &SamplerCreateInfo<'p>,
     ) -> Result<Sampler> {
-        let result = Sampler::new(device, create_info);
+        let res = Sampler::new(device, create_info);
         Self::clear_from(self.props);
-        result
+        res
     }
 }

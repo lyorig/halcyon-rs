@@ -74,8 +74,8 @@ impl<'p> GraphicsPipelineCreateInfoBuilder<'p> {
         device: Ref<Device>,
         create_info: &GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd, 'p>,
     ) -> Result<GraphicsPipeline> {
-        let result = GraphicsPipeline::new(device, create_info);
+        let res = GraphicsPipeline::new(device, create_info);
         Self::clear_from(self.props);
-        result
+        res
     }
 }

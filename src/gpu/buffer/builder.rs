@@ -45,8 +45,8 @@ impl<'p> BufferCreateInfoBuilder<'p> {
         device: Ref<Device>,
         create_info: &BufferCreateInfo<'p>,
     ) -> Result<Buffer> {
-        let result = Buffer::new(device, create_info);
+        let res = Buffer::new(device, create_info);
         Self::clear_from(self.props);
-        result
+        res
     }
 }

@@ -59,8 +59,8 @@ impl<'p> ComputePipelineCreateInfoBuilder<'p> {
         device: Ref<Device>,
         create_info: &ComputePipelineCreateInfo<'bc, 'ep, 'p>,
     ) -> Result<ComputePipeline> {
-        let result = ComputePipeline::new(device, create_info);
+        let res = ComputePipeline::new(device, create_info);
         Self::clear_from(self.props);
-        result
+        res
     }
 }

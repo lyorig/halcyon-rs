@@ -45,8 +45,8 @@ impl<'p> TransferBufferCreateInfoBuilder<'p> {
         device: Ref<Device>,
         create_info: &TransferBufferCreateInfo<'p>,
     ) -> Result<TransferBuffer> {
-        let result = TransferBuffer::new(device, create_info);
+        let res = TransferBuffer::new(device, create_info);
         Self::clear_from(self.props);
-        result
+        res
     }
 }
