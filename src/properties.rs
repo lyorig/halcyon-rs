@@ -1,7 +1,7 @@
 //! SDL properties API wrapper.
 //! A property group ([`Properties`]) is essentially a map, where (in Rust terms):
-//! - the key is a `&CStr`
-//! - the value is one of {`CString`, `i64`, `f32`, `bool`, `*mut c_void`}.
+//! - the key is a [`&CStr`](std::ffi::CStr)
+//! - the value is one of {[`CString`](std::ffi::CString), [`i64`], [`f32`], [`bool`], [`*mut c_void`](std::ffi::c_void)}.
 //!
 //! SDL has begun using this API in release 3.2.0, and many of its objects are built
 //! by setting certain values on a property group, then calling `SDL_Create*WithProperties()`.
