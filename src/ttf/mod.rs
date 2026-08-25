@@ -6,16 +6,8 @@
 //! - [ ] TTF_ClearFallbackFonts
 //! - [x] TTF_CloseFont
 //! - [x] TTF_CopyFont
-//! - [ ] TTF_CreateGPUTextEngine
-//! - [ ] TTF_CreateGPUTextEngineWithProperties
-//! - [ ] TTF_CreateRendererTextEngine
-//! - [ ] TTF_CreateRendererTextEngineWithProperties
-//! - [ ] TTF_CreateSurfaceTextEngine
 //! - [x] TTF_CreateText
 //! - [ ] TTF_DeleteTextString
-//! - [ ] TTF_DestroyGPUTextEngine
-//! - [ ] TTF_DestroyRendererTextEngine
-//! - [ ] TTF_DestroySurfaceTextEngine
 //! - [x] TTF_DestroyText
 //! - [x] TTF_DrawRendererText
 //! - [x] TTF_DrawSurfaceText
@@ -49,7 +41,6 @@
 //! - [ ] TTF_GetGlyphMetrics
 //! - [ ] TTF_GetGlyphScript
 //! - [ ] TTF_GetGPUTextDrawData
-//! - [ ] TTF_GetGPUTextEngineWinding
 //! - [ ] TTF_GetHarfBuzzVersion
 //! - [ ] TTF_GetNextTextSubString
 //! - [ ] TTF_GetNumFontFaces
@@ -59,7 +50,6 @@
 //! - [x] TTF_GetTextColor
 //! - [ ] TTF_GetTextColorFloat
 //! - [ ] TTF_GetTextDirection
-//! - [ ] TTF_GetTextEngine
 //! - [ ] TTF_GetTextFont
 //! - [ ] TTF_GetTextPosition
 //! - [ ] TTF_GetTextProperties
@@ -103,11 +93,9 @@
 //! - [ ] TTF_SetFontSizeDPI
 //! - [ ] TTF_SetFontStyle
 //! - [ ] TTF_SetFontWrapAlignment
-//! - [ ] TTF_SetGPUTextEngineWinding
 //! - [x] TTF_SetTextColor
 //! - [ ] TTF_SetTextColorFloat
 //! - [ ] TTF_SetTextDirection
-//! - [ ] TTF_SetTextEngine
 //! - [ ] TTF_SetTextFont
 //! - [ ] TTF_SetTextPosition
 //! - [ ] TTF_SetTextScript
@@ -121,7 +109,7 @@
 //! - [x] TTF_Version
 //! - [x] TTF_WasInit
 
-// mod_use!(engine);
+mod_reexport!(engine);
 mod_reexport!(font);
 mod_reexport!(rt_str);
 mod_reexport!(text);

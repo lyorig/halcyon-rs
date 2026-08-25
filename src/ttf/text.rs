@@ -1,3 +1,7 @@
+//! API checklist:
+//! - [ ] TTF_SetTextEngine
+//! - [ ] TTF_GetTextEngine
+
 use std::mem::MaybeUninit;
 
 use sdl3_ttf_sys::ttf::*;
