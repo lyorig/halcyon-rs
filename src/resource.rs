@@ -1,7 +1,18 @@
 use std::{marker::PhantomData, ops::Deref};
 
+pub trait Handle: Copy {
+    /// The "raw" type, i.e. `*mut SDL_Surface`.
+    type Raw: Copy;
+
+    /// The actual type contained within the handle, i.e. `NonZero<SDL_Surface>`.
+    type Inner: Copy;
+
+    fn as_raw(&self) -> Self::Raw;
+    fn as_inner(&self) -> Self::Inner;
+}
+
 pub trait Resource: Sized {
-    type Handle: Copy;
+    type Handle: Handle;
 
     /// Return the raw underlying handle of this object.
     ///
@@ -10,6 +21,7 @@ pub trait Resource: Sized {
     /// Using them outside of said lifetime == use-after-free.
     unsafe fn as_handle(&self) -> Self::Handle;
 
+    /// Create a new reference tied to this resource.
     fn as_ref<'a>(&'a self) -> Ref<'a, Self> {
         unsafe { Ref::from_handle(self.as_handle()) }
     }
@@ -21,11 +33,17 @@ pub struct Ref<'a, T: Resource> {
 }
 
 impl<T: Resource> Ref<'_, T> {
+    /// Construct a new reference from a handle, assuming it is valid.
+    /// This conversion is zero-cost.
     pub(crate) unsafe fn from_handle(handle: T::Handle) -> Self {
         Self {
             handle,
             _marker: PhantomData,
         }
+    }
+
+    fn as_raw(&self) -> <T::Handle as Handle>::Raw {
+        self.handle.as_raw()
     }
 }
 
@@ -86,6 +104,19 @@ macro_rules! resource_new_impl {
             impl std::ops::DerefMut for $owned {
                 fn deref_mut(&mut self) -> &mut Self::Target {
                     &mut self.inner
+                }
+            }
+
+            impl $crate::resource::Handle for [<$owned Handle>] {
+                type Raw = *mut $sdl;
+                type Inner = ::std::ptr::NonNull<$sdl>;
+
+                fn as_raw(&self) -> Self::Raw {
+                    self.handle.as_ptr()
+                }
+
+                fn as_inner(&self) -> Self::Inner {
+                    self.handle
                 }
             }
 
@@ -152,7 +183,7 @@ macro_rules! resource_new_tied {
             #[derive(Clone, Copy)]
             #[doc(alias = "" $sdl "")]
             pub struct [<$owned Handle>] {
-                pub(crate) handle: std::ptr::NonNull<$sdl>,
+                pub(crate) handle: ::std::ptr::NonNull<$sdl>,
             }
 
             impl [<$owned Handle>] {
@@ -188,6 +219,19 @@ macro_rules! resource_new_tied {
             impl std::ops::DerefMut for $owned<'_> {
                 fn deref_mut(&mut self) -> &mut Self::Target {
                     &mut self.inner
+                }
+            }
+
+            impl $crate::resource::Handle for [<$owned Handle>] {
+                type Raw = *mut $sdl;
+                type Inner = ::std::ptr::NonNull<$sdl>;
+
+                fn as_raw(&self) -> Self::Raw {
+                    self.handle.as_ptr()
+                }
+
+                fn as_inner(&self) -> Self::Inner {
+                    self.handle
                 }
             }
 

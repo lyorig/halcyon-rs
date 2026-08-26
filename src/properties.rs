@@ -94,7 +94,7 @@ use sdl3_sys::properties::*;
 use crate::{
     Result,
     error::Error,
-    resource::{Ref, Resource},
+    resource::{Handle, Ref, Resource},
     util::{opt2res_map, to_result},
 };
 
@@ -317,6 +317,19 @@ impl std::ops::Deref for Properties {
 impl std::ops::DerefMut for Properties {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.inner
+    }
+}
+
+impl Handle for PropertiesHandle {
+    type Raw = u32;
+    type Inner = NonZero<Self::Raw>;
+
+    fn as_raw(&self) -> Self::Raw {
+        self.handle.get()
+    }
+
+    fn as_inner(&self) -> Self::Inner {
+        self.handle
     }
 }
 
