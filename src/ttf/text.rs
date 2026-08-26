@@ -1,6 +1,41 @@
 //! API checklist:
-//! - [ ] TTF_SetTextEngine
-//! - [ ] TTF_GetTextEngine
+//! - [ ] TTF_AppendTextString
+//! - [x] TTF_CreateText
+//! - [ ] TTF_DeleteTextString
+//! - [x] TTF_DestroyText
+//! - [x] TTF_DrawRendererText
+//! - [x] TTF_DrawSurfaceText
+//! - [ ] TTF_GetNextTextSubString
+//! - [ ] TTF_GetGPUTextDrawData
+//! - [ ] TTF_GetNextTextSubString
+//! - [ ] TTF_GetPreviousTextSubString
+//! - [x] TTF_GetTextColor
+//! - [ ] TTF_GetTextColorFloat
+//! - [ ] TTF_GetTextDirection
+//! - [ ] TTF_GetTextFont
+//! - [ ] TTF_GetTextPosition
+//! - [ ] TTF_GetTextProperties
+//! - [ ] TTF_GetTextScript
+//! - [x] TTF_GetTextSize
+//! - [ ] TTF_GetTextSubString
+//! - [ ] TTF_GetTextSubStringForLine
+//! - [ ] TTF_GetTextSubStringForPoint
+//! - [ ] TTF_GetTextSubStringsForRange
+//! - [ ] TTF_GetTextWrapWidth
+//! - [ ] TTF_InsertTextString
+//! - [x] TTF_SetTextColor
+//! - [ ] TTF_SetTextColorFloat
+//! - [ ] TTF_SetTextDirection
+//! - [ ] TTF_SetTextFont
+//! - [ ] TTF_SetTextPosition
+//! - [ ] TTF_SetTextScript
+//! - [ ] TTF_SetTextString
+//! - [ ] TTF_SetTextWrapWhitespaceVisible
+//! - [ ] TTF_SetTextWrapWidth
+//! - [ ] TTF_TextWrapWhitespaceVisible
+//! - [x] TTF_UpdateText
+//! - [x] TTF_SetTextEngine
+//! - [x] TTF_GetTextEngine
 
 use std::mem::MaybeUninit;
 
@@ -9,8 +44,9 @@ use sdl3_ttf_sys::ttf::*;
 use crate::{
     Result,
     color::RgbaU8,
+    error::Error,
     rect::{PointF32, PointI32},
-    resource::Ref,
+    resource::{Handle, Ref, Resource},
     resource_new,
     surface::Surface,
     ttf::{Font, RtStr},
@@ -77,6 +113,26 @@ impl TextHandle {
     #[doc(alias = "TTF_DrawRendererText")]
     pub fn draw_to_renderer(&self, pos: PointF32) -> Result {
         to_result(unsafe { TTF_DrawRendererText(self.handle.as_ptr(), pos.x, pos.y) })
+    }
+
+    #[doc(alias = "TTF_SetTextEngine")]
+    pub fn set_engine<'this, 'eng, H, T>(&'this self, eng: Ref<'eng, T>) -> Result
+    where
+        'eng: 'this,
+        H: Handle<Raw = *mut TTF_TextEngine>,
+        T: Resource<Handle = H>,
+    {
+        to_result(unsafe { TTF_SetTextEngine(self.as_ptr(), eng.as_raw()) })
+    }
+
+    #[doc(alias = "TTF_GetTextEngine")]
+    pub unsafe fn engine(&self) -> Result<*mut TTF_TextEngine> {
+        let eng = unsafe { TTF_GetTextEngine(self.as_ptr()) };
+        if eng.is_null() {
+            Err(Error::current())
+        } else {
+            Ok(eng)
+        }
     }
 }
 

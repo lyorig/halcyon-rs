@@ -1,1 +1,5 @@
-- Ability to have a separate owned and SDL object name in `resource_new!`
+- TTF
+  - text engine builders
+  - `TTF_{Get,Set}TextEngine` (something `dyn`-like, but w/o overhead?)
+- `RefMut`
+- remove `Property` API

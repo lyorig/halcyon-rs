@@ -2,15 +2,9 @@
 //!
 //! Implementation checklist:
 //! - [ ] TTF_AddFallbackFont
-//! - [ ] TTF_AppendTextString
 //! - [ ] TTF_ClearFallbackFonts
 //! - [x] TTF_CloseFont
 //! - [x] TTF_CopyFont
-//! - [x] TTF_CreateText
-//! - [ ] TTF_DeleteTextString
-//! - [x] TTF_DestroyText
-//! - [x] TTF_DrawRendererText
-//! - [x] TTF_DrawSurfaceText
 //! - [ ] TTF_FontHasGlyph
 //! - [x] TTF_FontIsFixedWidth
 //! - [x] TTF_FontIsScalable
@@ -40,28 +34,11 @@
 //! - [ ] TTF_GetGlyphKerning
 //! - [ ] TTF_GetGlyphMetrics
 //! - [ ] TTF_GetGlyphScript
-//! - [ ] TTF_GetGPUTextDrawData
 //! - [ ] TTF_GetHarfBuzzVersion
-//! - [ ] TTF_GetNextTextSubString
 //! - [ ] TTF_GetNumFontFaces
-//! - [ ] TTF_GetPreviousTextSubString
 //! - [ ] TTF_GetStringSize
 //! - [ ] TTF_GetStringSizeWrapped
-//! - [x] TTF_GetTextColor
-//! - [ ] TTF_GetTextColorFloat
-//! - [ ] TTF_GetTextDirection
-//! - [ ] TTF_GetTextFont
-//! - [ ] TTF_GetTextPosition
-//! - [ ] TTF_GetTextProperties
-//! - [ ] TTF_GetTextScript
-//! - [x] TTF_GetTextSize
-//! - [ ] TTF_GetTextSubString
-//! - [ ] TTF_GetTextSubStringForLine
-//! - [ ] TTF_GetTextSubStringForPoint
-//! - [ ] TTF_GetTextSubStringsForRange
-//! - [ ] TTF_GetTextWrapWidth
 //! - [x] TTF_Init
-//! - [ ] TTF_InsertTextString
 //! - [ ] TTF_MeasureString
 //! - [x] TTF_OpenFont
 //! - [ ] TTF_OpenFontIO
@@ -93,19 +70,8 @@
 //! - [ ] TTF_SetFontSizeDPI
 //! - [ ] TTF_SetFontStyle
 //! - [ ] TTF_SetFontWrapAlignment
-//! - [x] TTF_SetTextColor
-//! - [ ] TTF_SetTextColorFloat
-//! - [ ] TTF_SetTextDirection
-//! - [ ] TTF_SetTextFont
-//! - [ ] TTF_SetTextPosition
-//! - [ ] TTF_SetTextScript
-//! - [ ] TTF_SetTextString
-//! - [ ] TTF_SetTextWrapWhitespaceVisible
-//! - [ ] TTF_SetTextWrapWidth
 //! - [ ] TTF_StringToTag
 //! - [ ] TTF_TagToString
-//! - [ ] TTF_TextWrapWhitespaceVisible
-//! - [x] TTF_UpdateText
 //! - [x] TTF_Version
 //! - [x] TTF_WasInit
 
