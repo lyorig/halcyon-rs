@@ -95,7 +95,7 @@ impl Mat4 {
     }
 
     /// Column-major translation.
-    fn translate(x: f32, y: f32, z: f32) -> Mat4 {
+    const fn translate(x: f32, y: f32, z: f32) -> Mat4 {
         let mut m = Mat4::identity();
         m.0[12] = x;
         m.0[13] = y;
@@ -117,7 +117,7 @@ impl Mat4 {
 /// origin before rendering.
 struct MeshData {
     vertices: Vec<f32>,
-    indices: Vec<u32>,
+    indices: Vec<u16>,
     center: [f32; 3],
 }
 
@@ -132,30 +132,41 @@ fn load_teapot() -> MeshData {
     // The teapot's normals are baked into the OBJ (one `vn` per vertex, with
     // `v//vn` faces), so with `single_index` they align with `positions` and
     // need no runtime computation.
-    let positions: Vec<[f32; 3]> = mesh
-        .positions
-        .chunks_exact(3)
-        .map(|c| [c[0], c[1], c[2]])
-        .collect();
-    let normals: Vec<[f32; 3]> = mesh
-        .normals
-        .chunks_exact(3)
-        .map(|c| [c[0], c[1], c[2]])
-        .collect();
+    let vertex_count = mesh.positions.len() / 3;
 
-    let mut vertices = Vec::with_capacity(positions.len() * 6);
-    for (p, n) in positions.iter().zip(&normals) {
-        vertices.extend_from_slice(&[p[0], p[1], p[2], n[0], n[1], n[2]]);
-    }
+    assert_eq!(
+        mesh.positions.len(),
+        vertex_count * 3,
+        "teapot positions are not a multiple of three"
+    );
+    assert_eq!(
+        mesh.normals.len(),
+        vertex_count * 3,
+        "teapot normals do not match the position count"
+    );
+    assert!(
+        vertex_count <= usize::from(u16::MAX) + 1,
+        "teapot has too many vertices for 16-bit indices"
+    );
 
+    let mut vertices = Vec::with_capacity(vertex_count * 6);
     let mut min = [f32::INFINITY; 3];
     let mut max = [f32::NEG_INFINITY; 3];
-    for p in &positions {
-        for i in 0..3 {
-            min[i] = min[i].min(p[i]);
-            max[i] = max[i].max(p[i]);
+
+    for (position, normal) in mesh
+        .positions
+        .chunks_exact(3)
+        .zip(mesh.normals.chunks_exact(3))
+    {
+        vertices.extend_from_slice(position);
+        vertices.extend_from_slice(normal);
+
+        for (axis, &value) in position.iter().enumerate() {
+            min[axis] = min[axis].min(value);
+            max[axis] = max[axis].max(value);
         }
     }
+
     let center = [
         (min[0] + max[0]) / 2.0,
         (min[1] + max[1]) / 2.0,
@@ -164,7 +175,7 @@ fn load_teapot() -> MeshData {
 
     MeshData {
         vertices,
-        indices: mesh.indices.clone(),
+        indices: mesh.indices.iter().map(|&i| i as u16).collect(),
         center,
     }
 }
@@ -374,6 +385,8 @@ fn run() -> Result {
 
     let col = RgbaF32::from(RgbaU8::rgb_hex(0x6f32a8));
 
+    let trans = Mat4::translate(-mesh.center[0], -mesh.center[1], -mesh.center[2]);
+
     'frames: loop {
         for event in EventIter::new() {
             if let Event::Quit = event {
@@ -441,16 +454,17 @@ fn run() -> Result {
             // Center the model (its bounding box is not centered at the
             // origin: the teapot sits on the y = 0 plane), then rotate it
             // in place about its center.
-            let model = Mat4::translate(-mesh.center[0], -mesh.center[1], -mesh.center[2])
-                .mul(&Mat4::rot_y(angle));
-            let view = Mat4::translate(0.0, 0.0, -4.5);
+            let model = trans.mul(&Mat4::rot_y(angle));
+
+            const VIEW: Mat4 = Mat4::translate(0.0, 0.0, -4.5);
+
             let proj = Mat4::perspective(
                 60.0f32.to_radians(),
                 width as f32 / height as f32,
                 0.1,
                 100.0,
             );
-            let mvp = proj.mul(&view).mul(&model);
+            let mvp = proj.mul(&VIEW).mul(&model);
 
             let mut uniforms = [0u8; 128];
             uniforms[..64].copy_from_slice(&mvp.to_bytes());
@@ -460,7 +474,7 @@ fn run() -> Result {
             render_pass.bind_vertex_buffers(0, &[BufferBinding::new(vb.as_ref(), 0)]);
             render_pass.bind_index_buffer(
                 &BufferBinding::new(ib.as_ref(), 0),
-                IndexElementSize::Bits32,
+                IndexElementSize::Bits16,
             );
             render_pass.draw_indexed_primitives(mesh.indices.len() as u32, 1, 0, 0, 0);
         }
