@@ -21,15 +21,17 @@ struct V2F {
 };
 
 struct Uniforms {
-    float4x4 mvp;
-    float4x4 model;
+    float4x4 view_proj;
+    float4x4 models[3];
 };
 
 vertex V2F vs_main(VertexIn in [[stage_in]],
-                   constant Uniforms& u [[buffer(0)]]) {
+                   constant Uniforms& u [[buffer(0)]],
+                   uint instance_id [[instance_id]]) {
     V2F out;
-    out.position = u.mvp * float4(in.position, 1.0);
-    out.normal = (u.model * float4(in.normal, 0.0)).xyz;
+    float4x4 model = u.models[instance_id];
+    out.position = u.view_proj * model * float4(in.position, 1.0);
+    out.normal = (model * float4(in.normal, 0.0)).xyz;
     return out;
 }
 

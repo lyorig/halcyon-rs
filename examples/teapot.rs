@@ -253,7 +253,9 @@ fn run() -> Result {
 
     // Interleaved [pos3, normal3], 24 bytes per vertex.
     let vert_bytes = (mesh.vertices.len() * 4) as u32;
-    let idx_bytes = (mesh.indices.len() * 4) as u32;
+    let idx_bytes = (mesh.indices.len() * 2) as u32;
+
+    let mut bcib = BufferCreateInfo::builder(props);
 
     let vb = Buffer::new(
         device.as_ref(),
@@ -445,16 +447,13 @@ fn run() -> Result {
                 RenderPass::new(cmdbuf.as_ref(), &[color_target], Some(&depth_target))?;
 
             pipeline.bind(render_pass.as_ref());
-            render_pass.set_viewport(&Viewport::new(
-                Point::new(0.0, 0.0),
-                Point::new(width as f32, height as f32),
-                (0.0, 1.0),
-            ));
 
             // Center the model (its bounding box is not centered at the
             // origin: the teapot sits on the y = 0 plane), then rotate it
             // in place about its center.
             let model = trans.mul(&Mat4::rot_y(angle));
+            let second_model = Mat4::translate(-3.0, 0.0, -3.0).mul(&model);
+            let third_model = Mat4::translate(3.0, 0.0, -3.0).mul(&model);
 
             const VIEW: Mat4 = Mat4::translate(0.0, 0.0, -4.5);
 
@@ -464,11 +463,15 @@ fn run() -> Result {
                 0.1,
                 100.0,
             );
-            let mvp = proj.mul(&VIEW).mul(&model);
+            let models = [model, second_model, third_model];
+            let view_proj = proj.mul(&VIEW);
 
-            let mut uniforms = [0u8; 128];
-            uniforms[..64].copy_from_slice(&mvp.to_bytes());
-            uniforms[64..].copy_from_slice(&model.to_bytes());
+            let mut uniforms = [0u8; size_of::<Mat4>() * 4];
+            uniforms[..64].copy_from_slice(&view_proj.to_bytes());
+            for (index, model) in models.iter().enumerate() {
+                let start = 64 + index * 64;
+                uniforms[start..start + 64].copy_from_slice(&model.to_bytes());
+            }
             cmdbuf.push_vertex_uniform_data(0, &uniforms);
 
             render_pass.bind_vertex_buffers(0, &[BufferBinding::new(vb.as_ref(), 0)]);
@@ -476,7 +479,13 @@ fn run() -> Result {
                 &BufferBinding::new(ib.as_ref(), 0),
                 IndexElementSize::Bits16,
             );
-            render_pass.draw_indexed_primitives(mesh.indices.len() as u32, 1, 0, 0, 0);
+            render_pass.draw_indexed_primitives(
+                mesh.indices.len() as u32,
+                models.len() as u32,
+                0,
+                0,
+                0,
+            );
         }
 
         // Submitting the command buffer also presents the swapchain texture.

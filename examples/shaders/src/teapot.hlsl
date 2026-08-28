@@ -8,8 +8,8 @@
 // - vertex uniform buffers are bound at (b[n], space1)
 
 struct Uniforms {
-    float4x4 mvp;
-    float4x4 model;
+    float4x4 view_proj;
+    float4x4 models[2];
 };
 
 ConstantBuffer<Uniforms> u : register(b0, space1);
@@ -20,10 +20,12 @@ struct V2F {
 };
 
 V2F vs_main(float3 position : TEXCOORD0,
-            float3 normal   : TEXCOORD1) {
+            float3 normal : TEXCOORD1,
+            uint instance_id : SV_InstanceID) {
     V2F o;
-    o.position = mul(u.mvp, float4(position, 1.0));
-    o.normal = mul((float3x3)u.model, normal);
+    float4x4 model = u.models[instance_id];
+    o.position = mul(u.view_proj, mul(model, float4(position, 1.0)));
+    o.normal = mul((float3x3)model, normal);
     return o;
 }
 
