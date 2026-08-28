@@ -255,8 +255,6 @@ fn run() -> Result {
     let vert_bytes = (mesh.vertices.len() * 4) as u32;
     let idx_bytes = (mesh.indices.len() * 2) as u32;
 
-    let mut bcib = BufferCreateInfo::builder(props);
-
     let vb = Buffer::new(
         device.as_ref(),
         &BufferCreateInfo::new(BufferUsageFlags::Vertex, vert_bytes),
