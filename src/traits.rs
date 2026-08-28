@@ -1,13 +1,13 @@
 use crate::{
     color::{RgbF32, RgbU8, RgbaF32, RgbaU8},
-    pixels::BlendMode,
+    pixels,
 };
 
-pub trait BlendModeable {
-    fn blend_mode(&self) -> BlendMode;
-    fn set_blend_mode(&self, bm: BlendMode);
+pub trait BlendMode {
+    fn blend_mode(&self) -> pixels::BlendMode;
+    fn set_blend_mode(&self, bm: pixels::BlendMode);
 
-    fn xchg_blend_mode(&self, bm: BlendMode) -> BlendMode {
+    fn xchg_blend_mode(&self, bm: pixels::BlendMode) -> pixels::BlendMode {
         let old = self.blend_mode();
         self.set_blend_mode(bm);
         old

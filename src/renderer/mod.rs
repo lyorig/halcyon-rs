@@ -85,7 +85,7 @@ use crate::{
     resource_new,
     surface::Surface,
     texture::{Texture, TextureHandle},
-    traits::BlendModeable,
+    traits,
     util::{opt2ptr, to_result},
     window::{Window, WindowHandle},
 };
@@ -570,7 +570,7 @@ impl RendererHandle {
     }
 }
 
-impl BlendModeable for RendererHandle {
+impl traits::BlendMode for RendererHandle {
     #[doc(alias = "SDL_GetRenderDrawBlendMode")]
     fn blend_mode(&self) -> BlendMode {
         let mut ret = MaybeUninit::uninit();

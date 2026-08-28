@@ -1,4 +1,4 @@
-use std::ffi::c_char;
+use std::{ffi::c_char, marker::PhantomData};
 
 /// A string that the `TTF_RenderText*` functions can safely read.
 ///
@@ -14,7 +14,7 @@ use std::ffi::c_char;
 pub struct RtStr<'a> {
     ptr: *const c_char,
     len: usize,
-    marker: std::marker::PhantomData<&'a str>,
+    marker: PhantomData<&'a str>,
 }
 
 impl<'a> RtStr<'a> {
@@ -29,7 +29,7 @@ impl<'a> RtStr<'a> {
         Self {
             ptr,
             len,
-            marker: std::marker::PhantomData,
+            marker: PhantomData,
         }
     }
 

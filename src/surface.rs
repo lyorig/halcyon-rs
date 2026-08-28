@@ -66,8 +66,7 @@ use crate::{
     pixels::BlendMode,
     rect::{PointI32, RectI32},
     resource::Ref,
-    resource_new,
-    traits::{BlendModeable, ColorModU8},
+    resource_new, traits,
     util::{opt2ptr, to_result},
 };
 
@@ -274,7 +273,7 @@ impl SurfaceHandle {
     }
 }
 
-impl BlendModeable for SurfaceHandle {
+impl traits::BlendMode for SurfaceHandle {
     #[doc(alias = "SDL_GetSurfaceBlendMode")]
     fn blend_mode(&self) -> BlendMode {
         let mut ret = MaybeUninit::uninit();
@@ -292,7 +291,7 @@ impl BlendModeable for SurfaceHandle {
     }
 }
 
-impl ColorModU8 for SurfaceHandle {
+impl traits::ColorModU8 for SurfaceHandle {
     #[doc(alias = "SDL_GetSurfaceColorMod")]
     fn rgb_mod_u8(&self) -> RgbU8 {
         let mut ret = MaybeUninit::<RgbU8>::uninit();

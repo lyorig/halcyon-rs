@@ -1,8 +1,8 @@
 //! Implementation checklist:
 //! - [x] TTF_CreateGPUTextEngine
-//! - [ ] TTF_CreateGPUTextEngineWithProperties
+//! - [x] TTF_CreateGPUTextEngineWithProperties
 //! - [x] TTF_CreateRendererTextEngine
-//! - [ ] TTF_CreateRendererTextEngineWithProperties
+//! - [x] TTF_CreateRendererTextEngineWithProperties
 //! - [x] TTF_CreateSurfaceTextEngine
 //! - [x] TTF_DestroyGPUTextEngine
 //! - [x] TTF_DestroyRendererTextEngine
@@ -12,7 +12,12 @@
 
 use sdl3_ttf_sys::ttf::*;
 
-use crate::{Result, error::Error, gpu::Device, renderer::Renderer, resource::Ref, resource_new};
+use crate::{
+    Result, error::Error, gpu::Device, mod_reexport, renderer::Renderer, resource::Ref,
+    resource_new,
+};
+
+mod_reexport!(builder);
 
 #[repr(i32)]
 #[derive(Clone, Copy)]
@@ -28,6 +33,11 @@ impl GpuEngine {
     #[doc(alias = "TTF_CreateGPUTextEngine")]
     pub fn new(dev: Ref<Device>) -> Result<Self> {
         Self::from_ptr(unsafe { TTF_CreateGPUTextEngine(dev.as_ptr()) })
+    }
+
+    /// Bind the builder to an existing property group.
+    pub fn builder(props: Ref<crate::properties::Properties>) -> GpuEngineBuilder {
+        GpuEngineBuilder::new(props)
     }
 }
 
@@ -71,5 +81,10 @@ impl RendererEngine {
     #[doc(alias = "TTF_CreateRendererTextEngine")]
     pub fn new(rnd: Ref<Renderer>) -> Result<Self> {
         Self::from_ptr(unsafe { TTF_CreateRendererTextEngine(rnd.as_ptr()) })
+    }
+
+    /// Bind the builder to an existing property group.
+    pub fn builder(props: Ref<crate::properties::Properties>) -> RendererEngineBuilder {
+        RendererEngineBuilder::new(props)
     }
 }
