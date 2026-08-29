@@ -4,17 +4,17 @@ use sdl3_sys::gpu::*;
 
 use crate::{Result, gpu::Device, properties::Properties, resource::Ref};
 
-use super::{ComputePipeline, ComputePipelineCreateInfo, ShaderFormat};
+use super::{ComputePipeline, ComputePipelineCreateInfo};
 
 const CREATE_PROPERTIES: [*const c_char; 1] = [SDL_PROP_GPU_COMPUTEPIPELINE_CREATE_NAME_STRING];
 
 /// Builder for [`ComputePipelineCreateInfo`] properties.
 #[derive(Clone, Copy)]
-pub struct ComputePipelineCreateInfoBuilder<'p> {
+pub struct ComputePipelineBuilder<'p> {
     props: Ref<'p, Properties>,
 }
 
-impl<'p> ComputePipelineCreateInfoBuilder<'p> {
+impl<'p> ComputePipelineBuilder<'p> {
     pub(super) fn new(props: Ref<'p, Properties>) -> Self {
         Self { props }
     }
@@ -36,30 +36,21 @@ impl<'p> ComputePipelineCreateInfoBuilder<'p> {
 
     pub fn build<'bc, 'ep>(
         &self,
-        code: &'bc [u8],
-        entrypoint: &'ep CStr,
-        fmt: ShaderFormat,
-        counts: (u32, u32, u32, u32, u32, u32),
-        thread_count: (u32, u32, u32),
-    ) -> ComputePipelineCreateInfo<'bc, 'ep, 'p> {
-        ComputePipelineCreateInfo::new_with_props(
-            code,
-            entrypoint,
-            fmt,
-            counts,
-            thread_count,
-            self.props,
-        )
+        device: Ref<Device>,
+        mut create_info: ComputePipelineCreateInfo<'bc, 'ep>,
+    ) -> Result<ComputePipeline> {
+        create_info.0.props = self.props.id();
+        ComputePipeline::new(device, &create_info)
     }
 
     /// Creates a [`ComputePipeline`] using [`ComputePipelineCreateInfo`],
-    /// then removes all compute pipeline creation properties from the group.
+    /// then removes all compute pipeline creation properties from the attached property group.
     pub fn build_cleanup<'bc, 'ep>(
         &self,
         device: Ref<Device>,
-        create_info: &ComputePipelineCreateInfo<'bc, 'ep, 'p>,
+        create_info: ComputePipelineCreateInfo<'bc, 'ep>,
     ) -> Result<ComputePipeline> {
-        let res = ComputePipeline::new(device, create_info);
+        let res = self.build(device, create_info);
         Self::clear_from(self.props);
         res
     }

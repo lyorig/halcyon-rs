@@ -6,9 +6,9 @@ use std::{ffi::CStr, marker::PhantomData};
 
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
-use crate::{Result, mod_reexport, properties::Properties, resource::Ref, resource_new_no_drop};
+use crate::{mod_reexport, properties::Properties, resource::Ref, resource_new_no_drop, Result};
 
-use super::{ShaderFormat, device::Device};
+use super::{device::Device, ShaderFormat};
 
 mod_reexport!(builder);
 
@@ -23,18 +23,13 @@ pub enum ShaderStage {
 /// `'bc` and `'ep` tie the create-info to the lifetime of the shader bytecode and its
 #[doc(alias = "SDL_GPUShaderCreateInfo")]
 #[derive(Clone, Copy)]
-pub struct ShaderCreateInfo<'bc, 'ep, 'p>(
+pub struct ShaderCreateInfo<'bc, 'ep>(
     SDL_GPUShaderCreateInfo,
     PhantomData<&'bc [u8]>,
     PhantomData<&'ep CStr>,
-    PhantomData<Ref<'p, Properties>>,
 );
 
-impl<'bc, 'ep, 'p> ShaderCreateInfo<'bc, 'ep, 'p> {
-    pub fn builder(props: Ref<'p, Properties>) -> ShaderCreateInfoBuilder<'p> {
-        ShaderCreateInfoBuilder::new(props)
-    }
-
+impl<'bc, 'ep> ShaderCreateInfo<'bc, 'ep> {
     pub const fn new(
         code: &'bc [u8],
         entrypoint: &'ep CStr,
@@ -56,26 +51,17 @@ impl<'bc, 'ep, 'p> ShaderCreateInfo<'bc, 'ep, 'p> {
             props: SDL_PropertiesID::new(0),
         };
 
-        Self(inner, PhantomData, PhantomData, PhantomData)
-    }
-
-    pub(super) fn new_with_props(
-        code: &'bc [u8],
-        entrypoint: &'ep CStr,
-        fmt: ShaderFormat,
-        stage: ShaderStage,
-        num_samplers: u32,
-        counts: (u32, u32, u32),
-        props: Ref<'p, Properties>,
-    ) -> Self {
-        let mut info = Self::new(code, entrypoint, fmt, stage, num_samplers, counts);
-        info.0.props = props.id();
-        info
+        Self(inner, PhantomData, PhantomData)
     }
 }
 
 resource_new_no_drop!(SDL_GPUShader, Shader);
 impl Shader {
+    /// Bind a builder to a property group.
+    pub fn builder<'p>(props: Ref<'p, Properties>) -> ShaderBuilder<'p> {
+        ShaderBuilder::new(props)
+    }
+
     #[doc(alias = "SDL_CreateGPUShader")]
     pub fn new(device: Ref<Device>, create_info: &ShaderCreateInfo) -> Result<Self> {
         let handle = unsafe { SDL_CreateGPUShader(device.handle.as_ptr(), &create_info.0) };

@@ -172,13 +172,8 @@ impl_enum_transmute!(SDL_GPUTextureFormat, TextureFormat);
 
 #[doc(alias = "SDL_GPUTextureCreateInfo")]
 #[derive(Clone, Copy)]
-pub struct TextureCreateInfo<'p>(SDL_GPUTextureCreateInfo, PhantomData<Ref<'p, Properties>>);
-impl<'p> TextureCreateInfo<'p> {
-    /// Bind a builder to a property group.
-    pub fn builder(props: Ref<'p, Properties>) -> TextureCreateInfoBuilder<'p> {
-        TextureCreateInfoBuilder::new(props)
-    }
-
+pub struct TextureCreateInfo(SDL_GPUTextureCreateInfo);
+impl TextureCreateInfo {
     /// Create a [`TextureCreateInfo`] with no properties.
     pub const fn new(
         kind: TextureType,
@@ -201,31 +196,7 @@ impl<'p> TextureCreateInfo<'p> {
             props: SDL_PropertiesID::new(0),
         };
 
-        Self(inner, PhantomData)
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    pub(super) fn new_with_props(
-        kind: TextureType,
-        format: TextureFormat,
-        usage: TextureUsageFlags,
-        size: Point<u32>,
-        layer_count_or_depth: u32,
-        num_levels: u32,
-        samples: SampleCount,
-        props: Ref<'p, Properties>,
-    ) -> Self {
-        let mut info = Self::new(
-            kind,
-            format,
-            usage,
-            size,
-            layer_count_or_depth,
-            num_levels,
-            samples,
-        );
-        info.0.props = props.id();
-        info
+        Self(inner)
     }
 }
 
@@ -380,6 +351,11 @@ impl<'t> BlitRegion<'t> {
 
 resource_new_no_drop!(SDL_GPUTexture, Texture);
 impl Texture {
+    /// Bind a builder to a property group.
+    pub fn builder<'p>(props: Ref<'p, Properties>) -> TextureBuilder<'p> {
+        TextureBuilder::new(props)
+    }
+
     #[doc(alias = "SDL_CreateGPUTexture")]
     pub fn new(device: Ref<Device>, create_info: &TextureCreateInfo) -> Result<Self> {
         let handle = unsafe { SDL_CreateGPUTexture(device.handle.as_ptr(), &create_info.0) };

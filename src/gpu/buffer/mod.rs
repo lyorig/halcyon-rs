@@ -34,12 +34,8 @@ impl_enum_transmute!(SDL_GPUBufferUsageFlags, BufferUsageFlags);
 
 #[doc(alias = "SDL_GPUBufferCreateInfo")]
 #[derive(Clone, Copy)]
-pub struct BufferCreateInfo<'p>(SDL_GPUBufferCreateInfo, PhantomData<Ref<'p, Properties>>);
-impl<'p> BufferCreateInfo<'p> {
-    pub fn builder(props: Ref<'p, Properties>) -> BufferCreateInfoBuilder<'p> {
-        BufferCreateInfoBuilder::new(props)
-    }
-
+pub struct BufferCreateInfo(SDL_GPUBufferCreateInfo);
+impl BufferCreateInfo {
     pub const fn new(usage: BufferUsageFlags, size: u32) -> Self {
         let usage = SDL_GPUBufferUsageFlags::new(usage.bits());
         let inner = SDL_GPUBufferCreateInfo {
@@ -47,17 +43,7 @@ impl<'p> BufferCreateInfo<'p> {
             size,
             props: SDL_PropertiesID::new(0),
         };
-        Self(inner, PhantomData)
-    }
-
-    pub(super) fn new_with_props(
-        usage: BufferUsageFlags,
-        size: u32,
-        props: Ref<'p, Properties>,
-    ) -> Self {
-        let mut info = Self::new(usage, size);
-        info.0.props = props.id();
-        info
+        Self(inner)
     }
 }
 
@@ -135,6 +121,11 @@ impl<'b> StorageBufferReadWriteBinding<'b> {
 
 resource_new_no_drop!(SDL_GPUBuffer, Buffer);
 impl Buffer {
+    /// Bind a builder to a property group.
+    pub fn builder<'p>(props: Ref<'p, Properties>) -> BufferBuilder<'p> {
+        BufferBuilder::new(props)
+    }
+
     #[doc(alias = "SDL_CreateGPUBuffer")]
     pub fn new(device: Ref<Device>, create_info: &BufferCreateInfo) -> Result<Self> {
         let handle = unsafe { SDL_CreateGPUBuffer(device.handle.as_ptr(), &create_info.0) };

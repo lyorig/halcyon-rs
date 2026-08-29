@@ -48,39 +48,24 @@ impl_enum_transmute!(SDL_GPUTransferBufferUsage, TransferBufferUsage);
 
 #[doc(alias = "SDL_GPUTransferBufferCreateInfo")]
 #[derive(Clone, Copy)]
-pub struct TransferBufferCreateInfo<'p>(
-    SDL_GPUTransferBufferCreateInfo,
-    PhantomData<Ref<'p, Properties>>,
-);
-impl<'p> TransferBufferCreateInfo<'p> {
-    pub fn builder(props: Ref<'p, Properties>) -> TransferBufferCreateInfoBuilder<'p> {
-        TransferBufferCreateInfoBuilder::new(props)
-    }
-
+pub struct TransferBufferCreateInfo(SDL_GPUTransferBufferCreateInfo);
+impl TransferBufferCreateInfo {
     pub const fn new(usage: TransferBufferUsage, size: u32) -> Self {
-        Self(
-            SDL_GPUTransferBufferCreateInfo {
-                usage: SDL_GPUTransferBufferUsage::new(usage as _),
-                size,
-                props: SDL_PropertiesID::new(0),
-            },
-            PhantomData,
-        )
-    }
-
-    pub(super) fn new_with_props(
-        usage: TransferBufferUsage,
-        size: u32,
-        props: Ref<'p, Properties>,
-    ) -> Self {
-        let mut info = Self::new(usage, size);
-        info.0.props = props.id();
-        info
+        Self(SDL_GPUTransferBufferCreateInfo {
+            usage: SDL_GPUTransferBufferUsage::new(usage as _),
+            size,
+            props: SDL_PropertiesID::new(0),
+        })
     }
 }
 
 resource_new_no_drop!(SDL_GPUTransferBuffer, TransferBuffer);
 impl TransferBuffer {
+    /// Bind a builder to a property group.
+    pub fn builder<'p>(props: Ref<'p, Properties>) -> TransferBufferBuilder<'p> {
+        TransferBufferBuilder::new(props)
+    }
+
     /// Create a new [`TransferBuffer`].
     /// This doesn't map or write anything.
     ///

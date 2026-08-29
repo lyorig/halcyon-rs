@@ -2,7 +2,7 @@ use std::ffi::{CStr, c_char};
 
 use sdl3_sys::gpu::*;
 
-use crate::{Result, color::RgbaF32, gpu::*, properties::Properties, rect::Point, resource::Ref};
+use crate::{Result, color::RgbaF32, gpu::*, properties::Properties, resource::Ref};
 
 const CREATE_PROPERTIES: [*const c_char; 7] = [
     SDL_PROP_GPU_TEXTURE_CREATE_D3D12_CLEAR_R_FLOAT,
@@ -16,11 +16,11 @@ const CREATE_PROPERTIES: [*const c_char; 7] = [
 
 /// Builder for [`TextureCreateInfo`] properties.
 #[derive(Clone, Copy)]
-pub struct TextureCreateInfoBuilder<'p> {
+pub struct TextureBuilder<'p> {
     props: Ref<'p, Properties>,
 }
 
-impl<'p> TextureCreateInfoBuilder<'p> {
+impl<'p> TextureBuilder<'p> {
     pub(super) fn new(props: Ref<'p, Properties>) -> Self {
         Self { props }
     }
@@ -52,10 +52,10 @@ impl<'p> TextureCreateInfoBuilder<'p> {
     /// The clear color for D3D12 render targets.
     ///
     /// Shorthand setter for the following properties:
-    /// - [`TextureCreateInfoBuilder::d3d12_clear_r`]
-    /// - [`TextureCreateInfoBuilder::d3d12_clear_g`]
-    /// - [`TextureCreateInfoBuilder::d3d12_clear_b`]
-    /// - [`TextureCreateInfoBuilder::d3d12_clear_a`]
+    /// - [`TextureBuilder::d3d12_clear_r`]
+    /// - [`TextureBuilder::d3d12_clear_g`]
+    /// - [`TextureBuilder::d3d12_clear_b`]
+    /// - [`TextureBuilder::d3d12_clear_a`]
     pub fn d3d12_clear(&mut self, value: RgbaF32) -> &mut Self {
         self.d3d12_clear_r(value.rgb.r);
         self.d3d12_clear_g(value.rgb.g);
@@ -94,37 +94,23 @@ impl<'p> TextureCreateInfoBuilder<'p> {
         }
     }
 
-    #[allow(clippy::too_many_arguments)]
     pub fn build(
         &self,
-        kind: TextureType,
-        format: TextureFormat,
-        usage: TextureUsageFlags,
-        size: Point<u32>,
-        layer_count_or_depth: u32,
-        num_levels: u32,
-        samples: SampleCount,
-    ) -> TextureCreateInfo<'p> {
-        TextureCreateInfo::new_with_props(
-            kind,
-            format,
-            usage,
-            size,
-            layer_count_or_depth,
-            num_levels,
-            samples,
-            self.props,
-        )
+        device: Ref<Device>,
+        mut create_info: TextureCreateInfo,
+    ) -> Result<Texture> {
+        create_info.0.props = self.props.id();
+        Texture::new(device, &create_info)
     }
 
-    /// Creates a [`Texture`] using [`TextureCreateInfo`] (preferably created by this builder),
+    /// Creates a [`Texture`] using [`TextureCreateInfo`],
     /// then removes all texture creation properties from the attached property group.
     pub fn build_cleanup(
         &self,
         device: Ref<Device>,
-        create_info: &TextureCreateInfo<'p>,
+        create_info: TextureCreateInfo,
     ) -> Result<Texture> {
-        let res = Texture::new(device, create_info);
+        let res = self.build(device, create_info);
         Self::clear_from(self.props);
         res
     }

@@ -1,12 +1,4 @@
-use crate::{
-    Result,
-    gpu::{
-        DepthStencilState, Device, GraphicsPipelineTargetInfo, MultisampleState, PrimitiveType,
-        RasterizerState, Shader, VertexInputState,
-    },
-    properties::Properties,
-    resource::Ref,
-};
+use crate::{Result, gpu::Device, properties::Properties, resource::Ref};
 
 use super::{GraphicsPipeline, GraphicsPipelineCreateInfo};
 
@@ -17,11 +9,11 @@ const CREATE_PROPERTIES: [*const c_char; 1] = [SDL_PROP_GPU_GRAPHICSPIPELINE_CRE
 
 /// Builder for [`GraphicsPipelineCreateInfo`] properties.
 #[derive(Clone, Copy)]
-pub struct GraphicsPipelineCreateInfoBuilder<'p> {
+pub struct GraphicsPipelineBuilder<'p> {
     props: Ref<'p, Properties>,
 }
 
-impl<'p> GraphicsPipelineCreateInfoBuilder<'p> {
+impl<'p> GraphicsPipelineBuilder<'p> {
     pub(super) fn new(props: Ref<'p, Properties>) -> Self {
         Self { props }
     }
@@ -44,37 +36,22 @@ impl<'p> GraphicsPipelineCreateInfoBuilder<'p> {
     #[allow(clippy::too_many_arguments)]
     pub fn build<'vs, 'fs, 'vbd, 'va, 'ctd>(
         &self,
-        vertex_shader: Ref<'vs, Shader>,
-        fragment_shader: Ref<'fs, Shader>,
-        vertex_input_state: VertexInputState<'vbd, 'va>,
-        primitive_type: PrimitiveType,
-        rasterizer_state: RasterizerState,
-        multisample_state: MultisampleState,
-        depth_stencil_state: DepthStencilState,
-        target_info: GraphicsPipelineTargetInfo<'ctd>,
-    ) -> GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd, 'p> {
-        GraphicsPipelineCreateInfo::new_with_props(
-            vertex_shader,
-            fragment_shader,
-            vertex_input_state,
-            primitive_type,
-            rasterizer_state,
-            multisample_state,
-            depth_stencil_state,
-            target_info,
-            self.props,
-        )
+        device: Ref<Device>,
+        mut create_info: GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd>,
+    ) -> Result<GraphicsPipeline> {
+        create_info.0.props = self.props.id();
+        GraphicsPipeline::new(device, &create_info)
     }
 
     /// Creates a [`GraphicsPipeline`] using [`GraphicsPipelineCreateInfo`],
-    /// then removes all graphics pipeline creation properties from the group.
+    /// then removes all graphics pipeline creation properties from the attached property group.
     #[allow(clippy::too_many_arguments)]
     pub fn build_cleanup<'vs, 'fs, 'vbd, 'va, 'ctd>(
         &self,
         device: Ref<Device>,
-        create_info: &GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd, 'p>,
+        create_info: GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd>,
     ) -> Result<GraphicsPipeline> {
-        let res = GraphicsPipeline::new(device, create_info);
+        let res = self.build(device, create_info);
         Self::clear_from(self.props);
         res
     }

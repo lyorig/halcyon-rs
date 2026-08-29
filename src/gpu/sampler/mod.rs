@@ -2,17 +2,14 @@
 //! - [x] SDL_CreateGPUSampler
 //! - [x] SDL_ReleaseGPUSampler
 
-use std::marker::PhantomData;
-
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
 use crate::{
-    Result,
     gpu::{EnableAnisotropy, EnableCompare},
     impl_enum_transmute, mod_reexport,
     properties::Properties,
     resource::Ref,
-    resource_new_no_drop,
+    resource_new_no_drop, Result,
 };
 
 use super::device::Device;
@@ -66,12 +63,8 @@ impl_enum_transmute!(SDL_GPUCompareOp, CompareOp);
 
 #[doc(alias = "SDL_GPUSamplerCreateInfo")]
 #[derive(Clone, Copy)]
-pub struct SamplerCreateInfo<'p>(SDL_GPUSamplerCreateInfo, PhantomData<Ref<'p, Properties>>);
-impl<'p> SamplerCreateInfo<'p> {
-    pub fn builder(props: Ref<'p, Properties>) -> SamplerCreateInfoBuilder<'p> {
-        SamplerCreateInfoBuilder::new(props)
-    }
-
+pub struct SamplerCreateInfo(SDL_GPUSamplerCreateInfo);
+impl SamplerCreateInfo {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         min_filter: Filter,
@@ -103,44 +96,17 @@ impl<'p> SamplerCreateInfo<'p> {
             props: SDL_PropertiesID::new(0),
             ..Default::default()
         };
-        Self(inner, PhantomData)
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    pub(super) fn new_with_props(
-        min_filter: Filter,
-        mag_filter: Filter,
-        mipmap_mode: SamplerMipmapMode,
-        address_mode: (SamplerAddressMode, SamplerAddressMode, SamplerAddressMode),
-        mip_lod_bias: f32,
-        max_anisotropy: f32,
-        compare_op: CompareOp,
-        min_lod: f32,
-        max_lod: f32,
-        enable_anisotropy: EnableAnisotropy,
-        enable_compare: EnableCompare,
-        props: Ref<'p, Properties>,
-    ) -> Self {
-        let mut info = Self::new(
-            min_filter,
-            mag_filter,
-            mipmap_mode,
-            address_mode,
-            mip_lod_bias,
-            max_anisotropy,
-            compare_op,
-            min_lod,
-            max_lod,
-            enable_anisotropy,
-            enable_compare,
-        );
-        info.0.props = props.id();
-        info
+        Self(inner)
     }
 }
 
 resource_new_no_drop!(SDL_GPUSampler, Sampler);
 impl Sampler {
+    /// Bind a builder to a property group.
+    pub fn builder<'p>(props: Ref<'p, Properties>) -> SamplerBuilder<'p> {
+        SamplerBuilder::new(props)
+    }
+
     #[doc(alias = "SDL_CreateGPUSampler")]
     pub fn new(device: Ref<Device>, create_info: &SamplerCreateInfo) -> Result<Self> {
         let handle = unsafe { SDL_CreateGPUSampler(device.handle.as_ptr(), &create_info.0) };

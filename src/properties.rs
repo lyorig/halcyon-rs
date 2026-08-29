@@ -36,25 +36,31 @@
 //! - you intend to re-use it to build something else, and don't want the earlier configuration
 //!   to influence future builds
 //!
-//! # `[Object]CreateInfo` builders
+//! # GPU object builders
 //!
 //! Many objects in the GPU submodule use a separate structure in place of constructor arguments,
 //! e.g. [`Texture`](crate::gpu::Texture) uses [`TextureCreateInfo`](crate::gpu::TextureCreateInfo).
-//! These internally hold a [`SDL_PropertiesID`](sdl3_sys::properties::SDL_PropertiesID), enabling
-//! setting further options (SDL calls them "extensions"). I considered a few designs wrapping this
-//! behavior in a builder, and finally settled on builders for the `[Object]CreateInfo` structs
-//! themselves. Two build options are provided:
+//! These contain the required creation fields, while a resource builder attaches a property group
+//! for setting further options (SDL calls them "extensions"). GPU builders are created from the
+//! object being built, rather than from its `CreateInfo` struct. Two build options are provided:
 //!
-//! ```rust
-//! fn build(&self, /* required struct fields */) -> FooCreateInfo<'p>;
-//! fn build_cleanup(&self, ci: &FooCreateInfo) -> Result<Foo>;
+//! ```rust,ignore
+//! fn build(&self, device: Ref<Device>, ci: FooCreateInfo) -> Result<Foo>;
+//! fn build_cleanup(&self, device: Ref<Device>, ci: FooCreateInfo) -> Result<Foo>;
 //! ```
 //!
-//! `build` constructs the `CreateInfo` struct with the builder's properties attached.
-//! `build_cleanup` uses an existing `CreateInfo` to create an object, then clears any properties from itself.
+//! First create a `CreateInfo` with its associated `new` function, then pass it to the resource
+//! builder. `build` attaches the builder's properties and creates the object. `build_cleanup` does
+//! the same, then clears the creation properties from the builder's property group.
 //!
-//! All `CreateInfo` structs expose an associated `new` function that enables them to be created
-//! with only the required components (no properties). In this case, the lifetime is inferred.
+//! ```rust,ignore
+//! let create_info = TextureCreateInfo::new(/* required fields */);
+//! let texture = Texture::builder(props.as_ref()).build(device.as_ref(), create_info)?;
+//! ```
+//!
+//! The `CreateInfo` value is passed by value because the builder adds the property group just before
+//! creation. Its lifetime parameters therefore describe only other borrowed creation data, not the
+//! properties group.
 //!
 //! # API checklist ([source](https://wiki.libsdl.org/SDL3/CategoryProperties))
 //! - [x] SDL_ClearProperty

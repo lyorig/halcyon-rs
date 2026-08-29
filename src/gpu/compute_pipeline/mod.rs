@@ -14,17 +14,12 @@ mod_reexport!(builder);
 
 #[doc(alias = "SDL_GPUComputePipelineCreateInfo")]
 #[derive(Clone, Copy)]
-pub struct ComputePipelineCreateInfo<'bc, 'ep, 'p>(
+pub struct ComputePipelineCreateInfo<'bc, 'ep>(
     SDL_GPUComputePipelineCreateInfo,
     PhantomData<&'bc [u8]>,
     PhantomData<&'ep CStr>,
-    PhantomData<Ref<'p, Properties>>,
 );
-impl<'bc, 'ep, 'p> ComputePipelineCreateInfo<'bc, 'ep, 'p> {
-    pub fn builder(props: Ref<'p, Properties>) -> ComputePipelineCreateInfoBuilder<'p> {
-        ComputePipelineCreateInfoBuilder::new(props)
-    }
-
+impl<'bc, 'ep> ComputePipelineCreateInfo<'bc, 'ep> {
     pub const fn new(
         code: &'bc [u8],
         entrypoint: &'ep CStr,
@@ -56,25 +51,17 @@ impl<'bc, 'ep, 'p> ComputePipelineCreateInfo<'bc, 'ep, 'p> {
             props: SDL_PropertiesID::new(0),
         };
 
-        Self(inner, PhantomData, PhantomData, PhantomData)
-    }
-
-    pub(super) fn new_with_props(
-        code: &'bc [u8],
-        entrypoint: &'ep CStr,
-        fmt: ShaderFormat,
-        counts: (u32, u32, u32, u32, u32, u32),
-        thread_count: (u32, u32, u32),
-        props: Ref<'p, Properties>,
-    ) -> Self {
-        let mut info = Self::new(code, entrypoint, fmt, counts, thread_count);
-        info.0.props = props.id();
-        info
+        Self(inner, PhantomData, PhantomData)
     }
 }
 
 resource_new_no_drop!(SDL_GPUComputePipeline, ComputePipeline);
 impl ComputePipeline {
+    /// Bind a builder to a property group.
+    pub fn builder<'p>(props: Ref<'p, Properties>) -> ComputePipelineBuilder<'p> {
+        ComputePipelineBuilder::new(props)
+    }
+
     #[doc(alias = "SDL_CreateGPUComputePipeline")]
     pub fn new(device: Ref<Device>, create_info: &ComputePipelineCreateInfo) -> Result<Self> {
         let handle =

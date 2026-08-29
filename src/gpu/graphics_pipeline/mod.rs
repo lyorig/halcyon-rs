@@ -43,20 +43,15 @@ impl_enum_transmute!(SDL_GPUPrimitiveType, PrimitiveType);
 
 #[doc(alias = "SDL_GPUGraphicsPipelineCreateInfo")]
 #[derive(Clone, Copy)]
-pub struct GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd, 'p>(
+pub struct GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd>(
     SDL_GPUGraphicsPipelineCreateInfo,
     PhantomData<Ref<'vs, Shader>>,
     PhantomData<Ref<'fs, Shader>>,
     PhantomData<&'vbd [VertexBufferDescription]>,
     PhantomData<&'va [VertexAttribute]>,
     PhantomData<&'ctd [ColorTargetDescription]>,
-    PhantomData<Ref<'p, Properties>>,
 );
-impl<'vs, 'fs, 'vbd, 'va, 'ctd, 'p> GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd, 'p> {
-    pub fn builder(props: Ref<'p, Properties>) -> GraphicsPipelineCreateInfoBuilder<'p> {
-        GraphicsPipelineCreateInfoBuilder::new(props)
-    }
-
+impl<'vs, 'fs, 'vbd, 'va, 'ctd> GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd> {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         vertex_shader: Ref<'vs, Shader>,
@@ -85,39 +80,17 @@ impl<'vs, 'fs, 'vbd, 'va, 'ctd, 'p> GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, '
             PhantomData,
             PhantomData,
             PhantomData,
-            PhantomData,
         )
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    pub(super) fn new_with_props(
-        vertex_shader: Ref<'vs, Shader>,
-        fragment_shader: Ref<'fs, Shader>,
-        vertex_input_state: VertexInputState<'vbd, 'va>,
-        primitive_type: PrimitiveType,
-        rasterizer_state: RasterizerState,
-        multisample_state: MultisampleState,
-        depth_stencil_state: DepthStencilState,
-        target_info: GraphicsPipelineTargetInfo<'ctd>,
-        props: Ref<'p, Properties>,
-    ) -> Self {
-        let mut info = Self::new(
-            vertex_shader,
-            fragment_shader,
-            vertex_input_state,
-            primitive_type,
-            rasterizer_state,
-            multisample_state,
-            depth_stencil_state,
-            target_info,
-        );
-        info.0.props = props.id();
-        info
     }
 }
 
 resource_new_no_drop!(SDL_GPUGraphicsPipeline, GraphicsPipeline);
 impl GraphicsPipeline {
+    /// Bind a builder to a property group.
+    pub fn builder<'p>(props: Ref<'p, Properties>) -> GraphicsPipelineBuilder<'p> {
+        GraphicsPipelineBuilder::new(props)
+    }
+
     #[doc(alias = "SDL_CreateGPUGraphicsPipeline")]
     pub fn new(device: Ref<Device>, create_info: &GraphicsPipelineCreateInfo) -> Result<Self> {
         let handle =
