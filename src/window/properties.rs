@@ -25,44 +25,39 @@ impl<'a> WindowProperties<'a> {
     }
 
     fn opt_str(&self, key: *const c_char) -> Option<&str> {
-        let cstr = unsafe { CStr::from_ptr(key) };
-        let s = self.inner.string(cstr, None);
+        let s = self.inner.string(key, std::ptr::null());
 
-        s.map(|c| unsafe { str::from_utf8_unchecked(c.to_bytes()) })
+        (!s.is_null()).then(|| unsafe { str::from_utf8_unchecked(CStr::from_ptr(s).to_bytes()) })
     }
 
     fn opt_number(&self, key: *const c_char) -> Option<i64> {
-        let cstr = unsafe { CStr::from_ptr(key) };
-        self.inner.has(cstr).then(|| self.inner.number(cstr, 0))
+        self.inner.has(key).then(|| self.inner.number(key, 0))
     }
 
     fn opt_ptr(&self, key: *const c_char) -> Option<*mut c_void> {
-        let cstr = unsafe { CStr::from_ptr(key) };
-        let p = self.inner.pointer(cstr, std::ptr::null_mut());
+        let p = self.inner.pointer(key, std::ptr::null_mut());
 
         (!p.is_null()).then_some(p)
     }
 
     pub fn shape(&self) -> Option<Ref<'a, Surface>> {
-        let cstr = unsafe { CStr::from_ptr(SDL_PROP_WINDOW_SHAPE_POINTER) };
-        let p = self.inner.pointer(cstr, std::ptr::null_mut());
+        let p = self
+            .inner
+            .pointer(SDL_PROP_WINDOW_SHAPE_POINTER, std::ptr::null_mut());
 
         SurfaceHandle::from_ptr(p.cast()).map(|h| unsafe { Ref::from_handle(h) })
     }
 
     pub fn hdr_enabled(&self) -> bool {
-        let cstr = unsafe { CStr::from_ptr(SDL_PROP_WINDOW_HDR_ENABLED_BOOLEAN) };
-        self.inner.bool(cstr, false)
+        self.inner.bool(SDL_PROP_WINDOW_HDR_ENABLED_BOOLEAN, false)
     }
 
     pub fn sdr_white_level(&self) -> f32 {
-        let cstr = unsafe { CStr::from_ptr(SDL_PROP_WINDOW_SDR_WHITE_LEVEL_FLOAT) };
-        self.inner.float(cstr, 0.)
+        self.inner.float(SDL_PROP_WINDOW_SDR_WHITE_LEVEL_FLOAT, 0.)
     }
 
     pub fn hdr_headroom(&self) -> f32 {
-        let cstr = unsafe { CStr::from_ptr(SDL_PROP_WINDOW_HDR_HEADROOM_FLOAT) };
-        self.inner.float(cstr, 0.)
+        self.inner.float(SDL_PROP_WINDOW_HDR_HEADROOM_FLOAT, 0.)
     }
 
     pub fn cocoa_window(&self) -> Option<*mut c_void> {

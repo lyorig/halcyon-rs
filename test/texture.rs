@@ -1,4 +1,3 @@
-use std::ffi::CStr;
 
 use halcyon::{
     Context,
@@ -89,8 +88,7 @@ fn texture_build_cleanup() -> Result {
 
     assert_eq!(tex.size(), Point::new(16.0, 16.0));
 
-    let width_key = unsafe { CStr::from_ptr(SDL_PROP_TEXTURE_CREATE_WIDTH_NUMBER) };
-    assert!(!props.as_ref().has(width_key));
+    assert!(!props.as_ref().has(SDL_PROP_TEXTURE_CREATE_WIDTH_NUMBER));
 
     Ok(())
 }

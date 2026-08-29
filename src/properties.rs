@@ -89,9 +89,7 @@
 //! - SDL_UnlockProperties
 
 use std::{
-    ffi::{CStr, c_char, c_void},
-    fmt::Display,
-    hint::unreachable_unchecked,
+    ffi::{c_char, c_void},
     num::NonZero,
 };
 
@@ -103,45 +101,6 @@ use crate::{
     resource::{Handle, Ref, Resource},
     util::{opt2res_map, to_result},
 };
-
-fn ptrify(c: Option<&CStr>) -> *const c_char {
-    match c {
-        Some(c) => c.as_ptr(),
-        None => std::ptr::null(),
-    }
-}
-
-fn unptrify<'a>(ptr: *const c_char) -> Option<&'a CStr> {
-    if ptr.is_null() {
-        None
-    } else {
-        let cs = unsafe { CStr::from_ptr(ptr) };
-        Some(cs)
-    }
-}
-
-pub enum Property<'p> {
-    Pointer(*mut c_void),
-    String(Option<&'p CStr>),
-    Number(i64),
-    Float(f32),
-    Bool(bool),
-}
-
-impl Display for Property<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            Property::Pointer(p) => write!(f, "{p:p}"),
-            Property::String(s) => match s {
-                Some(s) => write!(f, "\"{}\"", s.to_string_lossy()),
-                None => write!(f, "[null string]"),
-            },
-            Property::Number(n) => write!(f, "{n}"),
-            Property::Float(fl) => write!(f, "{fl}"),
-            Property::Bool(b) => write!(f, "{b}"),
-        }
-    }
-}
 
 #[derive(Clone, Copy)]
 #[doc(alias = "SDL_PropertiesID")]
@@ -155,61 +114,60 @@ impl PropertiesHandle {
     }
 
     #[doc(alias = "SDL_GetNumberProperty")]
-    pub fn number(&self, key: &CStr, default: i64) -> i64 {
-        unsafe { SDL_GetNumberProperty(self.id(), key.as_ptr(), default) }
+    pub fn number(&self, key: *const c_char, default: i64) -> i64 {
+        unsafe { SDL_GetNumberProperty(self.id(), key, default) }
     }
 
     #[doc(alias = "SDL_GetFloatProperty")]
-    pub fn float(&self, key: &CStr, default: f32) -> f32 {
-        unsafe { SDL_GetFloatProperty(self.id(), key.as_ptr(), default) }
+    pub fn float(&self, key: *const c_char, default: f32) -> f32 {
+        unsafe { SDL_GetFloatProperty(self.id(), key, default) }
     }
 
     #[doc(alias = "SDL_GetPointerProperty")]
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    pub fn pointer(&self, key: &CStr, default: *mut c_void) -> *mut c_void {
-        unsafe { SDL_GetPointerProperty(self.id(), key.as_ptr(), default) }
+    pub fn pointer(&self, key: *const c_char, default: *mut c_void) -> *mut c_void {
+        unsafe { SDL_GetPointerProperty(self.id(), key, default) }
     }
 
     #[doc(alias = "SDL_GetStringProperty")]
-    pub fn string(&self, key: &CStr, default: Option<&CStr>) -> Option<&CStr> {
-        let ptr = unsafe { SDL_GetStringProperty(self.id(), key.as_ptr(), ptrify(default)) };
-        unptrify(ptr)
+    pub fn string(&self, key: *const c_char, default: *const c_char) -> *const c_char {
+        unsafe { SDL_GetStringProperty(self.id(), key, default) }
     }
 
     #[doc(alias = "SDL_GetBooleanProperty")]
-    pub fn bool(&self, key: &CStr, default: bool) -> bool {
-        unsafe { SDL_GetBooleanProperty(self.id(), key.as_ptr(), default) }
+    pub fn bool(&self, key: *const c_char, default: bool) -> bool {
+        unsafe { SDL_GetBooleanProperty(self.id(), key, default) }
     }
 
     #[doc(alias = "SDL_SetNumberProperty")]
-    pub fn set_number(&self, key: &CStr, value: i64) -> Result {
-        to_result(unsafe { SDL_SetNumberProperty(self.id(), key.as_ptr(), value) })
+    pub fn set_number(&self, key: *const c_char, value: i64) -> Result {
+        to_result(unsafe { SDL_SetNumberProperty(self.id(), key, value) })
     }
 
     #[doc(alias = "SDL_SetFloatProperty")]
-    pub fn set_float(&self, key: &CStr, value: f32) -> Result {
-        to_result(unsafe { SDL_SetFloatProperty(self.id(), key.as_ptr(), value) })
+    pub fn set_float(&self, key: *const c_char, value: f32) -> Result {
+        to_result(unsafe { SDL_SetFloatProperty(self.id(), key, value) })
     }
 
     #[doc(alias = "SDL_SetPointerProperty")]
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    pub fn set_pointer(&self, key: &CStr, value: *mut c_void) -> Result {
-        to_result(unsafe { SDL_SetPointerProperty(self.id(), key.as_ptr(), value) })
+    pub fn set_pointer(&self, key: *const c_char, value: *mut c_void) -> Result {
+        to_result(unsafe { SDL_SetPointerProperty(self.id(), key, value) })
     }
 
     #[doc(alias = "SDL_SetStringProperty")]
-    pub fn set_string(&self, key: &CStr, value: Option<&CStr>) -> Result {
-        to_result(unsafe { SDL_SetStringProperty(self.id(), key.as_ptr(), ptrify(value)) })
+    pub fn set_string(&self, key: *const c_char, value: *const c_char) -> Result {
+        to_result(unsafe { SDL_SetStringProperty(self.id(), key, value) })
     }
 
     #[doc(alias = "SDL_SetBooleanProperty")]
-    pub fn set_bool(&self, key: &CStr, value: bool) -> Result {
-        to_result(unsafe { SDL_SetBooleanProperty(self.id(), key.as_ptr(), value) })
+    pub fn set_bool(&self, key: *const c_char, value: bool) -> Result {
+        to_result(unsafe { SDL_SetBooleanProperty(self.id(), key, value) })
     }
 
     #[doc(alias = "SDL_ClearProperty")]
-    pub fn clear(&self, key: &CStr) -> Result {
-        to_result(unsafe { SDL_ClearProperty(self.id(), key.as_ptr()) })
+    pub fn clear(&self, key: *const c_char) -> Result {
+        to_result(unsafe { SDL_ClearProperty(self.id(), key) })
     }
 
     #[doc(alias = "SDL_CopyProperties")]
@@ -218,67 +176,17 @@ impl PropertiesHandle {
     }
 
     #[doc(alias = "SDL_HasProperty")]
-    pub fn has(&self, key: &CStr) -> bool {
-        unsafe { SDL_HasProperty(self.id(), key.as_ptr()) }
+    pub fn has(&self, key: *const c_char) -> bool {
+        unsafe { SDL_HasProperty(self.id(), key) }
     }
 
     #[doc(alias = "SDL_GetPropertyType")]
-    fn type_of(&self, key: &CStr) -> SDL_PropertyType {
-        unsafe { SDL_GetPropertyType(self.id(), key.as_ptr()) }
+    fn type_of(&self, key: *const c_char) -> SDL_PropertyType {
+        unsafe { SDL_GetPropertyType(self.id(), key) }
     }
 
-    pub fn id(&self) -> SDL_PropertiesID {
+    pub(crate) fn id(&self) -> SDL_PropertiesID {
         SDL_PropertiesID::new(self.handle.get())
-    }
-
-    fn get(&self, key: &CStr) -> Option<Property<'_>> {
-        use Property::*;
-
-        let tp = self.type_of(key);
-        if tp == SDL_PropertyType::INVALID {
-            None
-        } else {
-            let ret = match tp {
-                SDL_PropertyType::POINTER => Pointer(self.pointer(key, std::ptr::null_mut())),
-                SDL_PropertyType::STRING => {
-                    let cstr = self.string(key, None);
-                    String(cstr)
-                }
-                SDL_PropertyType::NUMBER => Number(self.number(key, 0)),
-                SDL_PropertyType::FLOAT => Float(self.float(key, 0.)),
-                SDL_PropertyType::BOOLEAN => Bool(self.bool(key, false)),
-                _ => unsafe { unreachable_unchecked() },
-            };
-
-            Some(ret)
-        }
-    }
-
-    /// Enumerate all properties in a group. Accepts a function with a key-value pair as parameters.
-    #[doc(alias = "SDL_EnumerateProperties")]
-    pub fn enumerate<F: FnMut(&str, Property)>(&self, f: F) -> Result {
-        type DynCbk<'a> = dyn FnMut(&str, Property) + 'a;
-
-        unsafe extern "C" fn wrap(
-            userdata: *mut c_void,
-            props: SDL_PropertiesID,
-            name: *const c_char,
-        ) {
-            unsafe {
-                let handle = PropertiesHandle::from_id(props).unwrap_unchecked();
-                let key = CStr::from_ptr(name);
-                let value = handle.get(key).unwrap_unchecked();
-                let f = userdata.cast::<Box<DynCbk<'static>>>().as_mut_unchecked();
-                let key_str = str::from_utf8_unchecked(key.to_bytes());
-
-                f(key_str, value);
-            }
-        }
-
-        let mut f: Box<DynCbk> = Box::new(f);
-        let userdata = std::ptr::from_mut(&mut f).cast::<c_void>();
-
-        to_result(unsafe { SDL_EnumerateProperties(self.id(), Some(wrap), userdata) })
     }
 }
 

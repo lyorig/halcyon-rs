@@ -1,4 +1,4 @@
-use std::ffi::{CStr, c_char};
+use std::ffi::c_char;
 
 use sdl3_sys::render::*;
 
@@ -108,8 +108,7 @@ impl<'a> TextureBuilder<'a> {
     /// Clear all texture creation properties from a property group.
     pub fn clear_from(props: Ref<Properties>) {
         for key in CREATE_PROPERTIES {
-            let cstr = unsafe { CStr::from_ptr(key) };
-            _ = props.clear(cstr);
+            _ = props.clear(key);
         }
     }
 
@@ -133,12 +132,12 @@ impl<'a> TextureBuilder<'a> {
     }
 
     fn set_number(&mut self, key: *const c_char, value: i64) -> &mut Self {
-        _ = self.inner.set_number(unsafe { CStr::from_ptr(key) }, value);
+        _ = self.inner.set_number(key, value);
         self
     }
 
     fn set_float(&mut self, key: *const c_char, value: f32) -> &mut Self {
-        _ = self.inner.set_float(unsafe { CStr::from_ptr(key) }, value);
+        _ = self.inner.set_float(key, value);
         self
     }
 }

@@ -22,15 +22,16 @@ impl<'p> BufferBuilder<'p> {
     /// A name for the buffer, used for debugging.
     #[doc(alias = "SDL_PROP_GPU_BUFFER_CREATE_NAME_STRING")]
     pub fn name(&mut self, value: &CStr) -> &mut Self {
-        let key = unsafe { CStr::from_ptr(SDL_PROP_GPU_BUFFER_CREATE_NAME_STRING) };
-        _ = self.props.set_string(key, Some(value));
+        _ = self
+            .props
+            .set_string(SDL_PROP_GPU_BUFFER_CREATE_NAME_STRING, value.as_ptr());
         self
     }
 
     /// Clear all GPU buffer creation properties from a property group.
     pub fn clear_from(props: Ref<Properties>) {
         for key in CREATE_PROPERTIES {
-            _ = props.clear(unsafe { CStr::from_ptr(key) });
+            _ = props.clear(key);
         }
     }
 

@@ -36,8 +36,9 @@ impl<'p, 'wnd, 'surf> RendererBuilder<'p, 'wnd, 'surf> {
     /// The name of the rendering driver to use, if a specific one is desired.
     #[doc(alias = "SDL_PROP_RENDERER_CREATE_NAME_STRING")]
     pub fn name(&mut self, value: &CStr) -> &mut Self {
-        let cstr = unsafe { CStr::from_ptr(SDL_PROP_RENDERER_CREATE_NAME_STRING) };
-        _ = self.inner.set_string(cstr, Some(value));
+        _ = self
+            .inner
+            .set_string(SDL_PROP_RENDERER_CREATE_NAME_STRING, value.as_ptr());
 
         self
     }
@@ -47,8 +48,10 @@ impl<'p, 'wnd, 'surf> RendererBuilder<'p, 'wnd, 'surf> {
     /// [`RendererBuilder::surface`].
     #[doc(alias = "SDL_PROP_RENDERER_CREATE_WINDOW_POINTER")]
     pub fn window(&mut self, value: Ref<'wnd, Window>) -> &mut Self {
-        let cstr = unsafe { CStr::from_ptr(SDL_PROP_RENDERER_CREATE_WINDOW_POINTER) };
-        _ = self.inner.set_pointer(cstr, value.handle.as_ptr().cast());
+        _ = self.inner.set_pointer(
+            SDL_PROP_RENDERER_CREATE_WINDOW_POINTER,
+            value.handle.as_ptr().cast(),
+        );
 
         self
     }
@@ -57,8 +60,10 @@ impl<'p, 'wnd, 'surf> RendererBuilder<'p, 'wnd, 'surf> {
     /// renderer without a window.
     #[doc(alias = "SDL_PROP_RENDERER_CREATE_SURFACE_POINTER")]
     pub fn surface(&mut self, value: Ref<'surf, Surface>) -> &mut Self {
-        let cstr = unsafe { CStr::from_ptr(SDL_PROP_RENDERER_CREATE_SURFACE_POINTER) };
-        _ = self.inner.set_pointer(cstr, value.handle.as_ptr().cast());
+        _ = self.inner.set_pointer(
+            SDL_PROP_RENDERER_CREATE_SURFACE_POINTER,
+            value.handle.as_ptr().cast(),
+        );
 
         self
     }
@@ -67,8 +72,10 @@ impl<'p, 'wnd, 'surf> RendererBuilder<'p, 'wnd, 'surf> {
     /// display. Defaults to `SDL_COLORSPACE_SRGB`.
     #[doc(alias = "SDL_PROP_RENDERER_CREATE_OUTPUT_COLORSPACE_NUMBER")]
     pub fn colorspace(&mut self, value: SDL_Colorspace) -> &mut Self {
-        let cstr = unsafe { CStr::from_ptr(SDL_PROP_RENDERER_CREATE_OUTPUT_COLORSPACE_NUMBER) };
-        _ = self.inner.set_number(cstr, value.0.into());
+        _ = self.inner.set_number(
+            SDL_PROP_RENDERER_CREATE_OUTPUT_COLORSPACE_NUMBER,
+            value.0.into(),
+        );
 
         self
     }
@@ -78,8 +85,9 @@ impl<'p, 'wnd, 'surf> RendererBuilder<'p, 'wnd, 'surf> {
     /// for the renderer.
     #[doc(alias = "SDL_PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER")]
     pub fn vsync(&mut self, value: i64) -> &mut Self {
-        let cstr = unsafe { CStr::from_ptr(SDL_PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER) };
-        _ = self.inner.set_number(cstr, value);
+        _ = self
+            .inner
+            .set_number(SDL_PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER, value);
 
         self
     }
@@ -87,8 +95,7 @@ impl<'p, 'wnd, 'surf> RendererBuilder<'p, 'wnd, 'surf> {
     /// Clear all renderer creation properties from a property group.
     pub fn clear_from(props: Ref<Properties>) {
         for key in CREATE_PROPERTIES {
-            let cstr = unsafe { CStr::from_ptr(key) };
-            _ = props.clear(cstr);
+            _ = props.clear(key);
         }
     }
 

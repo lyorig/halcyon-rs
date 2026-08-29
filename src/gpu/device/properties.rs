@@ -18,10 +18,15 @@ impl<'a> DeviceProperties<'a> {
     }
 
     fn get(&self, key: *const c_char) -> Option<&str> {
-        let cstr = unsafe { CStr::from_ptr(key) };
-        let s = self.inner.string(cstr, None);
-
-        s.map(|c| unsafe { str::from_utf8_unchecked(c.to_bytes()) })
+        let s = self.inner.string(key, std::ptr::null());
+        if s.is_null() {
+            None
+        } else {
+            unsafe {
+                let cstr = CStr::from_ptr(s);
+                Some(str::from_utf8_unchecked(cstr.to_bytes()))
+            }
+        }
     }
 
     pub fn device_name(&self) -> Option<&str> {

@@ -202,8 +202,10 @@ impl<'p, 'vo> DeviceBuilder<'p, 'vo> {
     /// `build()`.
     #[doc(alias = "SDL_PROP_GPU_DEVICE_CREATE_VULKAN_OPTIONS_POINTER")]
     pub fn vulkan_options(&mut self, value: &'vo SDL_GPUVulkanOptions) -> &mut Self {
-        let cstr = unsafe { CStr::from_ptr(SDL_PROP_GPU_DEVICE_CREATE_VULKAN_OPTIONS_POINTER) };
-        _ = self.inner.set_pointer(cstr, std::ptr::from_ref(value) as _);
+        _ = self.inner.set_pointer(
+            SDL_PROP_GPU_DEVICE_CREATE_VULKAN_OPTIONS_POINTER,
+            std::ptr::from_ref(value) as _,
+        );
         self
     }
 
@@ -220,8 +222,7 @@ impl<'p, 'vo> DeviceBuilder<'p, 'vo> {
     /// Clear all device creation properties from a property group.
     pub fn clear_from(props: Ref<Properties>) {
         for key in CREATE_PROPERTIES {
-            let cstr = unsafe { CStr::from_ptr(key) };
-            _ = props.clear(cstr);
+            _ = props.clear(key);
         }
     }
 
@@ -241,19 +242,17 @@ impl<'p, 'vo> DeviceBuilder<'p, 'vo> {
     }
 
     fn set_bool(&mut self, key: *const c_char, value: bool) -> &mut Self {
-        _ = self.inner.set_bool(unsafe { CStr::from_ptr(key) }, value);
+        _ = self.inner.set_bool(key, value);
         self
     }
 
     fn set_number(&mut self, key: *const c_char, value: i64) -> &mut Self {
-        _ = self.inner.set_number(unsafe { CStr::from_ptr(key) }, value);
+        _ = self.inner.set_number(key, value);
         self
     }
 
     fn set_string(&mut self, key: *const c_char, value: &CStr) -> &mut Self {
-        _ = self
-            .inner
-            .set_string(unsafe { CStr::from_ptr(key) }, Some(value));
+        _ = self.inner.set_string(key, value.as_ptr());
         self
     }
 }
