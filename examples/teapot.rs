@@ -103,11 +103,12 @@ impl Mat4 {
         m
     }
 
-    fn to_bytes(self) -> [u8; 64] {
-        let mut bytes = [0u8; 64];
+    fn to_bytes(self) -> [u8; size_of::<Self>()] {
+        let mut bytes = [0u8; _];
         for (i, f) in self.0.iter().enumerate() {
             bytes[i * 4..i * 4 + 4].copy_from_slice(&f.to_ne_bytes());
         }
+
         bytes
     }
 }
@@ -464,11 +465,12 @@ fn run() -> Result {
             let models = [model, second_model, third_model];
             let view_proj = proj.mul(&VIEW);
 
-            let mut uniforms = [0u8; size_of::<Mat4>() * 4];
-            uniforms[..64].copy_from_slice(&view_proj.to_bytes());
+            const SZ: usize = size_of::<Mat4>();
+            let mut uniforms = [0u8; SZ * 4];
+            uniforms[..SZ].copy_from_slice(&view_proj.to_bytes());
             for (index, model) in models.iter().enumerate() {
-                let start = 64 + index * 64;
-                uniforms[start..start + 64].copy_from_slice(&model.to_bytes());
+                let start = (index + 1) * SZ;
+                uniforms[start..start + SZ].copy_from_slice(&model.to_bytes());
             }
             cmdbuf.push_vertex_uniform_data(0, &uniforms);
 
