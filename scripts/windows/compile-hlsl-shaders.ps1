@@ -1,6 +1,7 @@
 <#
     .SYNOPSIS
     Compiles HLSL source files into executable IR.
+    After running this script, `cargo build --example` should succeed on Windows.
 
     .DESCRIPTION
     Compiles HLSL shaders for use with halcyon-rs' GPU examples on Windows.

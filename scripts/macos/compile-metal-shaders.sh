@@ -4,7 +4,10 @@ DEBUGFLAGS=(-frecord-sources -gline-tables-only)
 
 if [[ $1 = "-h" || $1 = "--help" ]]; then
     cat << EOF
-Usage: $0 [-hg]
+Usage: $(basename "$0") [-hg]
+
+Compiles Metal Shading Language sources for use with GPU examples on Apple platforms.
+After running this script, \`cargo build --example\` should succeed on macOS.
 
 Options:
     -h, --help  Display this message and exit.

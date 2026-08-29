@@ -6,6 +6,9 @@
     Compiles HLSL shaders into SPIR-V for use with halcyon-rs' GPU examples on Windows.
     Requires the Visual Studio Build Tools, and a `dxc[.exe]` that can be located by the script.
     To find where `dxc` is on your system, open the Native Tools (or Developer) Command Prompt, and run `which dxc`.
+
+    .NOTES
+    This currently has no use on Windows, as GPU examples use DXIL.
 #>
 
 $DxcExists = [bool] (Get-Command dxc -ErrorAction Ignore)
