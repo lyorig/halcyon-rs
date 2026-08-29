@@ -29,7 +29,7 @@
 //! - [ ] SDL_UpdateYUVTexture
 //! - [x] SDL_GetRendererFromTexture
 
-use std::mem::MaybeUninit;
+use std::mem::{MaybeUninit, transmute};
 
 use sdl3_sys::{
     pixels::{SDL_Colorspace, SDL_PixelFormat},
@@ -151,6 +151,11 @@ pub enum Colorspace {
     Bt709Full = SDL_Colorspace::BT709_FULL.0,
     Bt2020Limited = SDL_Colorspace::BT2020_LIMITED.0,
     Bt2020Full = SDL_Colorspace::BT2020_FULL.0,
+}
+
+impl Colorspace {
+    pub const RGB_DEFAULT: Self = unsafe { transmute(SDL_Colorspace::RGB_DEFAULT) };
+    pub const YUV_DEFAULT: Self = unsafe { transmute(SDL_Colorspace::YUV_DEFAULT) };
 }
 
 #[repr(i32)]
