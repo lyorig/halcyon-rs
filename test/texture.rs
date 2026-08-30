@@ -1,4 +1,3 @@
-
 use halcyon::{
     Context,
     properties::Properties,

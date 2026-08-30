@@ -46,3 +46,6 @@ dxc -O3 -T ps_6_0 -E fs_main examples/shaders/src/triangle.hlsl -Fo examples/sha
 # `examples/teapot.rs`
 dxc -O3 -T vs_6_0 -E vs_main examples/shaders/src/teapot.hlsl -Fo examples/shaders/teapot_vs.dxil
 dxc -O3 -T ps_6_0 -E fs_main examples/shaders/src/teapot.hlsl -Fo examples/shaders/teapot_fs.dxil
+
+# `examples/compute.rs`
+dxc -O3 -T cs_6_0 -E cs_main examples/shaders/src/compute.hlsl -Fo examples/shaders/compute_cs.dxil
