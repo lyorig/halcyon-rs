@@ -1,6 +1,6 @@
 use halcyon::{Context, Result, display::Display, subsystem::Video};
 
-fn run() -> Result {
+fn run() -> Result<()> {
     let ctx = Context::new();
     let _vid = Video::new(&ctx)?;
 

@@ -306,23 +306,23 @@ pub fn screen_saver_enabled() -> bool {
 }
 
 #[doc(alias = "SDL_EnableScreenSaver")]
-pub fn enable_screen_saver() -> Result {
+pub fn enable_screen_saver() -> Result<()> {
     to_result(unsafe { SDL_EnableScreenSaver() })
 }
 
 #[doc(alias = "SDL_DisableScreenSaver")]
-pub fn disable_screen_saver() -> Result {
+pub fn disable_screen_saver() -> Result<()> {
     to_result(unsafe { SDL_DisableScreenSaver() })
 }
 
 impl WindowHandle {
     #[doc(alias = "SDL_SyncWindow")]
-    pub fn sync(&self) -> Result {
+    pub fn sync(&self) -> Result<()> {
         to_result(unsafe { SDL_SyncWindow(self.handle.as_ptr()) })
     }
 
     #[doc(alias = "SDL_FlashWindow")]
-    pub fn flash(&self, op: SDL_FlashOperation) -> Result {
+    pub fn flash(&self, op: SDL_FlashOperation) -> Result<()> {
         to_result(unsafe { SDL_FlashWindow(self.handle.as_ptr(), op) })
     }
 
@@ -571,165 +571,165 @@ impl WindowHandle {
     }
 
     #[doc(alias = "SDL_SetWindowSize")]
-    pub fn set_size(&self, size: PointI32) -> Result {
+    pub fn set_size(&self, size: PointI32) -> Result<()> {
         to_result(unsafe { SDL_SetWindowSize(self.as_ptr(), size.x, size.y) })
     }
 
     #[doc(alias = "SDL_SetWindowMinimumSize")]
-    pub fn set_min_size(&self, size: PointI32) -> Result {
+    pub fn set_min_size(&self, size: PointI32) -> Result<()> {
         to_result(unsafe { SDL_SetWindowMinimumSize(self.as_ptr(), size.x, size.y) })
     }
 
     #[doc(alias = "SDL_SetWindowMaximumSize")]
-    pub fn set_max_size(&self, size: PointI32) -> Result {
+    pub fn set_max_size(&self, size: PointI32) -> Result<()> {
         to_result(unsafe { SDL_SetWindowMaximumSize(self.as_ptr(), size.x, size.y) })
     }
 
     #[doc(alias = "SDL_SetWindowPosition")]
-    pub fn set_pos(&self, pos: PointI32) -> Result {
+    pub fn set_pos(&self, pos: PointI32) -> Result<()> {
         to_result(unsafe { SDL_SetWindowPosition(self.as_ptr(), pos.x, pos.y) })
     }
 
     #[doc(alias = "SDL_SetWindowTitle")]
-    pub fn set_title(&self, title: &CStr) -> Result {
+    pub fn set_title(&self, title: &CStr) -> Result<()> {
         to_result(unsafe { SDL_SetWindowTitle(self.as_ptr(), title.as_ptr()) })
     }
 
     #[doc(alias = "SDL_SetWindowIcon")]
-    pub fn set_icon(&self, icon: Ref<Surface>) -> Result {
+    pub fn set_icon(&self, icon: Ref<Surface>) -> Result<()> {
         to_result(unsafe { SDL_SetWindowIcon(self.as_ptr(), icon.handle.as_ptr()) })
     }
 
     #[doc(alias = "SDL_SetWindowShape")]
-    pub fn set_shape(&self, shape: Ref<Surface>) -> Result {
+    pub fn set_shape(&self, shape: Ref<Surface>) -> Result<()> {
         to_result(unsafe { SDL_SetWindowShape(self.as_ptr(), shape.handle.as_ptr()) })
     }
 
     #[doc(alias = "SDL_SetWindowAspectRatio")]
-    pub fn set_aspect_ratio(&self, min: f32, max: f32) -> Result {
+    pub fn set_aspect_ratio(&self, min: f32, max: f32) -> Result<()> {
         to_result(unsafe { SDL_SetWindowAspectRatio(self.as_ptr(), min, max) })
     }
 
     #[doc(alias = "SDL_SetWindowBordered")]
-    pub fn set_bordered(&self, bordered: bool) -> Result {
+    pub fn set_bordered(&self, bordered: bool) -> Result<()> {
         to_result(unsafe { SDL_SetWindowBordered(self.as_ptr(), bordered) })
     }
 
     #[doc(alias = "SDL_SetWindowResizable")]
-    pub fn set_resizable(&self, value: bool) -> Result {
+    pub fn set_resizable(&self, value: bool) -> Result<()> {
         to_result(unsafe { SDL_SetWindowResizable(self.handle.as_ptr(), value) })
     }
 
     #[doc(alias = "SDL_SetWindowAlwaysOnTop")]
-    pub fn set_always_on_top(&self, on_top: bool) -> Result {
+    pub fn set_always_on_top(&self, on_top: bool) -> Result<()> {
         to_result(unsafe { SDL_SetWindowAlwaysOnTop(self.as_ptr(), on_top) })
     }
 
     #[doc(alias = "SDL_SetWindowFullscreen")]
-    pub fn set_fullscreen(&self, fullscreen: bool) -> Result {
+    pub fn set_fullscreen(&self, fullscreen: bool) -> Result<()> {
         to_result(unsafe { SDL_SetWindowFullscreen(self.as_ptr(), fullscreen) })
     }
 
     #[doc(alias = "SDL_SetWindowFullscreenMode")]
-    pub fn set_fullscreen_mode(&self, mode: Option<&SDL_DisplayMode>) -> Result {
+    pub fn set_fullscreen_mode(&self, mode: Option<&SDL_DisplayMode>) -> Result<()> {
         to_result(unsafe { SDL_SetWindowFullscreenMode(self.as_ptr(), opt2ptr(mode)) })
     }
 
     #[doc(alias = "SDL_SetWindowKeyboardGrab")]
-    pub fn set_keyboard_grab(&self, grabbed: bool) -> Result {
+    pub fn set_keyboard_grab(&self, grabbed: bool) -> Result<()> {
         to_result(unsafe { SDL_SetWindowKeyboardGrab(self.as_ptr(), grabbed) })
     }
 
     #[doc(alias = "SDL_SetWindowMouseGrab")]
-    pub fn set_mouse_grab(&self, grabbed: bool) -> Result {
+    pub fn set_mouse_grab(&self, grabbed: bool) -> Result<()> {
         to_result(unsafe { SDL_SetWindowMouseGrab(self.as_ptr(), grabbed) })
     }
 
     #[doc(alias = "SDL_SetWindowMouseRect")]
-    pub fn set_mouse_rect(&self, rect: Option<&RectI32>) -> Result {
+    pub fn set_mouse_rect(&self, rect: Option<&RectI32>) -> Result<()> {
         to_result(unsafe { SDL_SetWindowMouseRect(self.as_ptr(), opt2ptr(rect).cast()) })
     }
 
     #[doc(alias = "SDL_SetWindowOpacity")]
-    pub fn set_opacity(&self, opacity: f32) -> Result {
+    pub fn set_opacity(&self, opacity: f32) -> Result<()> {
         to_result(unsafe { SDL_SetWindowOpacity(self.as_ptr(), opacity) })
     }
 
     #[doc(alias = "SDL_SetWindowParent")]
-    pub fn set_parent(&self, parent: Option<Ref<Window>>) -> Result {
+    pub fn set_parent(&self, parent: Option<Ref<Window>>) -> Result<()> {
         let ptr = parent.map_or(std::ptr::null_mut(), |p| p.handle.as_ptr());
         to_result(unsafe { SDL_SetWindowParent(self.as_ptr(), ptr) })
     }
 
     #[doc(alias = "SDL_SetWindowModal")]
-    pub fn set_modal(&self, modal: bool) -> Result {
+    pub fn set_modal(&self, modal: bool) -> Result<()> {
         to_result(unsafe { SDL_SetWindowModal(self.as_ptr(), modal) })
     }
 
     #[doc(alias = "SDL_SetWindowFocusable")]
-    pub fn set_focusable(&self, focusable: bool) -> Result {
+    pub fn set_focusable(&self, focusable: bool) -> Result<()> {
         to_result(unsafe { SDL_SetWindowFocusable(self.as_ptr(), focusable) })
     }
 
     #[doc(alias = "SDL_ShowWindowSystemMenu")]
-    pub fn show_system_menu(&self, pos: PointI32) -> Result {
+    pub fn show_system_menu(&self, pos: PointI32) -> Result<()> {
         to_result(unsafe { SDL_ShowWindowSystemMenu(self.as_ptr(), pos.x, pos.y) })
     }
 
     #[doc(alias = "SDL_SetWindowSurfaceVSync")]
-    pub fn set_surface_vsync(&self, vsync: i32) -> Result {
+    pub fn set_surface_vsync(&self, vsync: i32) -> Result<()> {
         to_result(unsafe { SDL_SetWindowSurfaceVSync(self.as_ptr(), vsync) })
     }
 
     #[doc(alias = "SDL_UpdateWindowSurface")]
-    pub fn update_surface(&self) -> Result {
+    pub fn update_surface(&self) -> Result<()> {
         to_result(unsafe { SDL_UpdateWindowSurface(self.as_ptr()) })
     }
 
     #[doc(alias = "SDL_UpdateWindowSurfaceRects")]
-    pub fn update_surface_rects(&self, rects: &[RectI32]) -> Result {
+    pub fn update_surface_rects(&self, rects: &[RectI32]) -> Result<()> {
         to_result(unsafe {
             SDL_UpdateWindowSurfaceRects(self.as_ptr(), rects.as_ptr().cast(), rects.len() as i32)
         })
     }
 
     #[doc(alias = "SDL_DestroyWindowSurface")]
-    pub fn destroy_surface(&self) -> Result {
+    pub fn destroy_surface(&self) -> Result<()> {
         to_result(unsafe { SDL_DestroyWindowSurface(self.as_ptr()) })
     }
 
     #[doc(alias = "SDL_ShowWindow")]
-    pub fn show(&self) -> Result {
+    pub fn show(&self) -> Result<()> {
         to_result(unsafe { SDL_ShowWindow(self.as_ptr()) })
     }
 
     #[doc(alias = "SDL_HideWindow")]
-    pub fn hide(&self) -> Result {
+    pub fn hide(&self) -> Result<()> {
         to_result(unsafe { SDL_HideWindow(self.as_ptr()) })
     }
 
     #[doc(alias = "SDL_RaiseWindow")]
-    pub fn raise(&self) -> Result {
+    pub fn raise(&self) -> Result<()> {
         to_result(unsafe { SDL_RaiseWindow(self.as_ptr()) })
     }
 
     #[doc(alias = "SDL_MaximizeWindow")]
-    pub fn maximize(&self) -> Result {
+    pub fn maximize(&self) -> Result<()> {
         to_result(unsafe { SDL_MaximizeWindow(self.as_ptr()) })
     }
 
     #[doc(alias = "SDL_MinimizeWindow")]
-    pub fn minimize(&self) -> Result {
+    pub fn minimize(&self) -> Result<()> {
         to_result(unsafe { SDL_MinimizeWindow(self.as_ptr()) })
     }
 
     #[doc(alias = "SDL_RestoreWindow")]
-    pub fn restore(&self) -> Result {
+    pub fn restore(&self) -> Result<()> {
         to_result(unsafe { SDL_RestoreWindow(self.as_ptr()) })
     }
 
     #[doc(alias = "SDL_SetWindowProgressState")]
-    pub fn set_progress_state(&self, state: ProgressState) -> Result {
+    pub fn set_progress_state(&self, state: ProgressState) -> Result<()> {
         type Src = ProgressState;
         type Dst = SDL_ProgressState;
 
@@ -739,7 +739,7 @@ impl WindowHandle {
     }
 
     #[doc(alias = "SDL_SetWindowProgressValue")]
-    pub fn set_progress_value(&self, value: f32) -> Result {
+    pub fn set_progress_value(&self, value: f32) -> Result<()> {
         to_result(unsafe { SDL_SetWindowProgressValue(self.as_ptr(), value) })
     }
 

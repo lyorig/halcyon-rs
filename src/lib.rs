@@ -95,7 +95,7 @@ impl Drop for Context {
 
 /// Convenience alias for [`std::result::Result<T, Error>`].
 /// Used as the return type throughout this crate.
-pub type Result<T = ()> = std::result::Result<T, error::Error>;
+pub type Result<T> = std::result::Result<T, error::Error>;
 
 #[doc(alias = "SDL_GetPlatform")]
 pub fn platform() -> &'static str {

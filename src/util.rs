@@ -102,7 +102,7 @@ pub fn opt2res_map<T, U, F: FnOnce(T) -> U>(opt: Option<T>, f: F) -> Result<U> {
     }
 }
 
-pub fn to_result(result: bool) -> Result {
+pub fn to_result(result: bool) -> Result<()> {
     if result {
         Ok(())
     } else {

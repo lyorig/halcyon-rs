@@ -86,7 +86,7 @@ impl Device {
 
 impl DeviceHandle {
     #[doc(alias = "SDL_ClaimWindowForGPUDevice")]
-    pub fn claim_window(&self, window: Ref<Window>) -> Result {
+    pub fn claim_window(&self, window: Ref<Window>) -> Result<()> {
         to_result(unsafe {
             SDL_ClaimWindowForGPUDevice(self.handle.as_ptr(), window.handle.as_ptr())
         })
@@ -124,17 +124,17 @@ impl DeviceHandle {
     }
 
     #[doc(alias = "SDL_WaitForGPUIdle")]
-    pub fn wait_idle(&self) -> Result {
+    pub fn wait_idle(&self) -> Result<()> {
         to_result(unsafe { SDL_WaitForGPUIdle(self.handle.as_ptr()) })
     }
 
     #[doc(alias = "SDL_WaitForGPUSwapchain")]
-    pub fn wait_swapchain(&self, window: Ref<Window>) -> Result {
+    pub fn wait_swapchain(&self, window: Ref<Window>) -> Result<()> {
         to_result(unsafe { SDL_WaitForGPUSwapchain(self.handle.as_ptr(), window.handle.as_ptr()) })
     }
 
     #[doc(alias = "SDL_WaitForGPUFences")]
-    pub fn wait_fences(&self, wait_all: WaitAll, fences: &[Ref<Fence>]) -> Result {
+    pub fn wait_fences(&self, wait_all: WaitAll, fences: &[Ref<Fence>]) -> Result<()> {
         to_result(unsafe {
             SDL_WaitForGPUFences(
                 self.handle.as_ptr(),
@@ -212,7 +212,7 @@ impl DeviceHandle {
         window: Ref<Window>,
         composition: SwapchainComposition,
         present_mode: PresentMode,
-    ) -> Result {
+    ) -> Result<()> {
         to_result(unsafe {
             SDL_SetGPUSwapchainParameters(
                 self.handle.as_ptr(),
@@ -230,7 +230,7 @@ impl DeviceHandle {
     }
 
     #[doc(alias = "SDL_SetGPUAllowedFramesInFlight")]
-    pub fn set_allowed_frames_in_flight(&self, n: u32) -> Result {
+    pub fn set_allowed_frames_in_flight(&self, n: u32) -> Result<()> {
         to_result(unsafe { SDL_SetGPUAllowedFramesInFlight(self.handle.as_ptr(), n) })
     }
 }

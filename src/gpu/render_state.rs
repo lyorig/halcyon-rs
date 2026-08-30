@@ -50,7 +50,7 @@ resource_new!(SDL_GPURenderState, RenderState, SDL_DestroyGPURenderState);
 
 impl RenderStateHandle {
     #[doc(alias = "SDL_SetGPURenderStateFragmentUniforms")]
-    pub fn set_fragment_uniforms(&self, slot_index: u32, data: &[u8]) -> Result {
+    pub fn set_fragment_uniforms(&self, slot_index: u32, data: &[u8]) -> Result<()> {
         to_result(unsafe {
             SDL_SetGPURenderStateFragmentUniforms(
                 self.as_ptr(),

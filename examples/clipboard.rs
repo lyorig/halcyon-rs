@@ -4,7 +4,7 @@ use halcyon::{Context, Result, clipboard, subsystem::Video};
 
 const DESIRED_MIME: &CStr = c"image/png";
 
-fn run() -> Result {
+fn run() -> Result<()> {
     let ctx = Context::new();
     let _vid = Video::new(&ctx)?;
 

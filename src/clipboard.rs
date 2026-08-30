@@ -18,7 +18,7 @@ use sdl3_sys::clipboard::*;
 use crate::{Result, boxed::Box, string::String, util::to_result};
 
 #[doc(alias = "SDL_ClearClipboardData")]
-pub fn clear_data() -> Result {
+pub fn clear_data() -> Result<()> {
     to_result(unsafe { SDL_ClearClipboardData() })
 }
 
@@ -57,6 +57,6 @@ pub fn has_text() -> bool {
 }
 
 #[doc(alias = "SDL_SetClipboardText")]
-pub fn set_text(text: &CStr) -> Result {
+pub fn set_text(text: &CStr) -> Result<()> {
     to_result(unsafe { SDL_SetClipboardText(text.as_ptr()) })
 }

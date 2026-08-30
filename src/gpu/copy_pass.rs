@@ -29,7 +29,7 @@ impl CopyPass {
     /// Propagates [`Err`] returned by:
     /// - [`CopyPass::new`]
     /// - `op`
-    pub fn with<F: FnOnce(Ref<CopyPass>) -> Result>(cmdbuf: Ref<CommandBuffer>, op: F) -> Result {
+    pub fn with<F: FnOnce(Ref<CopyPass>) -> Result<()>>(cmdbuf: Ref<CommandBuffer>, op: F) -> Result<()> {
         let pass = CopyPass::new(cmdbuf)?;
         op(pass.as_ref())
     }

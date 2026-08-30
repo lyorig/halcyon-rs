@@ -106,7 +106,7 @@ impl CommandBuffer {
     /// - [`CommandBuffer::new`]
     /// - `op`
     /// - [`CommandBuffer::submit`]
-    pub fn with<F: FnOnce(Ref<CommandBuffer>) -> Result>(device: Ref<Device>, op: F) -> Result {
+    pub fn with<F: FnOnce(Ref<CommandBuffer>) -> Result<()>>(device: Ref<Device>, op: F) -> Result<()> {
         let cmdbuf = CommandBuffer::new(device)?;
         op(cmdbuf.as_ref())?;
         cmdbuf.submit()
@@ -118,7 +118,7 @@ impl CommandBuffer {
     /// - [`CommandBuffer::new`]
     /// - `op`
     /// - [`CommandBuffer::submit_fence`]
-    pub fn with_fence<F: FnOnce(Ref<CommandBuffer>) -> Result>(
+    pub fn with_fence<F: FnOnce(Ref<CommandBuffer>) -> Result<()>>(
         device: Ref<Device>,
         op: F,
     ) -> Result<Fence> {
@@ -128,7 +128,7 @@ impl CommandBuffer {
     }
 
     #[doc(alias = "SDL_SubmitGPUCommandBuffer")]
-    pub fn submit(self) -> Result {
+    pub fn submit(self) -> Result<()> {
         to_result(unsafe { SDL_SubmitGPUCommandBuffer(self.handle.as_ptr()) })
     }
 
@@ -139,7 +139,7 @@ impl CommandBuffer {
     }
 
     #[doc(alias = "SDL_CancelGPUCommandBuffer")]
-    pub fn cancel(self) -> Result {
+    pub fn cancel(self) -> Result<()> {
         to_result(unsafe { SDL_CancelGPUCommandBuffer(self.handle.as_ptr()) })
     }
 }

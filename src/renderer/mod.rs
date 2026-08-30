@@ -221,24 +221,29 @@ impl RendererHandle {
     }
 
     #[doc(alias = "SDL_RenderClear")]
-    pub fn clear(&self) -> Result {
+    pub fn clear(&self) -> Result<()> {
         to_result(unsafe { SDL_RenderClear(self.handle.as_ptr()) })
     }
 
     #[doc(alias = "SDL_RenderPresent")]
-    pub fn present(&self) -> Result {
+    pub fn present(&self) -> Result<()> {
         to_result(unsafe { SDL_RenderPresent(self.handle.as_ptr()) })
     }
 
     #[doc(alias = "SDL_FlushRenderer")]
-    pub fn flush(&self) -> Result {
+    pub fn flush(&self) -> Result<()> {
         to_result(unsafe { SDL_FlushRenderer(self.handle.as_ptr()) })
     }
 
     /// This function is a direct wrapper of SDL's [`SDL_RenderTexture`];
     /// see [`DrawBuilder`] for a neater way to draw to a renderer.
     #[doc(alias = "SDL_RenderTexture")]
-    pub fn draw(&self, tex: Ref<Texture>, src: Option<&RectF32>, dst: Option<&RectF32>) -> Result {
+    pub fn draw(
+        &self,
+        tex: Ref<Texture>,
+        src: Option<&RectF32>,
+        dst: Option<&RectF32>,
+    ) -> Result<()> {
         to_result(unsafe {
             SDL_RenderTexture(
                 self.handle.as_ptr(),
@@ -257,7 +262,7 @@ impl RendererHandle {
         origin: Option<&PointF32>,
         right: Option<&PointF32>,
         down: Option<&PointF32>,
-    ) -> Result {
+    ) -> Result<()> {
         to_result(unsafe {
             SDL_RenderTextureAffine(
                 self.handle.as_ptr(),
@@ -277,7 +282,7 @@ impl RendererHandle {
         src: Option<&RectF32>,
         scale: f32,
         dst: Option<&RectF32>,
-    ) -> Result {
+    ) -> Result<()> {
         to_result(unsafe {
             SDL_RenderTextureTiled(
                 self.handle.as_ptr(),
@@ -297,7 +302,7 @@ impl RendererHandle {
         (width_left, width_right, width_top, width_bottom): (f32, f32, f32, f32),
         scale: f32,
         dst: Option<&RectF32>,
-    ) -> Result {
+    ) -> Result<()> {
         to_result(unsafe {
             SDL_RenderTexture9Grid(
                 self.handle.as_ptr(),
@@ -314,12 +319,12 @@ impl RendererHandle {
     }
 
     #[doc(alias = "SDL_RenderLine")]
-    pub fn draw_line(&self, start: PointF32, end: PointF32) -> Result {
+    pub fn draw_line(&self, start: PointF32, end: PointF32) -> Result<()> {
         to_result(unsafe { SDL_RenderLine(self.handle.as_ptr(), start.x, start.y, end.x, end.y) })
     }
 
     #[doc(alias = "SDL_RenderLine")]
-    pub fn draw_line_with(&self, start: PointF32, end: PointF32, col: RgbaF32) -> Result {
+    pub fn draw_line_with(&self, start: PointF32, end: PointF32, col: RgbaF32) -> Result<()> {
         let old = self.xchg_draw_color_f32(col);
         let ret = self.draw_line(start, end);
         self.set_draw_color_f32(old);
@@ -328,7 +333,7 @@ impl RendererHandle {
     }
 
     #[doc(alias = "SDL_RenderLines")]
-    pub fn draw_lines(&self, lines: &[PointF32]) -> Result {
+    pub fn draw_lines(&self, lines: &[PointF32]) -> Result<()> {
         to_result(unsafe {
             SDL_RenderLines(
                 self.handle.as_ptr(),
@@ -339,7 +344,7 @@ impl RendererHandle {
     }
 
     #[doc(alias = "SDL_RenderLines")]
-    pub fn draw_lines_with(&self, lines: &[PointF32], col: RgbaF32) -> Result {
+    pub fn draw_lines_with(&self, lines: &[PointF32], col: RgbaF32) -> Result<()> {
         let old = self.xchg_draw_color_f32(col);
         let ret = self.draw_lines(lines);
         self.set_draw_color_f32(old);
@@ -348,12 +353,12 @@ impl RendererHandle {
     }
 
     #[doc(alias = "SDL_RenderPoint")]
-    pub fn draw_point(&self, pos: PointF32) -> Result {
+    pub fn draw_point(&self, pos: PointF32) -> Result<()> {
         to_result(unsafe { SDL_RenderPoint(self.handle.as_ptr(), pos.x, pos.y) })
     }
 
     #[doc(alias = "SDL_RenderPoint")]
-    pub fn draw_point_with(&self, pos: PointF32, col: RgbaF32) -> Result {
+    pub fn draw_point_with(&self, pos: PointF32, col: RgbaF32) -> Result<()> {
         let old = self.xchg_draw_color_f32(col);
         let ret = self.draw_point(pos);
         self.set_draw_color_f32(old);
@@ -362,7 +367,7 @@ impl RendererHandle {
     }
 
     #[doc(alias = "SDL_RenderPoints")]
-    pub fn draw_points(&self, points: &[PointF32]) -> Result {
+    pub fn draw_points(&self, points: &[PointF32]) -> Result<()> {
         to_result(unsafe {
             SDL_RenderPoints(
                 self.handle.as_ptr(),
@@ -373,7 +378,7 @@ impl RendererHandle {
     }
 
     #[doc(alias = "SDL_RenderPoints")]
-    pub fn draw_points_with(&self, points: &[PointF32], col: RgbaF32) -> Result {
+    pub fn draw_points_with(&self, points: &[PointF32], col: RgbaF32) -> Result<()> {
         let old = self.xchg_draw_color_f32(col);
         let ret = self.draw_points(points);
         self.set_draw_color_f32(old);
@@ -382,12 +387,12 @@ impl RendererHandle {
     }
 
     #[doc(alias = "SDL_RenderRect")]
-    pub fn draw_rect(&self, rect: RectF32) -> Result {
+    pub fn draw_rect(&self, rect: RectF32) -> Result<()> {
         to_result(unsafe { SDL_RenderRect(self.handle.as_ptr(), (&raw const rect).cast()) })
     }
 
     #[doc(alias = "SDL_RenderRect")]
-    pub fn draw_rect_with(&self, rect: RectF32, col: RgbaF32) -> Result {
+    pub fn draw_rect_with(&self, rect: RectF32, col: RgbaF32) -> Result<()> {
         let old = self.xchg_draw_color_f32(col);
         let ret = self.draw_rect(rect);
         self.set_draw_color_f32(old);
@@ -396,12 +401,12 @@ impl RendererHandle {
     }
 
     #[doc(alias = "SDL_RenderRect")]
-    pub fn draw_target_outline(&self) -> Result {
+    pub fn draw_target_outline(&self) -> Result<()> {
         to_result(unsafe { SDL_RenderRect(self.handle.as_ptr(), std::ptr::null()) })
     }
 
     #[doc(alias = "SDL_RenderRect")]
-    pub fn draw_target_outline_with(&self, col: RgbaF32) -> Result {
+    pub fn draw_target_outline_with(&self, col: RgbaF32) -> Result<()> {
         let old = self.xchg_draw_color_f32(col);
         let ret = self.draw_target_outline();
         self.set_draw_color_f32(old);
@@ -410,7 +415,7 @@ impl RendererHandle {
     }
 
     #[doc(alias = "SDL_RenderRects")]
-    pub fn draw_rects(&self, rects: &[RectF32]) -> Result {
+    pub fn draw_rects(&self, rects: &[RectF32]) -> Result<()> {
         to_result(unsafe {
             SDL_RenderRects(
                 self.handle.as_ptr(),
@@ -421,7 +426,7 @@ impl RendererHandle {
     }
 
     #[doc(alias = "SDL_RenderRects")]
-    pub fn draw_rects_with(&self, rects: &[RectF32], col: RgbaF32) -> Result {
+    pub fn draw_rects_with(&self, rects: &[RectF32], col: RgbaF32) -> Result<()> {
         let old = self.xchg_draw_color_f32(col);
         let ret = self.draw_rects(rects);
         self.set_draw_color_f32(old);
@@ -430,12 +435,12 @@ impl RendererHandle {
     }
 
     #[doc(alias = "SDL_RenderFillRect")]
-    pub fn fill_target(&self) -> Result {
+    pub fn fill_target(&self) -> Result<()> {
         to_result(unsafe { SDL_RenderFillRect(self.handle.as_ptr(), std::ptr::null()) })
     }
 
     #[doc(alias = "SDL_RenderFillRect")]
-    pub fn fill_target_with(&self, col: RgbaF32) -> Result {
+    pub fn fill_target_with(&self, col: RgbaF32) -> Result<()> {
         let old = self.xchg_draw_color_f32(col);
         let ret = self.fill_target();
         self.set_draw_color_f32(old);
@@ -444,12 +449,12 @@ impl RendererHandle {
     }
 
     #[doc(alias = "SDL_RenderFillRect")]
-    pub fn fill_rect(&self, rect: RectF32) -> Result {
+    pub fn fill_rect(&self, rect: RectF32) -> Result<()> {
         to_result(unsafe { SDL_RenderFillRect(self.handle.as_ptr(), (&raw const rect).cast()) })
     }
 
     #[doc(alias = "SDL_RenderFillRect")]
-    pub fn fill_rect_with(&self, rect: RectF32, col: RgbaF32) -> Result {
+    pub fn fill_rect_with(&self, rect: RectF32, col: RgbaF32) -> Result<()> {
         let old = self.xchg_draw_color_f32(col);
         let ret = self.fill_rect(rect);
         self.set_draw_color_f32(old);
@@ -458,7 +463,7 @@ impl RendererHandle {
     }
 
     #[doc(alias = "SDL_RenderFillRects")]
-    pub fn fill_rects(&self, rects: &[RectF32]) -> Result {
+    pub fn fill_rects(&self, rects: &[RectF32]) -> Result<()> {
         to_result(unsafe {
             SDL_RenderFillRects(
                 self.handle.as_ptr(),
@@ -469,7 +474,7 @@ impl RendererHandle {
     }
 
     #[doc(alias = "SDL_RenderFillRects")]
-    pub fn fill_rects_with(&self, rects: &[RectF32], col: RgbaF32) -> Result {
+    pub fn fill_rects_with(&self, rects: &[RectF32], col: RgbaF32) -> Result<()> {
         let old = self.xchg_draw_color_f32(col);
         let ret = self.fill_rects(rects);
         self.set_draw_color_f32(old);
@@ -484,7 +489,7 @@ impl RendererHandle {
     /// If the parameter is `Some(tex)`, ensure `tex` lives for as long as it's
     /// used as the target texture.
     #[doc(alias = "SDL_SetRenderTarget")]
-    pub fn set_target_opt(&self, tgt: Option<Ref<Texture>>) -> Result {
+    pub fn set_target_opt(&self, tgt: Option<Ref<Texture>>) -> Result<()> {
         to_result(unsafe {
             SDL_SetRenderTarget(
                 self.handle.as_ptr(),
@@ -497,12 +502,12 @@ impl RendererHandle {
     }
 
     #[doc(alias = "SDL_SetRenderTarget")]
-    pub fn set_target(&self, tgt: Ref<Texture>) -> Result {
+    pub fn set_target(&self, tgt: Ref<Texture>) -> Result<()> {
         self.set_target_opt(Some(tgt))
     }
 
     #[doc(alias = "SDL_SetRenderTarget")]
-    pub fn reset_target(&self) -> Result {
+    pub fn reset_target(&self) -> Result<()> {
         self.set_target_opt(None)
     }
 
@@ -560,12 +565,12 @@ impl RendererHandle {
         old
     }
 
-    pub fn set_render_state(&self, rs: Ref<RenderState>) -> Result {
+    pub fn set_render_state(&self, rs: Ref<RenderState>) -> Result<()> {
         to_result(unsafe { SDL_SetGPURenderState(self.as_ptr(), rs.as_ptr()) })
     }
 
     #[doc(alias = "SDL_SetGPURenderState")]
-    pub fn clear_render_state(&self) -> Result {
+    pub fn clear_render_state(&self) -> Result<()> {
         to_result(unsafe { SDL_SetGPURenderState(self.as_ptr(), std::ptr::null_mut()) })
     }
 }
@@ -652,7 +657,7 @@ impl<'rnd, 'tex, 'rct> DrawBuilder<'rnd, 'tex, 'rct> {
         self
     }
 
-    pub fn draw(&self) -> Result {
+    pub fn draw(&self) -> Result<()> {
         self.renderer.draw(self.texture, self.src, self.dst)
     }
 }

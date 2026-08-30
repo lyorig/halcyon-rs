@@ -45,7 +45,7 @@ fn print_properties(props: DeviceProperties) {
     halcyon::log!("Driver version: {}", f(props.driver_version()));
 }
 
-fn run() -> Result {
+fn run() -> Result<()> {
     let ctx = Context::new();
     let _video = ManuallyDrop::new(Video::new(&ctx)?);
 

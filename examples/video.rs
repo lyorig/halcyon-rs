@@ -24,7 +24,7 @@ fn print_properties(props: RendererProperties) {
     halcyon::log!("# of texture formats: {}", props.texture_formats().len());
 }
 
-fn run() -> Result {
+fn run() -> Result<()> {
     let ctx = Context::new();
     let _vid = ManuallyDrop::new(Video::new(&ctx)?);
 

@@ -22,7 +22,7 @@ pub enum ButtonLayout {
 }
 
 #[doc(alias = "SDL_ShowSimpleMessageBox")]
-pub fn show(sev: Severity, bl: ButtonLayout, title: &CStr, message: &CStr) -> Result {
+pub fn show(sev: Severity, bl: ButtonLayout, title: &CStr, message: &CStr) -> Result<()> {
     let flags = sev as u32 | bl as u32;
     to_result(unsafe {
         SDL_ShowSimpleMessageBox(

@@ -199,7 +199,7 @@ fn pick_depth_format(device: Ref<Device>) -> TextureFormat {
         .unwrap_or(TextureFormat::D32Float)
 }
 
-fn run() -> Result {
+fn run() -> Result<()> {
     let ctx = Context::new();
     let _video = ManuallyDrop::new(Video::new(&ctx)?);
 

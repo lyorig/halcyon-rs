@@ -130,7 +130,7 @@ impl TextHandle {
     }
 
     #[doc(alias = "TTF_SetTextColor")]
-    pub fn set_color(&self, color: RgbaU8) -> Result {
+    pub fn set_color(&self, color: RgbaU8) -> Result<()> {
         to_result(unsafe {
             TTF_SetTextColor(
                 self.as_ptr(),
@@ -159,7 +159,7 @@ impl TextHandle {
     }
 
     #[doc(alias = "TTF_SetTextColorFloat")]
-    pub fn set_color_float(&self, color: RgbaF32) -> Result {
+    pub fn set_color_float(&self, color: RgbaF32) -> Result<()> {
         to_result(unsafe {
             TTF_SetTextColorFloat(
                 self.as_ptr(),
@@ -177,7 +177,7 @@ impl TextHandle {
     }
 
     #[doc(alias = "TTF_SetTextDirection")]
-    pub fn set_direction(&self, direction: Direction) -> Result {
+    pub fn set_direction(&self, direction: Direction) -> Result<()> {
         to_result(unsafe { TTF_SetTextDirection(self.as_ptr(), direction) })
     }
 
@@ -187,7 +187,7 @@ impl TextHandle {
     }
 
     #[doc(alias = "TTF_SetTextScript")]
-    pub fn set_script(&self, script: u32) -> Result {
+    pub fn set_script(&self, script: u32) -> Result<()> {
         to_result(unsafe { TTF_SetTextScript(self.as_ptr(), script) })
     }
 
@@ -202,7 +202,7 @@ impl TextHandle {
     }
 
     #[doc(alias = "TTF_SetTextPosition")]
-    pub fn set_position(&self, position: PointI32) -> Result {
+    pub fn set_position(&self, position: PointI32) -> Result<()> {
         to_result(unsafe { TTF_SetTextPosition(self.as_ptr(), position.x, position.y) })
     }
 
@@ -214,7 +214,7 @@ impl TextHandle {
     }
 
     #[doc(alias = "TTF_SetTextWrapWidth")]
-    pub fn set_wrap_width(&self, width: i32) -> Result {
+    pub fn set_wrap_width(&self, width: i32) -> Result<()> {
         to_result(unsafe { TTF_SetTextWrapWidth(self.as_ptr(), width) })
     }
 
@@ -224,7 +224,7 @@ impl TextHandle {
     }
 
     #[doc(alias = "TTF_SetTextWrapWhitespaceVisible")]
-    pub fn set_wrap_whitespace_visible(&self, visible: bool) -> Result {
+    pub fn set_wrap_whitespace_visible(&self, visible: bool) -> Result<()> {
         to_result(unsafe { TTF_SetTextWrapWhitespaceVisible(self.as_ptr(), visible) })
     }
 
@@ -236,7 +236,7 @@ impl TextHandle {
     }
 
     #[doc(alias = "TTF_SetTextFont")]
-    pub fn set_font<'a>(&self, font: Option<Ref<'a, Font<'a>>>) -> Result {
+    pub fn set_font<'a>(&self, font: Option<Ref<'a, Font<'a>>>) -> Result<()> {
         let font = font.map_or(std::ptr::null_mut(), |font| font.as_ptr());
         to_result(unsafe { TTF_SetTextFont(self.as_ptr(), font) })
     }
@@ -311,22 +311,22 @@ impl TextHandle {
     }
 
     #[doc(alias = "TTF_UpdateText")]
-    pub fn update(&self) -> Result {
+    pub fn update(&self) -> Result<()> {
         to_result(unsafe { TTF_UpdateText(self.as_ptr()) })
     }
 
     #[doc(alias = "TTF_DrawSurfaceText")]
-    pub fn draw_to_surface(&self, surf: Ref<Surface>, pos: PointI32) -> Result {
+    pub fn draw_to_surface(&self, surf: Ref<Surface>, pos: PointI32) -> Result<()> {
         to_result(unsafe { TTF_DrawSurfaceText(self.as_ptr(), pos.x, pos.y, surf.handle.as_ptr()) })
     }
 
     #[doc(alias = "TTF_DrawRendererText")]
-    pub fn draw_to_renderer(&self, pos: PointF32) -> Result {
+    pub fn draw_to_renderer(&self, pos: PointF32) -> Result<()> {
         to_result(unsafe { TTF_DrawRendererText(self.as_ptr(), pos.x, pos.y) })
     }
 
     #[doc(alias = "TTF_SetTextEngine")]
-    pub fn set_engine<'this, 'eng, H, T>(&'this self, eng: Ref<'eng, T>) -> Result
+    pub fn set_engine<'this, 'eng, H, T>(&'this self, eng: Ref<'eng, T>) -> Result<()>
     where
         'eng: 'this,
         H: Handle<Raw = *mut TTF_TextEngine>,
@@ -361,25 +361,25 @@ impl Text {
     }
 
     #[doc(alias = "TTF_SetTextString")]
-    pub fn set_string(&self, text: &str) -> Result {
+    pub fn set_string(&self, text: &str) -> Result<()> {
         let text = RtStr::new(text);
         to_result(unsafe { TTF_SetTextString(self.as_ptr(), text.as_ptr(), text.len()) })
     }
 
     #[doc(alias = "TTF_InsertTextString")]
-    pub fn insert_string(&self, offset: i32, text: &str) -> Result {
+    pub fn insert_string(&self, offset: i32, text: &str) -> Result<()> {
         let text = RtStr::new(text);
         to_result(unsafe { TTF_InsertTextString(self.as_ptr(), offset, text.as_ptr(), text.len()) })
     }
 
     #[doc(alias = "TTF_AppendTextString")]
-    pub fn append_string(&self, text: &str) -> Result {
+    pub fn append_string(&self, text: &str) -> Result<()> {
         let text = RtStr::new(text);
         to_result(unsafe { TTF_AppendTextString(self.as_ptr(), text.as_ptr(), text.len()) })
     }
 
     #[doc(alias = "TTF_DeleteTextString")]
-    pub fn delete_string(&self, offset: i32, length: i32) -> Result {
+    pub fn delete_string(&self, offset: i32, length: i32) -> Result<()> {
         to_result(unsafe { TTF_DeleteTextString(self.as_ptr(), offset, length) })
     }
 }

@@ -140,38 +140,38 @@ impl PropertiesHandle {
     }
 
     #[doc(alias = "SDL_SetNumberProperty")]
-    pub fn set_number(&self, key: *const c_char, value: i64) -> Result {
+    pub fn set_number(&self, key: *const c_char, value: i64) -> Result<()> {
         to_result(unsafe { SDL_SetNumberProperty(self.id(), key, value) })
     }
 
     #[doc(alias = "SDL_SetFloatProperty")]
-    pub fn set_float(&self, key: *const c_char, value: f32) -> Result {
+    pub fn set_float(&self, key: *const c_char, value: f32) -> Result<()> {
         to_result(unsafe { SDL_SetFloatProperty(self.id(), key, value) })
     }
 
     #[doc(alias = "SDL_SetPointerProperty")]
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    pub fn set_pointer(&self, key: *const c_char, value: *mut c_void) -> Result {
+    pub fn set_pointer(&self, key: *const c_char, value: *mut c_void) -> Result<()> {
         to_result(unsafe { SDL_SetPointerProperty(self.id(), key, value) })
     }
 
     #[doc(alias = "SDL_SetStringProperty")]
-    pub fn set_string(&self, key: *const c_char, value: *const c_char) -> Result {
+    pub fn set_string(&self, key: *const c_char, value: *const c_char) -> Result<()> {
         to_result(unsafe { SDL_SetStringProperty(self.id(), key, value) })
     }
 
     #[doc(alias = "SDL_SetBooleanProperty")]
-    pub fn set_bool(&self, key: *const c_char, value: bool) -> Result {
+    pub fn set_bool(&self, key: *const c_char, value: bool) -> Result<()> {
         to_result(unsafe { SDL_SetBooleanProperty(self.id(), key, value) })
     }
 
     #[doc(alias = "SDL_ClearProperty")]
-    pub fn clear(&self, key: *const c_char) -> Result {
+    pub fn clear(&self, key: *const c_char) -> Result<()> {
         to_result(unsafe { SDL_ClearProperty(self.id(), key) })
     }
 
     #[doc(alias = "SDL_CopyProperties")]
-    fn copy_to(&self, dst: Ref<Properties>) -> Result {
+    fn copy_to(&self, dst: Ref<Properties>) -> Result<()> {
         to_result(unsafe { SDL_CopyProperties(self.id(), dst.id()) })
     }
 
