@@ -38,7 +38,9 @@ fn run() -> Result {
         COMPUTE_CODE,
         c"cs_main",
         SHADER_FMT,
-        (0, 0, 0, 0, 1, 0),
+        0,
+        0,
+        (0, 0, 0, 1),
         (1, 1, 1),
     );
 

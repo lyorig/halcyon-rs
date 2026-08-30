@@ -25,8 +25,8 @@ impl<'bc, 'ep> ComputePipelineCreateInfo<'bc, 'ep> {
         entrypoint: &'ep CStr,
         fmt: ShaderFormat,
         sampler_count: u32,
-        (ro_stor_tex, ro_stor_buf, rw_stor_tex, rw_stor_buf): (u32, u32, u32, u32),
         uniform_buffer_count: u32,
+        (ro_stor_tex, ro_stor_buf, rw_stor_tex, rw_stor_buf): (u32, u32, u32, u32),
         threadcount_xyz: (u32, u32, u32),
     ) -> Self {
         let inner = SDL_GPUComputePipelineCreateInfo {
