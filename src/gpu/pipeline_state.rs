@@ -5,7 +5,7 @@
 
 use std::marker::PhantomData;
 
-use bitmask_enum::bitmask;
+use bitflags::bitflags;
 use sdl3_sys::gpu::*;
 
 use crate::{gpu::enums::*, impl_enum_transmute};
@@ -132,13 +132,15 @@ pub enum StencilOp {
     DecrementAndWrap = SDL_GPUStencilOp::DECREMENT_AND_WRAP.0,
 }
 
-#[bitmask(u8)]
-#[doc(alias = "SDL_GPUColorComponentFlags")]
-pub enum ColorComponentFlags {
-    R = SDL_GPUColorComponentFlags::R.0,
-    G = SDL_GPUColorComponentFlags::G.0,
-    B = SDL_GPUColorComponentFlags::B.0,
-    A = SDL_GPUColorComponentFlags::A.0,
+bitflags! {
+    #[derive(Clone, Copy)]
+    #[doc(alias = "SDL_GPUColorComponentFlags")]
+    pub struct ColorComponentFlags: u8 {
+        const R = SDL_GPUColorComponentFlags::R.0;
+        const G = SDL_GPUColorComponentFlags::G.0;
+        const B = SDL_GPUColorComponentFlags::B.0;
+        const A = SDL_GPUColorComponentFlags::A.0;
+    }
 }
 
 impl_enum_transmute!(SDL_GPUVertexElementFormat, VertexElementFormat);

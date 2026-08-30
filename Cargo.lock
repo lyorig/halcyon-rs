@@ -66,14 +66,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "bitmask-enum"
-version = "2.2.5"
+name = "bitflags"
+version = "2.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6cbbb8f56245b5a479b30a62cdc86d26e2f35c2b9f594bc4671654b03851380"
-dependencies = [
- "quote",
- "syn 2.0.119",
-]
+checksum = "b588b76d00fde79687d7646a9b5bdf3cc0f655e0bbd080335a95d7e96f3587da"
 
 [[package]]
 name = "cfg-if"
@@ -180,7 +176,7 @@ dependencies = [
 name = "halcyon"
 version = "0.1.0"
 dependencies = [
- "bitmask-enum",
+ "bitflags",
  "paste",
  "rustest",
  "sdl3-sys",

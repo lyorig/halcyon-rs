@@ -94,10 +94,7 @@ fn run() -> Result {
         BlendOp::Add,
         (BlendFactor::One, BlendFactor::Zero),
         BlendOp::Add,
-        ColorComponentFlags::R
-            | ColorComponentFlags::G
-            | ColorComponentFlags::B
-            | ColorComponentFlags::A,
+        ColorComponentFlags::all(), // RGBA
         EnableBlend::No,
         EnableColorWriteMask::No,
     );

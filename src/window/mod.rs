@@ -120,7 +120,7 @@ use crate::{
     util::{c_ptr_to_str, opt2ptr, opt2res_map, to_result},
 };
 
-use bitmask_enum::bitmask;
+use bitflags::bitflags;
 use sdl3_sys::{
     pixels::SDL_PixelFormat,
     render::{SDL_CreateWindowAndRenderer, SDL_GetRenderer, SDL_Renderer},
@@ -137,65 +137,67 @@ use std::{
 mod_reexport!(builder);
 mod_reexport!(properties);
 
-#[bitmask(u64)]
-#[doc(alias = "SDL_WindowFlags")]
-pub enum WindowFlags {
-    /// Window is in fullscreen mode.
-    Fullscreen = SDL_WINDOW_FULLSCREEN.0,
-    /// Window usable with an OpenGL context.
-    OpenGL = SDL_WINDOW_OPENGL.0,
-    /// Window is occluded.
-    Occluded = SDL_WINDOW_OCCLUDED.0,
-    /// Window is neither mapped onto the desktop nor shown in the
-    /// taskbar/dock/window list; calling [`show`](WindowHandle::show) is required
-    /// for it to become visible.
-    Hidden = SDL_WINDOW_HIDDEN.0,
-    /// No window decoration.
-    Borderless = SDL_WINDOW_BORDERLESS.0,
-    /// Window can be resized.
-    Resizable = SDL_WINDOW_RESIZABLE.0,
-    /// Window is minimized.
-    Minimized = SDL_WINDOW_MINIMIZED.0,
-    /// Window is maximized.
-    Maximized = SDL_WINDOW_MAXIMIZED.0,
-    /// Window has grabbed mouse input.
-    MouseGrabbed = SDL_WINDOW_MOUSE_GRABBED.0,
-    /// Window has input focus.
-    InputFocus = SDL_WINDOW_INPUT_FOCUS.0,
-    /// Window has mouse focus.
-    MouseFocus = SDL_WINDOW_MOUSE_FOCUS.0,
-    /// Window not created by SDL.
-    External = SDL_WINDOW_EXTERNAL.0,
-    /// Window is modal.
-    Modal = SDL_WINDOW_MODAL.0,
-    /// Window uses a high pixel density back buffer if possible.
-    HighPixelDensity = SDL_WINDOW_HIGH_PIXEL_DENSITY.0,
-    /// Window has mouse captured (unrelated to [`MouseGrabbed`](WindowFlags::MouseGrabbed)).
-    MouseCapture = SDL_WINDOW_MOUSE_CAPTURE.0,
-    /// Window has relative mode enabled.
-    MouseRelativeMode = SDL_WINDOW_MOUSE_RELATIVE_MODE.0,
-    /// Window should always be above others.
-    AlwaysOnTop = SDL_WINDOW_ALWAYS_ON_TOP.0,
-    /// Window should be treated as a utility window, not showing in the task bar
-    /// and window list.
-    Utility = SDL_WINDOW_UTILITY.0,
-    /// Window should be treated as a tooltip and does not get mouse or keyboard
-    /// focus; requires a parent window.
-    Tooltip = SDL_WINDOW_TOOLTIP.0,
-    /// Window should be treated as a popup menu; requires a parent window.
-    PopupMenu = SDL_WINDOW_POPUP_MENU.0,
-    /// Window has grabbed keyboard input.
-    KeyboardGrabbed = SDL_WINDOW_KEYBOARD_GRABBED.0,
-    /// Window is in fill-document mode (Emscripten only).
-    FillDocument = SDL_WINDOW_FILL_DOCUMENT.0,
-    /// Window usable for a Vulkan surface.
-    Vulkan = SDL_WINDOW_VULKAN.0,
-    /// Window usable for a Metal view.
-    Metal = SDL_WINDOW_METAL.0,
-    /// Window with a transparent buffer.
-    Transparent = SDL_WINDOW_TRANSPARENT.0,
-    /// Window should not be focusable.
-    NotFocusable = SDL_WINDOW_NOT_FOCUSABLE.0,
+bitflags! {
+    #[derive(Clone, Copy)]
+    #[doc(alias = "SDL_WindowFlags")]
+    pub struct WindowFlags: u64 {
+        /// Window is in fullscreen mode.
+        const FULLSCREEN = SDL_WINDOW_FULLSCREEN.0;
+        /// Window usable with an OpenGL context.
+        const OPENGL = SDL_WINDOW_OPENGL.0;
+        /// Window is occluded.
+        const OCCLUDED = SDL_WINDOW_OCCLUDED.0;
+        /// Window is neither mapped onto the desktop nor shown in the
+        /// taskbar/dock/window list; calling [`show`](WindowHandle::show) is required
+        /// for it to become visible.
+        const HIDDEN = SDL_WINDOW_HIDDEN.0;
+        /// No window decoration.
+        const BORDERLESS = SDL_WINDOW_BORDERLESS.0;
+        /// Window can be resized.
+        const RESIZABLE = SDL_WINDOW_RESIZABLE.0;
+        /// Window is minimized.
+        const MINIMIZED = SDL_WINDOW_MINIMIZED.0;
+        /// Window is maximized.
+        const MAXIMIZED = SDL_WINDOW_MAXIMIZED.0;
+        /// Window has grabbed mouse input.
+        const MOUSE_GRABBED = SDL_WINDOW_MOUSE_GRABBED.0;
+        /// Window has input focus.
+        const INPUT_FOCUS = SDL_WINDOW_INPUT_FOCUS.0;
+        /// Window has mouse focus.
+        const MOUSE_FOCUS = SDL_WINDOW_MOUSE_FOCUS.0;
+        /// Window not created by SDL.
+        const EXTERNAL = SDL_WINDOW_EXTERNAL.0;
+        /// Window is modal.
+        const MODAL = SDL_WINDOW_MODAL.0;
+        /// Window uses a high pixel density back buffer if possible.
+        const HIGH_PIXEL_DENSITY = SDL_WINDOW_HIGH_PIXEL_DENSITY.0;
+        /// Window has mouse captured (unrelated to [`MouseGrabbed`](WindowFlags::MouseGrabbed)).
+        const MOUSE_CAPTURE = SDL_WINDOW_MOUSE_CAPTURE.0;
+        /// Window has relative mode enabled.
+        const MOUSE_RELATIVE_MODE = SDL_WINDOW_MOUSE_RELATIVE_MODE.0;
+        /// Window should always be above others.
+        const ALWAYS_ON_TOP = SDL_WINDOW_ALWAYS_ON_TOP.0;
+        /// Window should be treated as a utility window, not showing in the task bar
+        /// and window list.
+        const UTILITY = SDL_WINDOW_UTILITY.0;
+        /// Window should be treated as a tooltip and does not get mouse or keyboard
+        /// focus; requires a parent window.
+        const TOOLTIP = SDL_WINDOW_TOOLTIP.0;
+        /// Window should be treated as a popup menu; requires a parent window.
+        const POPUP_MENU = SDL_WINDOW_POPUP_MENU.0;
+        /// Window has grabbed keyboard input.
+        const KEYBOARD_GRABBED = SDL_WINDOW_KEYBOARD_GRABBED.0;
+        /// Window is in fill-document mode (Emscripten only).
+        const FILL_DOCUMENT = SDL_WINDOW_FILL_DOCUMENT.0;
+        /// Window usable for a Vulkan surface.
+        const VULKAN = SDL_WINDOW_VULKAN.0;
+        /// Window usable for a Metal view.
+        const METAL = SDL_WINDOW_METAL.0;
+        /// Window with a transparent buffer.
+        const TRANSPARENT = SDL_WINDOW_TRANSPARENT.0;
+        /// Window should not be focusable.
+        const NOT_FOCUSABLE = SDL_WINDOW_NOT_FOCUSABLE.0;
+    }
 }
 
 #[repr(i32)]

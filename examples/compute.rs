@@ -46,10 +46,9 @@ fn run() -> Result {
         .name(c"Compute Pipeline")
         .build_cleanup(device.as_ref(), pipeline_info)?;
 
-    let buffer_info = BufferCreateInfo::new(
-        BufferUsageFlags::ComputeStorageRead | BufferUsageFlags::ComputeStorageWrite,
-        4,
-    );
+    type Buf = BufferUsageFlags;
+    let buffer_info =
+        BufferCreateInfo::new(Buf::COMPUTE_STORAGE_READ | Buf::COMPUTE_STORAGE_WRITE, 4);
 
     let buffer = Buffer::builder(props)
         .name(c"Compute Buffer")

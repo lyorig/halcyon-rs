@@ -7,7 +7,7 @@
 
 use std::{ffi::CStr, marker::PhantomData};
 
-use bitmask_enum::bitmask;
+use bitflags::bitflags;
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
 use crate::{
@@ -32,16 +32,18 @@ pub enum TextureType {
     CubeArray = SDL_GPUTextureType::CUBE_ARRAY.0,
 }
 
-#[bitmask(u32)]
-#[doc(alias = "SDL_GPUTextureUsageFlags")]
-pub enum TextureUsageFlags {
-    Sampler = SDL_GPUTextureUsageFlags::SAMPLER.0,
-    ColorTarget = SDL_GPUTextureUsageFlags::COLOR_TARGET.0,
-    DepthStencilTarget = SDL_GPUTextureUsageFlags::DEPTH_STENCIL_TARGET.0,
-    GraphicsStorageRead = SDL_GPUTextureUsageFlags::GRAPHICS_STORAGE_READ.0,
-    ComputeStorageRead = SDL_GPUTextureUsageFlags::COMPUTE_STORAGE_READ.0,
-    ComputeStorageWrite = SDL_GPUTextureUsageFlags::COMPUTE_STORAGE_WRITE.0,
-    ComputeStorageReadWrite = SDL_GPUTextureUsageFlags::COMPUTE_STORAGE_SIMULTANEOUS_READ_WRITE.0,
+bitflags! {
+    #[derive(Clone, Copy)]
+    #[doc(alias = "SDL_GPUTextureUsageFlags")]
+    pub struct TextureUsageFlags: u32 {
+        const SAMPLER = SDL_GPUTextureUsageFlags::SAMPLER.0;
+        const COLOR_TARGET = SDL_GPUTextureUsageFlags::COLOR_TARGET.0;
+        const DEPTH_STENCIL_TARGET = SDL_GPUTextureUsageFlags::DEPTH_STENCIL_TARGET.0;
+        const GRAPHICS_STORAGE_READ = SDL_GPUTextureUsageFlags::GRAPHICS_STORAGE_READ.0;
+        const COMPUTE_STORAGE_READ = SDL_GPUTextureUsageFlags::COMPUTE_STORAGE_READ.0;
+        const COMPUTE_STORAGE_WRITE = SDL_GPUTextureUsageFlags::COMPUTE_STORAGE_WRITE.0;
+        const COMPUTE_STORAGE_READ_WRITE = SDL_GPUTextureUsageFlags::COMPUTE_STORAGE_SIMULTANEOUS_READ_WRITE.0;
+    }
 }
 
 #[repr(i32)]

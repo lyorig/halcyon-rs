@@ -226,7 +226,7 @@ impl DeviceHandle {
     #[doc(alias = "SDL_GetGPUShaderFormats")]
     pub fn shader_formats(&self) -> ShaderFormats {
         let fmts = unsafe { SDL_GetGPUShaderFormats(self.handle.as_ptr()) };
-        ShaderFormats::from(fmts.0)
+        ShaderFormats::from_bits_retain(fmts.0)
     }
 
     #[doc(alias = "SDL_SetGPUAllowedFramesInFlight")]

@@ -31,7 +31,7 @@ mod_reexport!(shader);
 mod_reexport!(texture);
 mod_reexport!(transfer_buffer);
 
-use bitmask_enum::bitmask;
+use bitflags::bitflags;
 use sdl3_sys::{gpu::*, pixels::SDL_PixelFormat, properties::SDL_PropertiesID};
 
 use crate::{impl_enum_transmute, mod_reexport, util::c_ptr_to_str};
@@ -51,18 +51,20 @@ pub enum ShaderFormat {
 impl ShaderFormat {
     /// Returns [`ShaderFormats`] with only this bit set.
     pub const fn as_mask(self) -> ShaderFormats {
-        ShaderFormats { bits: self as u32 }
+        ShaderFormats::from_bits_retain(self as u32)
     }
 }
 
-#[bitmask(u32)]
-#[doc(alias = "SDL_GPUShaderFormat")]
-pub enum ShaderFormats {
-    SpirV = SDL_GPUShaderFormat::SPIRV.0,
-    Dxbc = SDL_GPUShaderFormat::DXBC.0,
-    Dxil = SDL_GPUShaderFormat::DXIL.0,
-    Msl = SDL_GPUShaderFormat::MSL.0,
-    Metallib = SDL_GPUShaderFormat::METALLIB.0,
+bitflags! {
+    #[derive(Clone, Copy)]
+    #[doc(alias = "SDL_GPUShaderFormat")]
+    pub struct ShaderFormats: u32 {
+        const SPIRV = SDL_GPUShaderFormat::SPIRV.0;
+        const DXBC = SDL_GPUShaderFormat::DXBC.0;
+        const DXIL = SDL_GPUShaderFormat::DXIL.0;
+        const MSL = SDL_GPUShaderFormat::MSL.0;
+        const METALLIB = SDL_GPUShaderFormat::METALLIB.0;
+    }
 }
 
 impl_enum_transmute!(SDL_GPUShaderFormat, ShaderFormats);

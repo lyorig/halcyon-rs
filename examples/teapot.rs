@@ -182,7 +182,11 @@ fn load_teapot() -> MeshData {
 }
 
 fn can_use_format(device: Ref<Device>, fmt: TextureFormat) -> bool {
-    device.texture_supports_format(fmt, TextureType::_2d, TextureUsageFlags::DepthStencilTarget)
+    device.texture_supports_format(
+        fmt,
+        TextureType::_2d,
+        TextureUsageFlags::DEPTH_STENCIL_TARGET,
+    )
 }
 
 /// Pick a depth format the device supports. D24_UNORM is not available on all
@@ -258,12 +262,12 @@ fn run() -> Result {
 
     let vb = Buffer::new(
         device.as_ref(),
-        &BufferCreateInfo::new(BufferUsageFlags::Vertex, vert_bytes),
+        &BufferCreateInfo::new(BufferUsageFlags::VERTEX, vert_bytes),
     )?;
 
     let ib = Buffer::new(
         device.as_ref(),
-        &BufferCreateInfo::new(BufferUsageFlags::Index, idx_bytes),
+        &BufferCreateInfo::new(BufferUsageFlags::INDEX, idx_bytes),
     )?;
 
     let tbci = TransferBufferCreateInfo::new(TransferBufferUsage::Upload, vert_bytes + idx_bytes);
@@ -404,7 +408,7 @@ fn run() -> Result {
                 let tci = TextureCreateInfo::new(
                     TextureType::_2d,
                     depth_format,
-                    TextureUsageFlags::DepthStencilTarget,
+                    TextureUsageFlags::DEPTH_STENCIL_TARGET,
                     Point::new(width, height),
                     1, // layer count / depth
                     1, // mip levels

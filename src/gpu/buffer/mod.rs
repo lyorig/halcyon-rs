@@ -7,7 +7,7 @@
 
 use std::{ffi::CStr, marker::PhantomData};
 
-use bitmask_enum::bitmask;
+use bitflags::bitflags;
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
 use crate::{
@@ -19,15 +19,17 @@ use super::{copy_pass::CopyPass, device::Device, transfer_buffer::TransferBuffer
 
 mod_reexport!(builder);
 
-#[bitmask(u32)]
-#[doc(alias = "SDL_GPUBufferUsageFlags")]
-pub enum BufferUsageFlags {
-    Vertex = SDL_GPUBufferUsageFlags::VERTEX.0,
-    Index = SDL_GPUBufferUsageFlags::INDEX.0,
-    Indirect = SDL_GPUBufferUsageFlags::INDIRECT.0,
-    GraphicsStorageRead = SDL_GPUBufferUsageFlags::GRAPHICS_STORAGE_READ.0,
-    ComputeStorageRead = SDL_GPUBufferUsageFlags::COMPUTE_STORAGE_READ.0,
-    ComputeStorageWrite = SDL_GPUBufferUsageFlags::COMPUTE_STORAGE_WRITE.0,
+bitflags! {
+    #[derive(Clone, Copy)]
+    #[doc(alias = "SDL_GPUBufferUsageFlags")]
+    pub struct BufferUsageFlags: u32 {
+        const VERTEX = SDL_GPUBufferUsageFlags::VERTEX.0;
+        const INDEX = SDL_GPUBufferUsageFlags::INDEX.0;
+        const INDIRECT = SDL_GPUBufferUsageFlags::INDIRECT.0;
+        const GRAPHICS_STORAGE_READ = SDL_GPUBufferUsageFlags::GRAPHICS_STORAGE_READ.0;
+        const COMPUTE_STORAGE_READ = SDL_GPUBufferUsageFlags::COMPUTE_STORAGE_READ.0;
+        const COMPUTE_STORAGE_WRITE = SDL_GPUBufferUsageFlags::COMPUTE_STORAGE_WRITE.0;
+    }
 }
 
 impl_enum_transmute!(SDL_GPUBufferUsageFlags, BufferUsageFlags);
