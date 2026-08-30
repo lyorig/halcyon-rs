@@ -39,20 +39,25 @@ const NUM_SCANCODES: usize = SDL_SCANCODE_COUNT.0 as usize;
 
 #[doc(alias = "SDL_GetScancodeName")]
 pub fn scancode_name(scancode: SDL_Scancode) -> &'static str {
-    unsafe { str::from_utf8_unchecked(CStr::from_ptr(SDL_GetScancodeName(scancode)).to_bytes()) }
+    unsafe {
+        let cstr = CStr::from_ptr(SDL_GetScancodeName(scancode)).to_bytes();
+        str::from_utf8_unchecked(cstr)
+    }
 }
 
 #[doc(alias = "SDL_GetKeyName")]
 pub fn key_name(key: SDL_Keycode) -> &'static str {
-    unsafe { str::from_utf8_unchecked(CStr::from_ptr(SDL_GetKeyName(key)).to_bytes()) }
+    unsafe {
+        let cstr = CStr::from_ptr(SDL_GetKeyName(key)).to_bytes();
+        str::from_utf8_unchecked(cstr)
+    }
 }
 
 #[doc(alias = "SDL_GetKeyboardState")]
 pub fn keyboard_state() -> &'static [bool; NUM_SCANCODES] {
     unsafe {
-        (SDL_GetKeyboardState(std::ptr::null_mut()) as *const [bool; NUM_SCANCODES])
-            .as_ref()
-            .expect("SDL_GetKeyboardState returned a null pointer")
+        let ptr = SDL_GetKeyboardState(std::ptr::null_mut()) as *const [bool; NUM_SCANCODES];
+        ptr.as_ref_unchecked()
     }
 }
 

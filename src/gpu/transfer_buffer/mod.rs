@@ -34,6 +34,11 @@ impl<'tb> TransferBufferLocation<'tb> {
 
         Self(inner, PhantomData)
     }
+
+    /// Like [`Self::new`] with an offset of zero.
+    pub fn whole(tb: Ref<'tb, TransferBuffer>) -> Self {
+        Self::new(tb, 0)
+    }
 }
 
 #[repr(i32)]

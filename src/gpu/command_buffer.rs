@@ -23,7 +23,7 @@ use crate::{
     color::RgbaF32,
     gpu::Cycle,
     impl_enum_transmute,
-    resource::Ref,
+    resource::{Ref, Resource},
     resource_new_no_drop,
     util::{opt2ptr_mut, to_result},
     window::Window,
@@ -98,6 +98,33 @@ impl CommandBuffer {
     pub fn new(device: Ref<Device>) -> Result<Self> {
         let handle = unsafe { SDL_AcquireGPUCommandBuffer(device.handle.as_ptr()) };
         Self::from_ptr(handle)
+    }
+
+    /// Creates a new [`CommandBuffer`], performs some operations on it, then submits it.
+    ///
+    /// Propagates [`Err`] returned by:
+    /// - [`CommandBuffer::new`]
+    /// - `op`
+    /// - [`CommandBuffer::submit`]
+    pub fn with<F: FnOnce(Ref<CommandBuffer>) -> Result>(device: Ref<Device>, op: F) -> Result {
+        let cmdbuf = CommandBuffer::new(device)?;
+        op(cmdbuf.as_ref())?;
+        cmdbuf.submit()
+    }
+
+    /// Creates a new [`CommandBuffer`], performs some operations on it, then submits it, returning a fence.
+    ///
+    /// Propagates [`Err`] returned by:
+    /// - [`CommandBuffer::new`]
+    /// - `op`
+    /// - [`CommandBuffer::submit_fence`]
+    pub fn with_fence<F: FnOnce(Ref<CommandBuffer>) -> Result>(
+        device: Ref<Device>,
+        op: F,
+    ) -> Result<Fence> {
+        let cmdbuf = CommandBuffer::new(device)?;
+        op(cmdbuf.as_ref())?;
+        cmdbuf.submit_fence()
     }
 
     #[doc(alias = "SDL_SubmitGPUCommandBuffer")]

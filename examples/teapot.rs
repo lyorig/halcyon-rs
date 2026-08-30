@@ -279,26 +279,25 @@ fn run() -> Result {
         idx.copy_from_slice(idx_slice);
     })?;
 
-    // Copy the transfer buffer into the real buffers inside a copy pass.
-    let cmdbuf = CommandBuffer::new(device.as_ref())?;
-    let copy_pass = CopyPass::new(cmdbuf.as_ref())?;
+    CommandBuffer::with(device.as_ref(), |cmdbuf| {
+        CopyPass::with(cmdbuf, |copy_pass| {
+            vb.upload(
+                copy_pass,
+                &TransferBufferLocation::whole(tb.as_ref()),
+                &BufferRegion::whole(vb.as_ref(), vert_bytes),
+                Cycle::No,
+            );
 
-    vb.upload(
-        copy_pass.as_ref(),
-        &TransferBufferLocation::new(tb.as_ref(), 0),
-        &BufferRegion::new(vb.as_ref(), 0, vert_bytes),
-        Cycle::No,
-    );
+            ib.upload(
+                copy_pass,
+                &TransferBufferLocation::new(tb.as_ref(), vert_bytes),
+                &BufferRegion::whole(ib.as_ref(), idx_bytes),
+                Cycle::No,
+            );
 
-    ib.upload(
-        copy_pass.as_ref(),
-        &TransferBufferLocation::new(tb.as_ref(), vert_bytes),
-        &BufferRegion::new(ib.as_ref(), 0, idx_bytes),
-        Cycle::No,
-    );
-
-    drop(copy_pass); // ends the copy pass
-    cmdbuf.submit()?;
+            Ok(())
+        })
+    })?;
 
     // The vertex layout: slot 0, 24-byte stride, position + normal.
     let vbd = [VertexBufferDescription::new(0, 24, VertexInputRate::Vertex)];

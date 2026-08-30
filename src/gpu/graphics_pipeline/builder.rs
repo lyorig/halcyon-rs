@@ -35,7 +35,6 @@ impl<'p> GraphicsPipelineBuilder<'p> {
         }
     }
 
-    #[allow(clippy::too_many_arguments)]
     pub fn build<'vs, 'fs, 'vbd, 'va, 'ctd>(
         &self,
         device: Ref<Device>,
@@ -47,7 +46,6 @@ impl<'p> GraphicsPipelineBuilder<'p> {
 
     /// Creates a [`GraphicsPipeline`] using [`GraphicsPipelineCreateInfo`],
     /// then removes all graphics pipeline creation properties from the attached property group.
-    #[allow(clippy::too_many_arguments)]
     pub fn build_cleanup<'vs, 'fs, 'vbd, 'va, 'ctd>(
         &self,
         device: Ref<Device>,

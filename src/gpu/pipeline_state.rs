@@ -210,10 +210,7 @@ impl<'vbd, 'va> VertexInputState<'vbd, 'va> {
 #[derive(Clone, Copy)]
 pub struct RasterizerState(pub(crate) SDL_GPURasterizerState);
 impl RasterizerState {
-    // The padding fields are only needed for alignment; sdl3-sys marks them
-    // deprecated and recommends `..Default::default()`, which is not implemented
-    // for this struct.
-    #[allow(deprecated, clippy::too_many_arguments)]
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         fill_mode: FillMode,
         cull_mode: CullMode,
@@ -233,8 +230,7 @@ impl RasterizerState {
             depth_bias_slope_factor,
             enable_depth_bias: db.into(),
             enable_depth_clip: dc.into(),
-            padding1: 0,
-            padding2: 0,
+            ..Default::default()
         })
     }
 }
@@ -277,10 +273,7 @@ impl StencilOpState {
 #[derive(Clone, Copy)]
 pub struct DepthStencilState(pub(crate) SDL_GPUDepthStencilState);
 impl DepthStencilState {
-    // The padding fields are only needed for alignment; sdl3-sys marks them
-    // deprecated and recommends `..Default::default()`, which is not implemented
-    // for this struct.
-    #[allow(deprecated, clippy::too_many_arguments)]
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         compare_op: CompareOp,
         back_stencil_state: StencilOpState,
@@ -300,9 +293,7 @@ impl DepthStencilState {
             enable_depth_test: edt.into(),
             enable_depth_write: edw.into(),
             enable_stencil_test: est.into(),
-            padding1: 0,
-            padding2: 0,
-            padding3: 0,
+            ..Default::default()
         })
     }
 }
@@ -311,9 +302,6 @@ impl DepthStencilState {
 #[derive(Clone, Copy)]
 pub struct ColorTargetBlendState(SDL_GPUColorTargetBlendState);
 impl ColorTargetBlendState {
-    // The padding fields are only needed for alignment; sdl3-sys marks them
-    // deprecated and recommends `..Default::default()`, which is not implemented
-    // for this struct.
     #[allow(deprecated, clippy::too_many_arguments)]
     pub fn new(
         (src_color_bf, dst_color_bf): (BlendFactor, BlendFactor),
@@ -334,8 +322,7 @@ impl ColorTargetBlendState {
             color_write_mask: SDL_GPUColorComponentFlags::new(color_write_mask.bits()),
             enable_blend: eb.into(),
             enable_color_write_mask: ecwm.into(),
-            padding1: 0,
-            padding2: 0,
+            ..Default::default()
         })
     }
 }

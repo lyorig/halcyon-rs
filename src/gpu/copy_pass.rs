@@ -6,7 +6,12 @@
 
 use sdl3_sys::gpu::*;
 
-use crate::{Result, gpu::Cycle, resource::Ref, resource_new};
+use crate::{
+    Result,
+    gpu::Cycle,
+    resource::{Ref, Resource},
+    resource_new,
+};
 
 use super::{buffer::BufferLocation, command_buffer::CommandBuffer, texture::TextureLocation};
 
@@ -16,6 +21,17 @@ impl CopyPass {
     pub fn new(cmdbuf: Ref<CommandBuffer>) -> Result<Self> {
         let handle = unsafe { SDL_BeginGPUCopyPass(cmdbuf.handle.as_ptr()) };
         Self::from_ptr(handle)
+    }
+
+    /// Convenience function that creates a [`CopyPass`], does some work on it,
+    /// then submits (drops) it.
+    ///
+    /// Propagates [`Err`] returned by:
+    /// - [`CopyPass::new`]
+    /// - `op`
+    pub fn with<F: FnOnce(Ref<CopyPass>) -> Result>(cmdbuf: Ref<CommandBuffer>, op: F) -> Result {
+        let pass = CopyPass::new(cmdbuf)?;
+        op(pass.as_ref())
     }
 }
 
