@@ -29,7 +29,7 @@
 //! - [ ] SDL_UpdateYUVTexture
 //! - [x] SDL_GetRendererFromTexture
 
-use std::mem::{MaybeUninit, transmute};
+use std::mem::MaybeUninit;
 
 use sdl3_sys::{
     pixels::{SDL_Colorspace, SDL_PixelFormat},
@@ -154,8 +154,8 @@ pub enum Colorspace {
 }
 
 impl Colorspace {
-    pub const RGB_DEFAULT: Self = unsafe { transmute(SDL_Colorspace::RGB_DEFAULT) };
-    pub const YUV_DEFAULT: Self = unsafe { transmute(SDL_Colorspace::YUV_DEFAULT) };
+    pub const RGB_DEFAULT: Self = Self::from_sdl(SDL_Colorspace::RGB_DEFAULT);
+    pub const YUV_DEFAULT: Self = Self::from_sdl(SDL_Colorspace::YUV_DEFAULT);
 }
 
 #[repr(i32)]
