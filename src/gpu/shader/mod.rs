@@ -6,9 +6,9 @@ use std::{ffi::CStr, marker::PhantomData};
 
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
-use crate::{mod_reexport, properties::Properties, resource::Ref, resource_new_no_drop, Result};
+use crate::{Result, mod_reexport, properties::Properties, resource::Ref, resource_new_no_drop};
 
-use super::{device::Device, ShaderFormat};
+use super::{ShaderFormat, device::Device};
 
 mod_reexport!(builder);
 
@@ -52,6 +52,16 @@ impl<'bc, 'ep> ShaderCreateInfo<'bc, 'ep> {
         };
 
         Self(inner, PhantomData, PhantomData)
+    }
+
+    /// Creates a vertex-shader [`ShaderCreateInfo`] with no resource bindings.
+    pub const fn vertex(code: &'bc [u8], entrypoint: &'ep CStr, fmt: ShaderFormat) -> Self {
+        Self::new(code, entrypoint, fmt, ShaderStage::Vertex, 0, (0, 0, 0))
+    }
+
+    /// Creates a fragment-shader [`ShaderCreateInfo`] with no resource bindings.
+    pub const fn fragment(code: &'bc [u8], entrypoint: &'ep CStr, fmt: ShaderFormat) -> Self {
+        Self::new(code, entrypoint, fmt, ShaderStage::Fragment, 0, (0, 0, 0))
     }
 }
 

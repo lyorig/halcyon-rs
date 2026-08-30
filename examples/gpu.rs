@@ -68,23 +68,9 @@ fn run() -> Result {
 
     device.claim_window(wnd.as_ref())?;
 
-    let sci_vs = ShaderCreateInfo::new(
-        VS_CODE,
-        c"vs_main",
-        SHADER_FMT,
-        ShaderStage::Vertex,
-        0,
-        (0, 0, 0),
-    );
+    let sci_vs = ShaderCreateInfo::vertex(VS_CODE, c"vs_main", SHADER_FMT);
 
-    let sci_fs = ShaderCreateInfo::new(
-        FS_CODE,
-        c"fs_main",
-        SHADER_FMT,
-        ShaderStage::Fragment,
-        0,
-        (0, 0, 0),
-    );
+    let sci_fs = ShaderCreateInfo::fragment(FS_CODE, c"fs_main", SHADER_FMT);
 
     let vs = Shader::new(device.as_ref(), &sci_vs)?;
     let fs = Shader::new(device.as_ref(), &sci_fs)?;

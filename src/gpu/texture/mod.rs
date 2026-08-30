@@ -253,6 +253,10 @@ impl<'t> TextureRegion<'t> {
 
         Self(inner, PhantomData)
     }
+
+    pub fn whole_2d(tex: Ref<'t, Texture>, (w, h): (u32, u32)) -> Self {
+        Self::new(tex, 0, 0, (0, 0, 0), (w, h, 1))
+    }
 }
 
 #[doc(alias = "SDL_GPUTextureLocation")]
@@ -279,6 +283,11 @@ impl<'t> TextureLocation<'t> {
             z,
         };
         Self(inner, PhantomData)
+    }
+
+    /// Same as [`Self::new`], with all parameters set to zero.
+    pub fn at_start(tex: Ref<'t, Texture>) -> Self {
+        Self::new(tex, 0, 0, (0, 0, 0))
     }
 }
 

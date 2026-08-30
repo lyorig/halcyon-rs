@@ -246,14 +246,7 @@ fn run() -> Result {
 
     let fs = Shader::new(
         device.as_ref(),
-        &ShaderCreateInfo::new(
-            FS_CODE,
-            c"fs_main",
-            SHADER_FMT,
-            ShaderStage::Fragment,
-            0,
-            (0, 0, 0),
-        ),
+        &ShaderCreateInfo::fragment(FS_CODE, c"fs_main", SHADER_FMT),
     )?;
 
     // Interleaved [pos3, normal3], 24 bytes per vertex.

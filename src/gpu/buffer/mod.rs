@@ -62,6 +62,11 @@ impl<'b> BufferRegion<'b> {
         };
         Self(inner, PhantomData)
     }
+
+    /// Same as [`Self::new`], but with an offset of zero.
+    pub fn whole(buffer: Ref<'b, Buffer>, size: u32) -> Self {
+        Self::new(buffer, 0, size)
+    }
 }
 
 #[doc(alias = "SDL_GPUBufferBinding")]
@@ -70,6 +75,7 @@ pub struct BufferBinding<'b>(
     pub(crate) SDL_GPUBufferBinding,
     PhantomData<Ref<'b, Buffer>>,
 );
+
 impl<'b> BufferBinding<'b> {
     pub fn new(buffer: Ref<'b, Buffer>, offset: u32) -> Self {
         Self(
@@ -98,6 +104,11 @@ impl<'b> BufferLocation<'b> {
             },
             PhantomData,
         )
+    }
+
+    /// Same as [`Self::new`], with an offset of zero.
+    pub fn at_start(buffer: Ref<'b, Buffer>) -> Self {
+        Self::new(buffer, 0)
     }
 }
 
