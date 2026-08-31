@@ -10,7 +10,11 @@
 
 use sdl3_sys::gpu::*;
 
-use crate::{Result, resource::Ref, resource_new};
+use crate::{
+    Result,
+    resource::{Ref, Resource},
+    resource_new,
+};
 
 use super::{
     buffer::{Buffer, StorageBufferReadWriteBinding},
@@ -37,6 +41,22 @@ impl ComputePass {
             )
         };
         Self::from_ptr(handle)
+    }
+
+    /// Convenience function that creates a [`ComputePass`], does some work on it,
+    /// then ends (drops) it.
+    ///
+    /// Propagates [`Err`] returned by:
+    /// - [`ComputePass::new`]
+    /// - `op`
+    pub fn with<F: FnOnce(Ref<Self>) -> Result<()>>(
+        cmdbuf: Ref<CommandBuffer>,
+        storage_texture_bindings: &[StorageTextureReadWriteBinding],
+        storage_buffer_bindings: &[StorageBufferReadWriteBinding],
+        op: F,
+    ) -> Result<()> {
+        let pass = Self::new(cmdbuf, storage_texture_bindings, storage_buffer_bindings)?;
+        op(pass.as_ref())
     }
 }
 

@@ -24,13 +24,16 @@ impl CopyPass {
     }
 
     /// Convenience function that creates a [`CopyPass`], does some work on it,
-    /// then submits (drops) it.
+    /// then ends (drops) it.
     ///
     /// Propagates [`Err`] returned by:
     /// - [`CopyPass::new`]
     /// - `op`
-    pub fn with<F: FnOnce(Ref<CopyPass>) -> Result<()>>(cmdbuf: Ref<CommandBuffer>, op: F) -> Result<()> {
-        let pass = CopyPass::new(cmdbuf)?;
+    pub fn with<F: FnOnce(Ref<Self>) -> Result<()>>(
+        cmdbuf: Ref<CommandBuffer>,
+        op: F,
+    ) -> Result<()> {
+        let pass = Self::new(cmdbuf)?;
         op(pass.as_ref())
     }
 }

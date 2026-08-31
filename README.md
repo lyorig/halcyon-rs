@@ -3,10 +3,15 @@
 An SDL & SDL_ttf (3.x) wrapper. Aims for as close to 100% API coverage, while making it neater & safer to use via various Rust mechanisms (see _Enhancements_).
 As I'm primarily a C++ developer, this library is probably unsound in various places. These ought to be weeded out over time after reaching full API coverage.
 
-> [!Important]
+> [!IMPORTANT]
 > This is purely an API wrapper. It isn't concerned with how you find, and link with,
 > SDL and its satellite libraries on your system; these topics are covered by the
 > [sdl3-sys docs](https://docs.rs/sdl3-sys/latest/sdl3_sys/).
+
+> [!NOTE]
+> Functions and methods usually map 1:1 to their SDL counterparts in terms of functionality.
+> Familiarity with SDL3 APIs is recommended; however, relevant information will be plundered
+> from the SDL3 wiki and added as docblocks later down the line.
 
 ## Concepts
 

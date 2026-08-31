@@ -106,8 +106,8 @@ impl CommandBuffer {
     /// - [`CommandBuffer::new`]
     /// - `op`
     /// - [`CommandBuffer::submit`]
-    pub fn with<F: FnOnce(Ref<CommandBuffer>) -> Result<()>>(device: Ref<Device>, op: F) -> Result<()> {
-        let cmdbuf = CommandBuffer::new(device)?;
+    pub fn with<F: FnOnce(Ref<Self>) -> Result<()>>(device: Ref<Device>, op: F) -> Result<()> {
+        let cmdbuf = Self::new(device)?;
         op(cmdbuf.as_ref())?;
         cmdbuf.submit()
     }
@@ -118,11 +118,11 @@ impl CommandBuffer {
     /// - [`CommandBuffer::new`]
     /// - `op`
     /// - [`CommandBuffer::submit_fence`]
-    pub fn with_fence<F: FnOnce(Ref<CommandBuffer>) -> Result<()>>(
+    pub fn with_fence<F: FnOnce(Ref<Self>) -> Result<()>>(
         device: Ref<Device>,
         op: F,
     ) -> Result<Fence> {
-        let cmdbuf = CommandBuffer::new(device)?;
+        let cmdbuf = Self::new(device)?;
         op(cmdbuf.as_ref())?;
         cmdbuf.submit_fence()
     }

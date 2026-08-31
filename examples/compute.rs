@@ -57,13 +57,14 @@ fn run() -> Result<()> {
         .build_cleanup(device.as_ref(), buffer_info)?;
 
     let cmdbuf = CommandBuffer::new(device.as_ref())?;
-    {
-        let binding = StorageBufferReadWriteBinding::new(buffer.as_ref(), Cycle::No);
-        let pass = ComputePass::new(cmdbuf.as_ref(), &[], &[binding])?;
 
+    let rwb = StorageBufferReadWriteBinding::new(buffer.as_ref(), Cycle::No);
+    ComputePass::with(cmdbuf.as_ref(), &[], &[rwb], |pass| {
         pass.bind(pipeline.as_ref());
         pass.dispatch((1, 1, 1));
-    }
+
+        Ok(())
+    })?;
 
     cmdbuf.submit()?;
     device.wait_idle()?;
