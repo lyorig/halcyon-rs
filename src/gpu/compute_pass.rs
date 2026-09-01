@@ -49,7 +49,7 @@ impl ComputePass {
     /// Propagates [`Err`] returned by:
     /// - [`ComputePass::new`]
     /// - `op`
-    pub fn with<F: FnOnce(Ref<Self>) -> Result<()>>(
+    pub fn run<F: FnOnce(Ref<Self>) -> Result<()>>(
         cmdbuf: Ref<CommandBuffer>,
         storage_texture_bindings: &[StorageTextureReadWriteBinding],
         storage_buffer_bindings: &[StorageBufferReadWriteBinding],

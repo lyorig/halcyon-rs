@@ -279,8 +279,8 @@ fn run() -> Result<()> {
         idx.copy_from_slice(idx_slice);
     })?;
 
-    CommandBuffer::with(device.as_ref(), |cmdbuf| {
-        CopyPass::with(cmdbuf, |copy_pass| {
+    CommandBuffer::run(device.as_ref(), |cmdbuf| {
+        CopyPass::run(cmdbuf, |copy_pass| {
             vb.upload(
                 copy_pass,
                 &TransferBufferLocation::whole(tb.as_ref()),

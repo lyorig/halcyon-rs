@@ -59,7 +59,7 @@ fn run() -> Result<()> {
     let cmdbuf = CommandBuffer::new(device.as_ref())?;
 
     let rwb = StorageBufferReadWriteBinding::new(buffer.as_ref(), Cycle::No);
-    ComputePass::with(cmdbuf.as_ref(), &[], &[rwb], |pass| {
+    ComputePass::run(cmdbuf.as_ref(), &[], &[rwb], |pass| {
         pass.bind(pipeline.as_ref());
         pass.dispatch((1, 1, 1));
 
