@@ -375,9 +375,23 @@ fn run() -> Result<()> {
         ),
     )?;
 
-    // The depth texture is created lazily, since its size must match the
-    // swapchain texture's, which is only known after the first acquire.
-    let mut depth: Option<Texture> = None;
+    // Assume the swapchain texture's dims are equal to the window's.
+    let depth = {
+        let tci = TextureCreateInfo::new(
+            TextureType::_2d,
+            depth_format,
+            TextureUsageFlags::DEPTH_STENCIL_TARGET,
+            wnd.size().map(i32::cast_unsigned),
+            1, // layer count / depth
+            1, // mip levels
+            SampleCount::One,
+        );
+
+        Texture::builder(props)
+            .name(c"Teapot Texture")
+            .build(device.as_ref(), tci)?
+    };
+
     let mut angle = 0.0f32;
 
     let col = RgbaF32::from(RgbaU8::rgb_hex(0x6f32a8));
@@ -396,25 +410,6 @@ fn run() -> Result<()> {
         if let Some(tex) = cmdbuf
             .wait_for_swapchain_texture(wnd.as_ref(), (Some(&mut width), Some(&mut height)))?
         {
-            if depth.is_none() {
-                let tci = TextureCreateInfo::new(
-                    TextureType::_2d,
-                    depth_format,
-                    TextureUsageFlags::DEPTH_STENCIL_TARGET,
-                    Point::new(width, height),
-                    1, // layer count / depth
-                    1, // mip levels
-                    SampleCount::One,
-                );
-
-                let tex = Texture::builder(props)
-                    .name(c"Teapot Texture")
-                    .build(device.as_ref(), tci)?;
-
-                depth = Some(tex);
-            }
-            let depth = depth.as_ref().unwrap();
-
             let color_target = ColorTargetInfo::new(
                 tex,
                 0,
@@ -498,9 +493,7 @@ fn run() -> Result<()> {
     ib.drop(device.as_ref());
     vb.drop(device.as_ref());
     tb.drop(device.as_ref());
-    if let Some(depth) = depth {
-        depth.drop(device.as_ref());
-    }
+    depth.drop(device.as_ref());
 
     Ok(())
 }
