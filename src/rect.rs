@@ -24,7 +24,7 @@ pub type PointI32 = Point<i32>;
 impl PointI32 {
     pub const ZERO: Self = Self::new(0, 0);
 
-    pub const fn as_f32(self) -> PointF32 {
+    pub const fn to_f32(self) -> PointF32 {
         Point::new(self.x as f32, self.y as f32)
     }
 
@@ -41,7 +41,7 @@ pub type PointF32 = Point<f32>;
 impl PointF32 {
     pub const ZERO: Self = Self::new(0., 0.);
 
-    pub const fn as_i32(self) -> PointI32 {
+    pub const fn to_i32(self) -> PointI32 {
         Point::new(self.x as i32, self.y as i32)
     }
 
@@ -56,13 +56,13 @@ impl PointF32 {
 
 impl From<PointI32> for PointF32 {
     fn from(value: PointI32) -> Self {
-        value.as_f32()
+        value.to_f32()
     }
 }
 
 impl From<PointF32> for PointI32 {
     fn from(value: PointF32) -> Self {
-        value.as_i32()
+        value.to_i32()
     }
 }
 
@@ -98,8 +98,8 @@ impl<T: Copy> Rect<T> {
         Self::new(Point::new(x, y), Point::new(w, h))
     }
 
-    pub fn map<U: Copy, F: Fn(Point<T>) -> Point<U>>(self, f: F) -> Rect<U> {
-        Rect::new(f(self.pos), f(self.size))
+    pub fn map<U: Copy, F: Fn(T) -> U + Copy>(self, f: F) -> Rect<U> {
+        Rect::new(self.pos.map(f), self.size.map(f))
     }
 }
 
@@ -119,8 +119,8 @@ pub type RectI32 = Rect<i32>;
 impl RectI32 {
     pub const ZEROED: Self = Self::xywh(0, 0, 0, 0);
 
-    pub const fn as_f32(self) -> RectF32 {
-        RectF32::new(self.pos.as_f32(), self.size.as_f32())
+    pub const fn to_f32(self) -> RectF32 {
+        RectF32::new(self.pos.to_f32(), self.size.to_f32())
     }
 
     pub const fn as_sdl_ptr(&self) -> *const SDL_Rect {
@@ -136,8 +136,8 @@ pub type RectF32 = Rect<f32>;
 impl RectF32 {
     pub const ZEROED: Self = Self::xywh(0., 0., 0., 0.);
 
-    pub const fn as_i32(self) -> RectI32 {
-        RectI32::new(self.pos.as_i32(), self.size.as_i32())
+    pub const fn to_i32(self) -> RectI32 {
+        RectI32::new(self.pos.to_i32(), self.size.to_i32())
     }
 
     pub const fn as_sdl_ptr(&self) -> *const SDL_FRect {
@@ -151,13 +151,13 @@ impl RectF32 {
 
 impl From<RectI32> for RectF32 {
     fn from(value: RectI32) -> Self {
-        value.as_f32()
+        value.to_f32()
     }
 }
 
 impl From<RectF32> for RectI32 {
     fn from(value: RectF32) -> Self {
-        value.as_i32()
+        value.to_i32()
     }
 }
 
