@@ -1,4 +1,7 @@
-use std::{marker::PhantomData, ops::Deref};
+use std::{
+    marker::PhantomData,
+    ops::{Deref, DerefMut},
+};
 
 pub trait Handle: Copy {
     /// The "raw" type, i.e. `*mut SDL_Surface`.
@@ -24,6 +27,11 @@ pub trait Resource: Sized {
     /// Create a new reference tied to this resource.
     fn as_ref<'a>(&'a self) -> Ref<'a, Self> {
         unsafe { Ref::from_handle(self.as_handle()) }
+    }
+
+    /// Create a new mutable reference tied to this resource.
+    fn as_mut<'a>(&'a mut self) -> RefMut<'a, Self> {
+        unsafe { RefMut::from_handle(self.as_handle()) }
     }
 }
 
@@ -60,6 +68,48 @@ impl<T: Resource> Deref for Ref<'_, T> {
 
     fn deref(&self) -> &Self::Target {
         &self.handle
+    }
+}
+
+pub struct RefMut<'a, T: Resource> {
+    pub(crate) handle: T::Handle,
+    _marker: PhantomData<&'a mut T>,
+}
+
+impl<T: Resource> RefMut<'_, T> {
+    /// Construct a new reference from a handle, assuming it is valid.
+    /// This conversion is zero-cost.
+    pub(crate) unsafe fn from_handle(handle: T::Handle) -> Self {
+        Self {
+            handle,
+            _marker: PhantomData,
+        }
+    }
+
+    fn as_raw(&self) -> <T::Handle as Handle>::Raw {
+        self.handle.as_raw()
+    }
+}
+
+impl<T: Resource> Clone for RefMut<'_, T> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<T: Resource> Copy for RefMut<'_, T> {}
+
+impl<T: Resource> Deref for RefMut<'_, T> {
+    type Target = T::Handle;
+
+    fn deref(&self) -> &Self::Target {
+        &self.handle
+    }
+}
+
+impl<T: Resource> DerefMut for RefMut<'_, T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.handle
     }
 }
 
