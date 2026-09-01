@@ -45,27 +45,48 @@ use crate::{
     Result,
     color::{RgbaF32, RgbaU8},
     error::Error,
+    impl_enum_transmute,
     properties::{Properties, PropertiesHandle},
     rect::{PointF32, PointI32, RectI32},
     resource::{Handle, Ref, Resource},
     resource_new,
     surface::Surface,
     ttf::{Font, FontHandle, RtStr},
-    util::to_result,
+    util::{opt2res, to_result},
 };
 
 resource_new!(TTF_Text, Text, TTF_DestroyText);
 
-/// Text shaping direction, as defined by SDL_ttf.
+#[repr(u32)]
+#[derive(Clone, Copy)]
 #[doc(alias = "TTF_Direction")]
-pub type Direction = TTF_Direction;
+pub enum Direction {
+    LeftToRight = TTF_Direction::LTR.0,
+    RightToLeft = TTF_Direction::RTL.0,
+    TopToBottom = TTF_Direction::TTB.0,
+    BottomToTop = TTF_Direction::BTT.0,
+}
+
+impl_enum_transmute!(TTF_Direction, Direction);
+
+bitflags::bitflags! {
+    #[derive(Clone, Copy)]
+    #[doc(alias = "TTF_SubStringFlags")]
+    pub struct SubStringFlags: u32 {
+        const DIRECTION_MASK = TTF_SubStringFlags::DIRECTION_MASK.0;
+        const TEXT_START = TTF_SubStringFlags::TEXT_START.0;
+        const LINE_START = TTF_SubStringFlags::LINE_START.0;
+        const LINE_END = TTF_SubStringFlags::LINE_END.0;
+        const TEXT_END = TTF_SubStringFlags::TEXT_END.0;
+    }
+}
 
 /// A substring and its position in a [`Text`] object.
 #[repr(C)]
 #[doc(alias = "TTF_SubString")]
-#[derive(Clone, Copy, Default, PartialEq)]
+#[derive(Clone, Copy)]
 pub struct SubString {
-    pub flags: TTF_SubStringFlags,
+    pub flags: SubStringFlags,
     pub offset: i32,
     pub length: i32,
     pub line_index: i32,
@@ -76,29 +97,24 @@ pub struct SubString {
 impl From<TTF_SubString> for SubString {
     fn from(value: TTF_SubString) -> Self {
         Self {
-            flags: value.flags,
+            flags: SubStringFlags::from_bits_retain(value.flags.0),
             offset: value.offset,
             length: value.length,
             line_index: value.line_index,
             cluster_index: value.cluster_index,
-            rect: unsafe { std::mem::transmute(value.rect) },
+            rect: RectI32::from_sdl(value.rect),
         }
     }
 }
 
-fn substring(value: &mut MaybeUninit<TTF_SubString>) -> *mut TTF_SubString {
-    value.as_mut_ptr()
-}
-
 impl TextHandle {
+    /// # Safety
+    /// Currently provided only for API coverage completeness, without a proper wrapper.
+    /// See [`TTF_GetGPUTextDrawData`] docs for more info.
     #[doc(alias = "TTF_GetGPUTextDrawData")]
-    pub unsafe fn gpu_draw_data(&self) -> Result<*mut TTF_GPUAtlasDrawSequence> {
+    pub unsafe fn gpu_draw_data(&self) -> Result<NonNull<TTF_GPUAtlasDrawSequence>> {
         let data = unsafe { TTF_GetGPUTextDrawData(self.as_ptr()) };
-        if data.is_null() {
-            Err(Error::current())
-        } else {
-            Ok(data)
-        }
+        opt2res(NonNull::new(data))
     }
 
     #[doc(alias = "TTF_GetTextSize")]
@@ -173,12 +189,12 @@ impl TextHandle {
 
     #[doc(alias = "TTF_GetTextDirection")]
     pub fn direction(&self) -> Direction {
-        unsafe { TTF_GetTextDirection(self.as_ptr()) }
+        Direction::from_sdl(unsafe { TTF_GetTextDirection(self.as_ptr()) })
     }
 
     #[doc(alias = "TTF_SetTextDirection")]
     pub fn set_direction(&self, direction: Direction) -> Result<()> {
-        to_result(unsafe { TTF_SetTextDirection(self.as_ptr(), direction) })
+        to_result(unsafe { TTF_SetTextDirection(self.as_ptr(), direction.to_sdl()) })
     }
 
     #[doc(alias = "TTF_GetTextScript")]
@@ -251,16 +267,14 @@ impl TextHandle {
     #[doc(alias = "TTF_GetTextSubString")]
     pub fn substring(&self, offset: i32) -> Result<SubString> {
         let mut value = MaybeUninit::uninit();
-        to_result(unsafe { TTF_GetTextSubString(self.as_ptr(), offset, substring(&mut value)) })?;
+        to_result(unsafe { TTF_GetTextSubString(self.as_ptr(), offset, value.as_mut_ptr()) })?;
         Ok(SubString::from(unsafe { value.assume_init() }))
     }
 
     #[doc(alias = "TTF_GetTextSubStringForLine")]
     pub fn substring_for_line(&self, line: i32) -> Result<SubString> {
         let mut value = MaybeUninit::uninit();
-        to_result(unsafe {
-            TTF_GetTextSubStringForLine(self.as_ptr(), line, substring(&mut value))
-        })?;
+        to_result(unsafe { TTF_GetTextSubStringForLine(self.as_ptr(), line, value.as_mut_ptr()) })?;
         Ok(SubString::from(unsafe { value.assume_init() }))
     }
 
@@ -268,7 +282,7 @@ impl TextHandle {
     pub fn substring_for_point(&self, point: PointI32) -> Result<SubString> {
         let mut value = MaybeUninit::uninit();
         to_result(unsafe {
-            TTF_GetTextSubStringForPoint(self.as_ptr(), point.x, point.y, substring(&mut value))
+            TTF_GetTextSubStringForPoint(self.as_ptr(), point.x, point.y, value.as_mut_ptr())
         })?;
         Ok(SubString::from(unsafe { value.assume_init() }))
     }
@@ -278,7 +292,7 @@ impl TextHandle {
         let mut previous = MaybeUninit::uninit();
         let value: TTF_SubString = unsafe { std::mem::transmute(value) };
         to_result(unsafe {
-            TTF_GetPreviousTextSubString(self.as_ptr(), &value, substring(&mut previous))
+            TTF_GetPreviousTextSubString(self.as_ptr(), &value, previous.as_mut_ptr())
         })?;
         Ok(SubString::from(unsafe { previous.assume_init() }))
     }
@@ -287,9 +301,7 @@ impl TextHandle {
     pub fn next_substring(&self, value: SubString) -> Result<SubString> {
         let mut next = MaybeUninit::uninit();
         let value: TTF_SubString = unsafe { std::mem::transmute(value) };
-        to_result(unsafe {
-            TTF_GetNextTextSubString(self.as_ptr(), &value, substring(&mut next))
-        })?;
+        to_result(unsafe { TTF_GetNextTextSubString(self.as_ptr(), &value, next.as_mut_ptr()) })?;
         Ok(SubString::from(unsafe { next.assume_init() }))
     }
 
@@ -335,14 +347,13 @@ impl TextHandle {
         to_result(unsafe { TTF_SetTextEngine(self.as_ptr(), eng.as_raw()) })
     }
 
+    /// # Safety
+    /// Currently provided only for API coverage completeness, without a proper wrapper.
+    /// See [`TTF_GetTextEngine`] docs for more info.
     #[doc(alias = "TTF_GetTextEngine")]
-    pub unsafe fn engine(&self) -> Result<*mut TTF_TextEngine> {
+    pub unsafe fn engine(&self) -> Result<NonNull<TTF_TextEngine>> {
         let eng = unsafe { TTF_GetTextEngine(self.as_ptr()) };
-        if eng.is_null() {
-            Err(Error::current())
-        } else {
-            Ok(eng)
-        }
+        opt2res(NonNull::new(eng))
     }
 }
 

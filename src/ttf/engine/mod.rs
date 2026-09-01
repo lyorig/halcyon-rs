@@ -13,8 +13,8 @@
 use sdl3_ttf_sys::ttf::*;
 
 use crate::{
-    Result, error::Error, gpu::Device, mod_reexport, renderer::Renderer, resource::Ref,
-    resource_new,
+    Result, error::Error, gpu::Device, impl_enum_transmute, mod_reexport, renderer::Renderer,
+    resource::Ref, resource_new,
 };
 
 mod_reexport!(builder);
@@ -26,6 +26,8 @@ pub enum Winding {
     Clockwise = TTF_GPUTextEngineWinding::CLOCKWISE.0,
     CounterClockwise = TTF_GPUTextEngineWinding::COUNTER_CLOCKWISE.0,
 }
+
+impl_enum_transmute!(TTF_GPUTextEngineWinding, Winding);
 
 resource_new!(TTF_TextEngine, GpuEngine, TTF_DestroyGPUTextEngine);
 
@@ -48,16 +50,14 @@ impl GpuEngineHandle {
         if wind == TTF_GPUTextEngineWinding::INVALID {
             Err(Error::current())
         } else {
-            type Src = TTF_GPUTextEngineWinding;
-            type Dst = Winding;
-            Ok(unsafe { std::mem::transmute::<Src, Dst>(wind) })
+            Ok(Winding::from_sdl(wind))
         }
     }
 
     #[doc(alias = "TTF_SetGPUTextEngineWinding")]
     pub fn set_winding(&self, wind: Winding) {
         unsafe {
-            TTF_SetGPUTextEngineWinding(self.as_ptr(), std::mem::transmute(wind));
+            TTF_SetGPUTextEngineWinding(self.as_ptr(), wind.to_sdl());
         }
     }
 }
