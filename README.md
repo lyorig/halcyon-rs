@@ -15,11 +15,20 @@ As I'm primarily a C++ developer, this library is probably unsound in various pl
 
 ## Concepts
 
+### Initialization
+
+As with many modern APIs, `halcyon::Context` is the first struct you'll want to create for a proper application.
+Afterwards, you can initialize subsystems (see the `halcyon::subsystem` module), whose existence permits creation
+of relevant objects etc.
+
+### Objects
+
 SDL works with raw pointers and ownership rules are mostly described via function documentation. halcyon-rs aims
 to disambiguate with _handles_, _owned objects_ and _references_. For an arbitrary type `Foo`:
-- The handle `FooHandle` is where the API is actually implemented. Since it isn't tied to anything, it's usually unsafe to use.
-- The owned object `Foo` contains a handle and is responsible for `Drop`ping it.
-- The reference `Ref<'a, Foo>` contains a handle, is lifetime-bound to an owned object, and doesn't drop anything.
+- `FooHandle` is where the API is actually implemented. Since it isn't tied to anything, it's usually unsafe to use.
+- `Foo` is an owned object containing a handle, being responsible for `Drop`ping it.
+- `Ref<'a, Foo>` and `RefMut<'a, Foo>` contain a handle, are lifetime-bound to an owned object, and don't drop anything.
+  - The only difference between these two is that `Ref` only implements `Deref` for its handle, while `RefMut` also implements `DerefMut`.
 
 Allocations originating from SDL are wrapped in a custom implementation of `Box` and `String`.
 These might not have exact 1:1 semantics with their Rust counterparts; check documentation for specifics.
