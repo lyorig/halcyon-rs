@@ -154,10 +154,12 @@ impl<'p, 'parent> WindowBuilder<'p, 'parent> {
     /// windows with the "tooltip", "menu", and "modal" properties.
     #[doc(alias = "SDL_PROP_WINDOW_CREATE_PARENT_POINTER")]
     pub fn parent(&mut self, value: Ref<'parent, Window>) -> &mut Self {
-        _ = self.inner.set_pointer(
-            SDL_PROP_WINDOW_CREATE_PARENT_POINTER,
-            value.handle.as_ptr().cast(),
-        );
+        _ = unsafe {
+            self.inner.set_pointer(
+                SDL_PROP_WINDOW_CREATE_PARENT_POINTER,
+                value.handle.as_ptr().cast(),
+            )
+        };
         self
     }
 
@@ -170,9 +172,10 @@ impl<'p, 'parent> WindowBuilder<'p, 'parent> {
     /// The title of the window, in UTF-8 encoding.
     #[doc(alias = "SDL_PROP_WINDOW_CREATE_TITLE_STRING")]
     pub fn title(&mut self, value: &CStr) -> &mut Self {
-        _ = self
-            .inner
-            .set_string(SDL_PROP_WINDOW_CREATE_TITLE_STRING, value.as_ptr());
+        _ = unsafe {
+            self.inner
+                .set_string(SDL_PROP_WINDOW_CREATE_TITLE_STRING, value.as_ptr())
+        };
         self
     }
 
@@ -238,7 +241,7 @@ impl<'p, 'parent> WindowBuilder<'p, 'parent> {
     /// Clear all window creation properties from a property group.
     pub fn clear_from(props: Ref<Properties>) {
         for key in CREATE_PROPERTIES {
-            _ = props.clear(key);
+            _ = unsafe { props.clear(key) };
         }
     }
 
@@ -258,12 +261,12 @@ impl<'p, 'parent> WindowBuilder<'p, 'parent> {
     }
 
     fn set_bool(&mut self, key: *const c_char, value: bool) -> &mut Self {
-        _ = self.inner.set_bool(key, value);
+        _ = unsafe { self.inner.set_bool(key, value) };
         self
     }
 
     fn set_number(&mut self, key: *const c_char, value: i64) -> &mut Self {
-        _ = self.inner.set_number(key, value);
+        _ = unsafe { self.inner.set_number(key, value) };
         self
     }
 }

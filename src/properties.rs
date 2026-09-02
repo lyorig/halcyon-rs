@@ -113,60 +113,80 @@ impl PropertiesHandle {
         NonZero::new(handle.0).map(|handle| Self { handle })
     }
 
+    /// # Safety
+    /// `key` must be a valid, null-terminated C string.
     #[doc(alias = "SDL_GetNumberProperty")]
-    pub fn number(&self, key: *const c_char, default: i64) -> i64 {
+    pub unsafe fn number(&self, key: *const c_char, default: i64) -> i64 {
         unsafe { SDL_GetNumberProperty(self.id(), key, default) }
     }
 
+    /// # Safety
+    /// `key` must be a valid, null-terminated C string.
     #[doc(alias = "SDL_GetFloatProperty")]
-    pub fn float(&self, key: *const c_char, default: f32) -> f32 {
+    pub unsafe fn float(&self, key: *const c_char, default: f32) -> f32 {
         unsafe { SDL_GetFloatProperty(self.id(), key, default) }
     }
 
+    /// # Safety
+    /// `key` must be a valid, null-terminated C string.
     #[doc(alias = "SDL_GetPointerProperty")]
-    #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    pub fn pointer(&self, key: *const c_char, default: *mut c_void) -> *mut c_void {
+    pub unsafe fn pointer(&self, key: *const c_char, default: *mut c_void) -> *mut c_void {
         unsafe { SDL_GetPointerProperty(self.id(), key, default) }
     }
 
+    /// # Safety
+    /// `key` must be a valid, null-terminated C string.
     #[doc(alias = "SDL_GetStringProperty")]
-    pub fn string(&self, key: *const c_char, default: *const c_char) -> *const c_char {
+    pub unsafe fn string(&self, key: *const c_char, default: *const c_char) -> *const c_char {
         unsafe { SDL_GetStringProperty(self.id(), key, default) }
     }
 
+    /// # Safety
+    /// `key` must be a valid, null-terminated C string.
     #[doc(alias = "SDL_GetBooleanProperty")]
-    pub fn bool(&self, key: *const c_char, default: bool) -> bool {
+    pub unsafe fn bool(&self, key: *const c_char, default: bool) -> bool {
         unsafe { SDL_GetBooleanProperty(self.id(), key, default) }
     }
 
+    /// # Safety
+    /// `key` must be a valid, null-terminated C string.
     #[doc(alias = "SDL_SetNumberProperty")]
-    pub fn set_number(&self, key: *const c_char, value: i64) -> Result<()> {
+    pub unsafe fn set_number(&self, key: *const c_char, value: i64) -> Result<()> {
         to_result(unsafe { SDL_SetNumberProperty(self.id(), key, value) })
     }
 
+    /// # Safety
+    /// `key` must be a valid, null-terminated C string.
     #[doc(alias = "SDL_SetFloatProperty")]
-    pub fn set_float(&self, key: *const c_char, value: f32) -> Result<()> {
+    pub unsafe fn set_float(&self, key: *const c_char, value: f32) -> Result<()> {
         to_result(unsafe { SDL_SetFloatProperty(self.id(), key, value) })
     }
 
+    /// # Safety
+    /// `key` must be a valid, null-terminated C string.
     #[doc(alias = "SDL_SetPointerProperty")]
-    #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    pub fn set_pointer(&self, key: *const c_char, value: *mut c_void) -> Result<()> {
+    pub unsafe fn set_pointer(&self, key: *const c_char, value: *mut c_void) -> Result<()> {
         to_result(unsafe { SDL_SetPointerProperty(self.id(), key, value) })
     }
 
+    /// # Safety
+    /// `key` and `value` must be valid, null-terminated C strings.
     #[doc(alias = "SDL_SetStringProperty")]
-    pub fn set_string(&self, key: *const c_char, value: *const c_char) -> Result<()> {
+    pub unsafe fn set_string(&self, key: *const c_char, value: *const c_char) -> Result<()> {
         to_result(unsafe { SDL_SetStringProperty(self.id(), key, value) })
     }
 
+    /// # Safety
+    /// `key` must be a valid, null-terminated C string.
     #[doc(alias = "SDL_SetBooleanProperty")]
-    pub fn set_bool(&self, key: *const c_char, value: bool) -> Result<()> {
+    pub unsafe fn set_bool(&self, key: *const c_char, value: bool) -> Result<()> {
         to_result(unsafe { SDL_SetBooleanProperty(self.id(), key, value) })
     }
 
+    /// # Safety
+    /// `key` must be a valid, null-terminated C string.
     #[doc(alias = "SDL_ClearProperty")]
-    pub fn clear(&self, key: *const c_char) -> Result<()> {
+    pub unsafe fn clear(&self, key: *const c_char) -> Result<()> {
         to_result(unsafe { SDL_ClearProperty(self.id(), key) })
     }
 
@@ -175,13 +195,15 @@ impl PropertiesHandle {
         to_result(unsafe { SDL_CopyProperties(self.id(), dst.id()) })
     }
 
+    /// # Safety
+    /// `key` must be a valid, null-terminated C string.
     #[doc(alias = "SDL_HasProperty")]
-    pub fn has(&self, key: *const c_char) -> bool {
+    pub unsafe fn has(&self, key: *const c_char) -> bool {
         unsafe { SDL_HasProperty(self.id(), key) }
     }
 
     #[doc(alias = "SDL_GetPropertyType")]
-    fn type_of(&self, key: *const c_char) -> SDL_PropertyType {
+    unsafe fn type_of(&self, key: *const c_char) -> SDL_PropertyType {
         unsafe { SDL_GetPropertyType(self.id(), key) }
     }
 

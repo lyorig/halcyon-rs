@@ -30,18 +30,18 @@ impl<'a> RendererProperties<'a> {
     }
 
     fn get_str(&self, key: *const c_char) -> &str {
-        let s = self.inner.string(key, std::ptr::null());
+        let s = unsafe { self.inner.string(key, std::ptr::null()) };
 
         // SAFETY: Only called for properties whose existence the SDL docs guarantee.
         unsafe { str::from_utf8_unchecked(CStr::from_ptr(s).to_bytes()) }
     }
 
     fn opt_number(&self, key: *const c_char) -> Option<i64> {
-        self.inner.has(key).then(|| self.inner.number(key, 0))
+        unsafe { self.inner.has(key).then(|| self.inner.number(key, 0)) }
     }
 
     fn opt_ptr(&self, key: *const c_char) -> Option<*mut c_void> {
-        let p = self.inner.pointer(key, std::ptr::null_mut());
+        let p = unsafe { self.inner.pointer(key, std::ptr::null_mut()) };
 
         (!p.is_null()).then_some(p)
     }
@@ -51,38 +51,42 @@ impl<'a> RendererProperties<'a> {
     }
 
     pub fn window(&self) -> Option<Ref<'a, Window>> {
-        let p = self
-            .inner
-            .pointer(SDL_PROP_RENDERER_WINDOW_POINTER, std::ptr::null_mut());
+        let p = unsafe {
+            self.inner
+                .pointer(SDL_PROP_RENDERER_WINDOW_POINTER, std::ptr::null_mut())
+        };
 
         WindowHandle::from_ptr(p.cast()).map(|h| unsafe { Ref::from_handle(h) })
     }
 
     pub fn surface(&self) -> Option<Ref<'a, Surface>> {
-        let p = self
-            .inner
-            .pointer(SDL_PROP_RENDERER_SURFACE_POINTER, std::ptr::null_mut());
+        let p = unsafe {
+            self.inner
+                .pointer(SDL_PROP_RENDERER_SURFACE_POINTER, std::ptr::null_mut())
+        };
 
         SurfaceHandle::from_ptr(p.cast()).map(|h| unsafe { Ref::from_handle(h) })
     }
 
     pub fn vsync(&self) -> i64 {
-        self.inner.number(SDL_PROP_RENDERER_VSYNC_NUMBER, 0)
+        unsafe { self.inner.number(SDL_PROP_RENDERER_VSYNC_NUMBER, 0) }
     }
 
     pub fn max_texture_size(&self) -> i64 {
-        self.inner
-            .number(SDL_PROP_RENDERER_MAX_TEXTURE_SIZE_NUMBER, 0)
+        unsafe {
+            self.inner
+                .number(SDL_PROP_RENDERER_MAX_TEXTURE_SIZE_NUMBER, 0)
+        }
     }
 
     pub fn texture_formats(&self) -> &[SDL_PixelFormat] {
-        let begin = self
-            .inner
-            .pointer(
+        let begin = unsafe {
+            self.inner.pointer(
                 SDL_PROP_RENDERER_TEXTURE_FORMATS_POINTER,
                 std::ptr::null_mut(),
             )
-            .cast::<SDL_PixelFormat>();
+        }
+        .cast::<SDL_PixelFormat>();
 
         let mut len = 0;
         while unsafe { begin.add(len).read() } != SDL_PixelFormat::UNKNOWN {
@@ -92,29 +96,35 @@ impl<'a> RendererProperties<'a> {
     }
 
     pub fn texture_wrapping(&self) -> bool {
-        self.inner
-            .bool(SDL_PROP_RENDERER_TEXTURE_WRAPPING_BOOLEAN, false)
+        unsafe {
+            self.inner
+                .bool(SDL_PROP_RENDERER_TEXTURE_WRAPPING_BOOLEAN, false)
+        }
     }
 
     pub fn output_colorspace(&self) -> SDL_Colorspace {
-        SDL_Colorspace(
+        SDL_Colorspace(unsafe {
             self.inner
-                .number(SDL_PROP_RENDERER_OUTPUT_COLORSPACE_NUMBER, 0) as u32,
-        )
+                .number(SDL_PROP_RENDERER_OUTPUT_COLORSPACE_NUMBER, 0) as u32
+        })
     }
 
     pub fn hdr_enabled(&self) -> bool {
-        self.inner
-            .bool(SDL_PROP_RENDERER_HDR_ENABLED_BOOLEAN, false)
+        unsafe {
+            self.inner
+                .bool(SDL_PROP_RENDERER_HDR_ENABLED_BOOLEAN, false)
+        }
     }
 
     pub fn sdr_white_point(&self) -> f32 {
-        self.inner
-            .float(SDL_PROP_RENDERER_SDR_WHITE_POINT_FLOAT, 0.)
+        unsafe {
+            self.inner
+                .float(SDL_PROP_RENDERER_SDR_WHITE_POINT_FLOAT, 0.)
+        }
     }
 
     pub fn hdr_headroom(&self) -> f32 {
-        self.inner.float(SDL_PROP_RENDERER_HDR_HEADROOM_FLOAT, 0.)
+        unsafe { self.inner.float(SDL_PROP_RENDERER_HDR_HEADROOM_FLOAT, 0.) }
     }
 
     pub fn d3d9_device(&self) -> Option<*mut c_void> {
@@ -170,9 +180,10 @@ impl<'a> RendererProperties<'a> {
     }
 
     pub fn gpu_device(&self) -> Option<Ref<'a, Device>> {
-        let p = self
-            .inner
-            .pointer(SDL_PROP_RENDERER_GPU_DEVICE_POINTER, std::ptr::null_mut());
+        let p = unsafe {
+            self.inner
+                .pointer(SDL_PROP_RENDERER_GPU_DEVICE_POINTER, std::ptr::null_mut())
+        };
 
         DeviceHandle::from_ptr(p.cast()).map(|h| unsafe { Ref::from_handle(h) })
     }

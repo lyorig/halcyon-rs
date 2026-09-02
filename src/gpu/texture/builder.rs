@@ -81,16 +81,17 @@ impl<'p> TextureBuilder<'p> {
     /// A name for the texture, used for debugging.
     #[doc(alias = "SDL_PROP_GPU_TEXTURE_CREATE_NAME_STRING")]
     pub fn name(&mut self, value: &CStr) -> &mut Self {
-        _ = self
-            .props
-            .set_string(SDL_PROP_GPU_TEXTURE_CREATE_NAME_STRING, value.as_ptr());
+        _ = unsafe {
+            self.props
+                .set_string(SDL_PROP_GPU_TEXTURE_CREATE_NAME_STRING, value.as_ptr())
+        };
         self
     }
 
     /// Clear all GPU texture creation properties from a property group.
     pub fn clear_from(props: Ref<Properties>) {
         for key in CREATE_PROPERTIES {
-            _ = props.clear(key);
+            _ = unsafe { props.clear(key) };
         }
     }
 
@@ -116,12 +117,12 @@ impl<'p> TextureBuilder<'p> {
     }
 
     fn set_number(&mut self, key: *const c_char, value: i64) -> &mut Self {
-        _ = self.props.set_number(key, value);
+        _ = unsafe { self.props.set_number(key, value) };
         self
     }
 
     fn set_float(&mut self, key: *const c_char, value: f32) -> &mut Self {
-        _ = self.props.set_float(key, value);
+        _ = unsafe { self.props.set_float(key, value) };
         self
     }
 }

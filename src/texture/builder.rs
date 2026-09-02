@@ -108,7 +108,7 @@ impl<'a> TextureBuilder<'a> {
     /// Clear all texture creation properties from a property group.
     pub fn clear_from(props: Ref<Properties>) {
         for key in CREATE_PROPERTIES {
-            _ = props.clear(key);
+            _ = unsafe { props.clear(key) };
         }
     }
 
@@ -132,12 +132,12 @@ impl<'a> TextureBuilder<'a> {
     }
 
     fn set_number(&mut self, key: *const c_char, value: i64) -> &mut Self {
-        _ = self.inner.set_number(key, value);
+        _ = unsafe { self.inner.set_number(key, value) };
         self
     }
 
     fn set_float(&mut self, key: *const c_char, value: f32) -> &mut Self {
-        _ = self.inner.set_float(key, value);
+        _ = unsafe { self.inner.set_float(key, value) };
         self
     }
 }

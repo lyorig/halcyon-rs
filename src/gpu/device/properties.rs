@@ -18,7 +18,7 @@ impl<'a> DeviceProperties<'a> {
     }
 
     fn get(&self, key: *const c_char) -> Option<&str> {
-        let s = self.inner.string(key, std::ptr::null());
+        let s = unsafe { self.inner.string(key, std::ptr::null()) };
         if s.is_null() {
             None
         } else {

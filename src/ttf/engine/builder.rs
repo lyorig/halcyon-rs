@@ -51,7 +51,7 @@ impl<'p, 'dev> GpuEngineBuilder<'p, 'dev> {
     /// Clear all GPU text engine creation properties from a property group.
     pub fn clear_from(props: Ref<Properties>) {
         for key in GPU_CREATE_PROPERTIES {
-            _ = props.clear(key);
+            _ = unsafe { props.clear(key) };
         }
     }
 
@@ -71,11 +71,11 @@ impl<'p, 'dev> GpuEngineBuilder<'p, 'dev> {
     }
 
     fn set_pointer(&mut self, key: *const c_char, value: *mut std::ffi::c_void) {
-        _ = self.inner.set_pointer(key, value);
+        _ = unsafe { self.inner.set_pointer(key, value) };
     }
 
     fn set_number(&mut self, key: *const c_char, value: i64) {
-        _ = self.inner.set_number(key, value);
+        _ = unsafe { self.inner.set_number(key, value) };
     }
 }
 
@@ -114,7 +114,7 @@ impl<'p, 'renderer> RendererEngineBuilder<'p, 'renderer> {
     /// Clear all renderer text engine creation properties from a property group.
     pub fn clear_from(props: Ref<Properties>) {
         for key in RENDERER_CREATE_PROPERTIES {
-            _ = props.clear(key);
+            _ = unsafe { props.clear(key) };
         }
     }
 
@@ -136,10 +136,10 @@ impl<'p, 'renderer> RendererEngineBuilder<'p, 'renderer> {
     }
 
     fn set_pointer(&mut self, key: *const c_char, value: *mut std::ffi::c_void) {
-        _ = self.inner.set_pointer(key, value);
+        _ = unsafe { self.inner.set_pointer(key, value) };
     }
 
     fn set_number(&mut self, key: *const c_char, value: i64) {
-        _ = self.inner.set_number(key, value);
+        _ = unsafe { self.inner.set_number(key, value) };
     }
 }

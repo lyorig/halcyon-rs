@@ -87,7 +87,7 @@ fn texture_build_cleanup() -> Result {
 
     assert_eq!(tex.size(), Point::new(16.0, 16.0));
 
-    assert!(!props.as_ref().has(SDL_PROP_TEXTURE_CREATE_WIDTH_NUMBER));
+    assert!(!unsafe { props.as_ref().has(SDL_PROP_TEXTURE_CREATE_WIDTH_NUMBER) });
 
     Ok(())
 }

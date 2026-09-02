@@ -33,41 +33,44 @@ impl<'a> TextureProperties<'a> {
     }
 
     fn opt_number(&self, key: *const c_char) -> Option<i64> {
-        self.inner.has(key).then(|| self.inner.number(key, 0))
+        unsafe { self.inner.has(key).then(|| self.inner.number(key, 0)) }
     }
 
     fn opt_ptr(&self, key: *const c_char) -> Option<*mut c_void> {
-        let p = self.inner.pointer(key, std::ptr::null_mut());
+        let p = unsafe { self.inner.pointer(key, std::ptr::null_mut()) };
 
         (!p.is_null()).then_some(p)
     }
 
     pub fn colorspace(&self) -> Colorspace {
-        SDL_Colorspace(self.inner.number(SDL_PROP_TEXTURE_COLORSPACE_NUMBER, 0) as u32).into()
+        SDL_Colorspace(unsafe { self.inner.number(SDL_PROP_TEXTURE_COLORSPACE_NUMBER, 0) as u32 })
+            .into()
     }
 
     pub fn format(&self) -> PixelFormat {
-        SDL_PixelFormat(self.inner.number(SDL_PROP_TEXTURE_FORMAT_NUMBER, 0) as c_int).into()
+        SDL_PixelFormat(unsafe { self.inner.number(SDL_PROP_TEXTURE_FORMAT_NUMBER, 0) as c_int })
+            .into()
     }
 
     pub fn access(&self) -> TextureAccess {
-        SDL_TextureAccess(self.inner.number(SDL_PROP_TEXTURE_ACCESS_NUMBER, 0) as c_int).into()
+        SDL_TextureAccess(unsafe { self.inner.number(SDL_PROP_TEXTURE_ACCESS_NUMBER, 0) as c_int })
+            .into()
     }
 
     pub fn width(&self) -> i64 {
-        self.inner.number(SDL_PROP_TEXTURE_WIDTH_NUMBER, 0)
+        unsafe { self.inner.number(SDL_PROP_TEXTURE_WIDTH_NUMBER, 0) }
     }
 
     pub fn height(&self) -> i64 {
-        self.inner.number(SDL_PROP_TEXTURE_HEIGHT_NUMBER, 0)
+        unsafe { self.inner.number(SDL_PROP_TEXTURE_HEIGHT_NUMBER, 0) }
     }
 
     pub fn sdr_white_point(&self) -> f32 {
-        self.inner.float(SDL_PROP_TEXTURE_SDR_WHITE_POINT_FLOAT, 0.)
+        unsafe { self.inner.float(SDL_PROP_TEXTURE_SDR_WHITE_POINT_FLOAT, 0.) }
     }
 
     pub fn hdr_headroom(&self) -> f32 {
-        self.inner.float(SDL_PROP_TEXTURE_HDR_HEADROOM_FLOAT, 0.)
+        unsafe { self.inner.float(SDL_PROP_TEXTURE_HDR_HEADROOM_FLOAT, 0.) }
     }
 
     pub fn d3d11_texture(&self) -> Option<*mut c_void> {

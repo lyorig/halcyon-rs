@@ -22,16 +22,19 @@ impl<'p> TransferBufferBuilder<'p> {
     /// A name for the transfer buffer, used for debugging.
     #[doc(alias = "SDL_PROP_GPU_TRANSFERBUFFER_CREATE_NAME_STRING")]
     pub fn name(&mut self, value: &CStr) -> &mut Self {
-        _ = self
-            .props
-            .set_string(SDL_PROP_GPU_TRANSFERBUFFER_CREATE_NAME_STRING, value.as_ptr());
+        _ = unsafe {
+            self.props.set_string(
+                SDL_PROP_GPU_TRANSFERBUFFER_CREATE_NAME_STRING,
+                value.as_ptr(),
+            )
+        };
         self
     }
 
     /// Clear all GPU transfer buffer creation properties from a property group.
     pub fn clear_from(props: Ref<Properties>) {
         for key in CREATE_PROPERTIES {
-            _ = props.clear(key);
+            _ = unsafe { props.clear(key) };
         }
     }
 

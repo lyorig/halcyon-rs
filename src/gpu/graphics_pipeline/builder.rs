@@ -21,17 +21,19 @@ impl<'p> GraphicsPipelineBuilder<'p> {
     /// A name for the graphics pipeline, used for debugging.
     #[doc(alias = "SDL_PROP_GPU_GRAPHICSPIPELINE_CREATE_NAME_STRING")]
     pub fn name(&mut self, value: &CStr) -> &mut Self {
-        _ = self.props.set_string(
-            SDL_PROP_GPU_GRAPHICSPIPELINE_CREATE_NAME_STRING,
-            value.as_ptr(),
-        );
+        _ = unsafe {
+            self.props.set_string(
+                SDL_PROP_GPU_GRAPHICSPIPELINE_CREATE_NAME_STRING,
+                value.as_ptr(),
+            )
+        };
         self
     }
 
     /// Clear all GPU graphics pipeline creation properties from a property group.
     pub fn clear_from(props: Ref<Properties>) {
         for key in CREATE_PROPERTIES {
-            _ = props.clear(key);
+            _ = unsafe { props.clear(key) };
         }
     }
 
