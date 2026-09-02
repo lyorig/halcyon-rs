@@ -1,4 +1,7 @@
-use std::ffi::{CStr, c_char, c_void};
+use std::{
+    ffi::{CStr, c_char, c_void},
+    ptr::NonNull,
+};
 
 use sdl3_sys::{
     pixels::{SDL_Colorspace, SDL_PixelFormat},
@@ -40,10 +43,9 @@ impl<'a> RendererProperties<'a> {
         unsafe { self.inner.has(key).then(|| self.inner.number(key, 0)) }
     }
 
-    fn opt_ptr(&self, key: *const c_char) -> Option<*mut c_void> {
+    fn opt_ptr(&self, key: *const c_char) -> Option<NonNull<c_void>> {
         let p = unsafe { self.inner.pointer(key, std::ptr::null_mut()) };
-
-        (!p.is_null()).then_some(p)
+        NonNull::new(p)
     }
 
     pub fn name(&self) -> &str {
@@ -127,31 +129,31 @@ impl<'a> RendererProperties<'a> {
         unsafe { self.inner.float(SDL_PROP_RENDERER_HDR_HEADROOM_FLOAT, 0.) }
     }
 
-    pub fn d3d9_device(&self) -> Option<*mut c_void> {
+    pub fn d3d9_device(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_RENDERER_D3D9_DEVICE_POINTER)
     }
 
-    pub fn d3d11_device(&self) -> Option<*mut c_void> {
+    pub fn d3d11_device(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_RENDERER_D3D11_DEVICE_POINTER)
     }
 
-    pub fn d3d11_swapchain(&self) -> Option<*mut c_void> {
+    pub fn d3d11_swapchain(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_RENDERER_D3D11_SWAPCHAIN_POINTER)
     }
 
-    pub fn d3d12_device(&self) -> Option<*mut c_void> {
+    pub fn d3d12_device(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_RENDERER_D3D12_DEVICE_POINTER)
     }
 
-    pub fn d3d12_swapchain(&self) -> Option<*mut c_void> {
+    pub fn d3d12_swapchain(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_RENDERER_D3D12_SWAPCHAIN_POINTER)
     }
 
-    pub fn d3d12_command_queue(&self) -> Option<*mut c_void> {
+    pub fn d3d12_command_queue(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_RENDERER_D3D12_COMMAND_QUEUE_POINTER)
     }
 
-    pub fn vulkan_instance(&self) -> Option<*mut c_void> {
+    pub fn vulkan_instance(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_RENDERER_VULKAN_INSTANCE_POINTER)
     }
 
@@ -159,11 +161,11 @@ impl<'a> RendererProperties<'a> {
         self.opt_number(SDL_PROP_RENDERER_VULKAN_SURFACE_NUMBER)
     }
 
-    pub fn vulkan_physical_device(&self) -> Option<*mut c_void> {
+    pub fn vulkan_physical_device(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_RENDERER_VULKAN_PHYSICAL_DEVICE_POINTER)
     }
 
-    pub fn vulkan_device(&self) -> Option<*mut c_void> {
+    pub fn vulkan_device(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_RENDERER_VULKAN_DEVICE_POINTER)
     }
 

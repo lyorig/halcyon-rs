@@ -1,4 +1,7 @@
-use std::ffi::{CStr, c_char, c_void};
+use std::{
+    ffi::{CStr, c_char, c_void},
+    ptr::NonNull,
+};
 
 use sdl3_sys::video::*;
 
@@ -34,10 +37,9 @@ impl<'a> WindowProperties<'a> {
         unsafe { self.inner.has(key).then(|| self.inner.number(key, 0)) }
     }
 
-    fn opt_ptr(&self, key: *const c_char) -> Option<*mut c_void> {
+    fn opt_ptr(&self, key: *const c_char) -> Option<NonNull<c_void>> {
         let p = unsafe { self.inner.pointer(key, std::ptr::null_mut()) };
-
-        (!p.is_null()).then_some(p)
+        NonNull::new(p)
     }
 
     pub fn shape(&self) -> Option<Ref<'a, Surface>> {
@@ -61,7 +63,7 @@ impl<'a> WindowProperties<'a> {
         unsafe { self.inner.float(SDL_PROP_WINDOW_HDR_HEADROOM_FLOAT, 0.) }
     }
 
-    pub fn cocoa_window(&self) -> Option<*mut c_void> {
+    pub fn cocoa_window(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_WINDOW_COCOA_WINDOW_POINTER)
     }
 
@@ -69,19 +71,19 @@ impl<'a> WindowProperties<'a> {
         self.opt_number(SDL_PROP_WINDOW_COCOA_METAL_VIEW_TAG_NUMBER)
     }
 
-    pub fn win32_hwnd(&self) -> Option<*mut c_void> {
+    pub fn win32_hwnd(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_WINDOW_WIN32_HWND_POINTER)
     }
 
-    pub fn win32_hdc(&self) -> Option<*mut c_void> {
+    pub fn win32_hdc(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_WINDOW_WIN32_HDC_POINTER)
     }
 
-    pub fn win32_instance(&self) -> Option<*mut c_void> {
+    pub fn win32_instance(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_WINDOW_WIN32_INSTANCE_POINTER)
     }
 
-    pub fn x11_display(&self) -> Option<*mut c_void> {
+    pub fn x11_display(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_WINDOW_X11_DISPLAY_POINTER)
     }
 
@@ -93,27 +95,27 @@ impl<'a> WindowProperties<'a> {
         self.opt_number(SDL_PROP_WINDOW_X11_WINDOW_NUMBER)
     }
 
-    pub fn wayland_display(&self) -> Option<*mut c_void> {
+    pub fn wayland_display(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER)
     }
 
-    pub fn wayland_surface(&self) -> Option<*mut c_void> {
+    pub fn wayland_surface(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER)
     }
 
-    pub fn wayland_viewport(&self) -> Option<*mut c_void> {
+    pub fn wayland_viewport(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_VIEWPORT_POINTER)
     }
 
-    pub fn wayland_egl_window(&self) -> Option<*mut c_void> {
+    pub fn wayland_egl_window(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_EGL_WINDOW_POINTER)
     }
 
-    pub fn wayland_xdg_surface(&self) -> Option<*mut c_void> {
+    pub fn wayland_xdg_surface(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_XDG_SURFACE_POINTER)
     }
 
-    pub fn wayland_xdg_toplevel(&self) -> Option<*mut c_void> {
+    pub fn wayland_xdg_toplevel(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_XDG_TOPLEVEL_POINTER)
     }
 
@@ -121,11 +123,11 @@ impl<'a> WindowProperties<'a> {
         self.opt_str(SDL_PROP_WINDOW_WAYLAND_XDG_TOPLEVEL_EXPORT_HANDLE_STRING)
     }
 
-    pub fn wayland_xdg_popup(&self) -> Option<*mut c_void> {
+    pub fn wayland_xdg_popup(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_XDG_POPUP_POINTER)
     }
 
-    pub fn wayland_xdg_positioner(&self) -> Option<*mut c_void> {
+    pub fn wayland_xdg_positioner(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_WINDOW_WAYLAND_XDG_POSITIONER_POINTER)
     }
 }

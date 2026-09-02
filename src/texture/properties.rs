@@ -1,4 +1,7 @@
-use std::ffi::{c_char, c_int, c_void};
+use std::{
+    ffi::{c_char, c_int, c_void},
+    ptr::NonNull,
+};
 
 use sdl3_sys::{
     pixels::{SDL_Colorspace, SDL_PixelFormat},
@@ -36,10 +39,9 @@ impl<'a> TextureProperties<'a> {
         unsafe { self.inner.has(key).then(|| self.inner.number(key, 0)) }
     }
 
-    fn opt_ptr(&self, key: *const c_char) -> Option<*mut c_void> {
+    fn opt_ptr(&self, key: *const c_char) -> Option<NonNull<c_void>> {
         let p = unsafe { self.inner.pointer(key, std::ptr::null_mut()) };
-
-        (!p.is_null()).then_some(p)
+        NonNull::new(p)
     }
 
     pub fn colorspace(&self) -> Colorspace {
@@ -73,11 +75,11 @@ impl<'a> TextureProperties<'a> {
         unsafe { self.inner.float(SDL_PROP_TEXTURE_HDR_HEADROOM_FLOAT, 0.) }
     }
 
-    pub fn d3d11_texture(&self) -> Option<*mut c_void> {
+    pub fn d3d11_texture(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_TEXTURE_D3D11_TEXTURE_POINTER)
     }
 
-    pub fn d3d12_texture(&self) -> Option<*mut c_void> {
+    pub fn d3d12_texture(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_TEXTURE_D3D12_TEXTURE_POINTER)
     }
 
@@ -89,7 +91,7 @@ impl<'a> TextureProperties<'a> {
         self.opt_number(SDL_PROP_TEXTURE_VULKAN_TEXTURE_NUMBER)
     }
 
-    pub fn gpu_texture(&self) -> Option<*mut c_void> {
+    pub fn gpu_texture(&self) -> Option<NonNull<c_void>> {
         self.opt_ptr(SDL_PROP_TEXTURE_GPU_TEXTURE_POINTER)
     }
 }
