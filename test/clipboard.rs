@@ -16,7 +16,7 @@ fn clipboard_set_text_fails_before_video_init() {
 
 /// `set_text` succeeds after the video subsystem is initialized.
 #[test]
-fn clipboard_t_text_succeeds_after_video_init() {
+fn clipboard_set_text_succeeds_after_video_init() {
     let ctx = Context::new();
     let _video = Video::new(&ctx).unwrap();
 
