@@ -20,13 +20,7 @@ use std::{
 use bitflags::bitflags;
 use sdl3_sys::{filesystem::*, stdinc::SDL_Time};
 
-use crate::{
-    Result,
-    boxed::Box,
-    impl_enum_transmute,
-    string::String,
-    util::{c_ptr_to_str, opt2res_map, to_result},
-};
+use crate::{Result, boxed::Box, impl_enum_transmute, string::String, util::to_result};
 
 #[repr(i32)]
 #[derive(Clone, Copy, Debug)]
@@ -75,7 +69,7 @@ bitflags! {
     #[derive(Clone, Copy, Debug)]
     #[doc(alias = "SDL_GlobFlags")]
     pub struct GlobFlags: u32 {
-        const CASEINSENSITIVE = SDL_GlobFlags::CASEINSENSITIVE.0;
+        const CASE_INSENSITIVE = SDL_GlobFlags::CASEINSENSITIVE.0;
     }
 }
 
@@ -89,33 +83,11 @@ pub enum EnumerationResult {
 
 impl_enum_transmute!(SDL_EnumerationResult, EnumerationResult);
 
-#[doc(alias = "SDL_GetBasePath")]
-pub fn base_path() -> &'static str {
-    // SAFETY: The string returned by `SDL_GetBasePath()`
-    // is guaranteed to be valid UTF-8.
-    unsafe { c_ptr_to_str(SDL_GetBasePath()) }
-}
-
 #[doc(alias = "SDL_GetPrefPath")]
 pub fn pref_path(org: &CStr, app: &CStr) -> Result<String> {
     unsafe {
         let ptr = SDL_GetPrefPath(org.as_ptr(), app.as_ptr());
         String::from_raw_nullck(ptr)
-    }
-}
-
-/// The returned path is owned by SDL and cached for the program's lifetime,
-/// hence the `&'static str`. [`Err`] is returned on platforms
-/// that don't support the requested folder.
-#[doc(alias = "SDL_GetUserFolder")]
-pub fn user_folder(folder: Folder) -> Result<&'static str> {
-    let ptr = unsafe { SDL_GetUserFolder(folder.into()) };
-
-    // SAFETY: SDL guarantees the path is valid UTF-8.
-    unsafe {
-        opt2res_map(NonNull::new(ptr.cast_mut()), |ptr| {
-            c_ptr_to_str(ptr.as_ptr())
-        })
     }
 }
 

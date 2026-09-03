@@ -1,12 +1,19 @@
 #![allow(dead_code)]
 
+use std::ptr::NonNull;
+
 use sdl3_sys::{
+    filesystem::{SDL_GetBasePath, SDL_GetUserFolder},
     init::{SDL_IsMainThread, SDL_Quit},
     platform::SDL_GetPlatform,
     timer::{SDL_GetTicks, SDL_GetTicksNS},
 };
 
-use crate::{subsystem::Subsystem, util::c_ptr_to_str};
+use crate::{
+    fs::Folder,
+    subsystem::Subsystem,
+    util::{c_ptr_to_str, opt2res_map},
+};
 
 pub mod boxed;
 
@@ -75,6 +82,36 @@ impl Context {
 
     pub fn init<const N: u32>(&self) -> Result<Subsystem<'_, N>> {
         Subsystem::new(self)
+    }
+
+    /// Returns the directory where the application was run from.
+    ///
+    /// The returned string is cached by SDL and freed when this
+    /// [`Context`] is dropped, so its lifetime is tied to `&self`.
+    #[doc(alias = "SDL_GetBasePath")]
+    pub fn base_path(&self) -> &str {
+        // SAFETY: The string returned by `SDL_GetBasePath()`
+        // is guaranteed to be valid UTF-8.
+        unsafe { c_ptr_to_str(SDL_GetBasePath()) }
+    }
+
+    /// Returns the most suitable user folder for a specific purpose,
+    /// like `Documents` or `Downloads`.
+    ///
+    /// Returns [`Err`] on platforms that don't support the requested folder.
+    ///
+    /// The returned string is cached by SDL and freed when this
+    /// [`Context`] is dropped, so its lifetime is tied to `&self`.
+    #[doc(alias = "SDL_GetUserFolder")]
+    pub fn user_folder(&self, folder: Folder) -> Result<&str> {
+        let ptr = unsafe { SDL_GetUserFolder(folder.into()) };
+
+        // SAFETY: SDL guarantees the path is valid UTF-8.
+        unsafe {
+            opt2res_map(NonNull::new(ptr.cast_mut()), |ptr| {
+                c_ptr_to_str(ptr.as_ptr())
+            })
+        }
     }
 }
 
