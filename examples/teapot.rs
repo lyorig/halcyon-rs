@@ -318,10 +318,7 @@ fn run() -> Result<()> {
         BlendOp::Add,
         (BlendFactor::One, BlendFactor::Zero),
         BlendOp::Add,
-        ColorComponentFlags::R
-            | ColorComponentFlags::G
-            | ColorComponentFlags::B
-            | ColorComponentFlags::A,
+        ColorComponentFlags::all(), // RGBA
         EnableBlend::No,
         EnableColorWriteMask::No,
     );
@@ -330,8 +327,7 @@ fn run() -> Result<()> {
     let swapchain_format = device.swapchain_texture_format(wnd.as_ref());
     let ctd = [ColorTargetDescription::new(swapchain_format, blend)];
 
-    // The depth texture and the pipeline must use the same, device-supported
-    // format.
+    // The depth texture and the pipeline must use the same, device-supported format.
     let depth_format = pick_depth_format(device.as_ref());
     halcyon::log!(
         "Depth format: {}",
