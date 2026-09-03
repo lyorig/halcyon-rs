@@ -42,9 +42,9 @@ impl<T: OpacityBounds> Rgb<T> {
 impl From<RgbU8> for RgbF32 {
     fn from(value: RgbU8) -> Self {
         Self::new(
-            value.r as f32 / 255.0,
-            value.g as f32 / 255.0,
-            value.b as f32 / 255.0,
+            f32::from(value.r) / 255.0,
+            f32::from(value.g) / 255.0,
+            f32::from(value.b) / 255.0,
         )
     }
 }
@@ -62,10 +62,10 @@ impl From<RgbF32> for RgbU8 {
 impl From<RgbaU8> for RgbaF32 {
     fn from(value: RgbaU8) -> Self {
         Self::new(
-            value.rgb.r as f32 / 255.0,
-            value.rgb.g as f32 / 255.0,
-            value.rgb.b as f32 / 255.0,
-            value.a as f32 / 255.0,
+            f32::from(value.rgb.r) / 255.0,
+            f32::from(value.rgb.g) / 255.0,
+            f32::from(value.rgb.b) / 255.0,
+            f32::from(value.a) / 255.0,
         )
     }
 }
