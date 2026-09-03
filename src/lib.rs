@@ -1,15 +1,12 @@
 #![allow(dead_code)]
 
-use std::ffi::CStr;
-
 use sdl3_sys::{
-    filesystem::{SDL_GetBasePath, SDL_GetPrefPath},
     init::{SDL_IsMainThread, SDL_Quit},
     platform::SDL_GetPlatform,
     timer::{SDL_GetTicks, SDL_GetTicksNS},
 };
 
-use crate::{string::String, subsystem::Subsystem, util::c_ptr_to_str};
+use crate::{subsystem::Subsystem, util::c_ptr_to_str};
 
 pub mod boxed;
 
@@ -19,6 +16,7 @@ pub mod cpu;
 pub mod display;
 pub mod error;
 pub mod event;
+pub mod fs;
 pub mod gpu;
 pub mod keyboard;
 pub mod log;
@@ -102,21 +100,6 @@ pub fn platform() -> &'static str {
     // SAFETY: All SDL3 platform strings are UTF-8,
     // and are stored statically.
     unsafe { c_ptr_to_str(SDL_GetPlatform()) }
-}
-
-#[doc(alias = "SDL_GetBasePath")]
-pub fn base_path() -> &'static str {
-    // SAFETY: The string returned by `SDL_GetBasePath()`
-    // is guaranteed to be valid UTF-8.
-    unsafe { c_ptr_to_str(SDL_GetBasePath()) }
-}
-
-#[doc(alias = "SDL_GetPrefPath")]
-pub fn pref_path(org: &CStr, app: &CStr) -> Result<String> {
-    unsafe {
-        let ptr = SDL_GetPrefPath(org.as_ptr(), app.as_ptr());
-        String::from_raw_nullck(ptr)
-    }
 }
 
 #[doc(alias = "SDL_IsMainThread")]

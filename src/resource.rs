@@ -20,8 +20,8 @@ pub trait Resource: Sized {
     /// Return the raw underlying handle of this object.
     ///
     /// # Safety
+    /// This of this function as returning a pointer to `self`.
     /// Handles are only valid as long as their owning objects.
-    /// Using them outside of said lifetime == use-after-free.
     unsafe fn as_handle(&self) -> Self::Handle;
 
     /// Create a new reference tied to this resource.
@@ -43,6 +43,10 @@ pub struct Ref<'a, T: Resource> {
 impl<T: Resource> Ref<'_, T> {
     /// Construct a new reference from a handle, assuming it is valid.
     /// This conversion is zero-cost.
+    ///
+    /// # Safety
+    /// The lifetime of the returned reference is inferred; functions building
+    /// on this one should tie it to the handle's owning object, if possible.
     pub(crate) unsafe fn from_handle(handle: T::Handle) -> Self {
         Self {
             handle,
@@ -79,6 +83,10 @@ pub struct RefMut<'a, T: Resource> {
 impl<T: Resource> RefMut<'_, T> {
     /// Construct a new reference from a handle, assuming it is valid.
     /// This conversion is zero-cost.
+    ///
+    /// # Safety
+    /// The lifetime of the returned mutable reference is inferred; functions building
+    /// on this one should tie it to the handle's owning object, if possible.
     pub(crate) unsafe fn from_handle(handle: T::Handle) -> Self {
         Self {
             handle,

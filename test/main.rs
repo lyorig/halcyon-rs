@@ -17,6 +17,7 @@ mod clipboard;
 mod color;
 mod error;
 mod event;
+mod fs;
 mod log;
 mod string;
 mod texture;
