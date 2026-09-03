@@ -811,22 +811,29 @@ impl Window {
         title: &CStr,
         size: PointI32,
         flags: WindowFlags,
-    ) -> (Result<Self>, Result<Renderer>) {
+    ) -> Result<(Self, Renderer)> {
         let mut ret = MaybeUninit::<(*mut SDL_Window, *mut SDL_Renderer)>::uninit();
         let ptr = ret.as_mut_ptr();
 
         unsafe {
-            SDL_CreateWindowAndRenderer(
+            if SDL_CreateWindowAndRenderer(
                 title.as_ptr(),
                 size.x,
                 size.y,
                 flags.into(),
                 &raw mut (*ptr).0,
                 &raw mut (*ptr).1,
-            );
+            ) {
+                // SAFETY: The above function succeeds only when both
+                // the window and renderer are initialized.
+                let init = ret.assume_init();
+                let wnd = Self::from_ptr(init.0).unwrap_unchecked();
+                let rnd = Renderer::from_ptr(init.1).unwrap_unchecked();
 
-            let init = ret.assume_init();
-            (Self::from_ptr(init.0), Renderer::from_ptr(init.1))
+                Ok((wnd, rnd))
+            } else {
+                Err(Error::current())
+            }
         }
     }
 
