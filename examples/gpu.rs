@@ -151,15 +151,17 @@ fn run() -> Result<()> {
             CycleResolveTexture::No,
         );
 
-        let render_pass = RenderPass::new(cmdbuf.as_ref(), &[color_target], None)?;
+        RenderPass::run(cmdbuf.as_ref(), &[color_target], None, |rp| {
+            pipeline.bind(rp);
+            rp.set_viewport(&Viewport::new(
+                Point::new(0.0, 0.0),
+                Point::new(width as f32, height as f32),
+                (0.0, 1.0),
+            ));
+            rp.draw_primitives(3, 1, 0, 0);
 
-        pipeline.bind(render_pass.as_ref());
-        render_pass.set_viewport(&Viewport::new(
-            Point::new(0.0, 0.0),
-            Point::new(width as f32, height as f32),
-            (0.0, 1.0),
-        ));
-        render_pass.draw_primitives(3, 1, 0, 0);
+            Ok(())
+        })?;
     }
 
     // Submitting the command buffer also presents the swapchain texture.

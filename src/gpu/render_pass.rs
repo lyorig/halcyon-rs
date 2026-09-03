@@ -28,7 +28,7 @@ use crate::{
     gpu::{Buffer, Cycle, CycleResolveTexture},
     impl_enum_transmute,
     rect::{PointF32, RectI32},
-    resource::Ref,
+    resource::{Ref, Resource},
     resource_new,
     util::opt2ptr,
 };
@@ -180,6 +180,22 @@ impl RenderPass {
         };
 
         Self::from_ptr(handle)
+    }
+
+    /// Convenience function that creates a [`RenderPass`], does some work on it,
+    /// then ends (drops) it.
+    ///
+    /// Propagates [`Err`] returned by:
+    /// - [`RenderPass::new`]
+    /// - `op`
+    pub fn run<F: FnOnce(Ref<Self>) -> Result<()>>(
+        cmdbuf: Ref<CommandBuffer>,
+        color_targets: &[ColorTargetInfo],
+        depth_stencil_target: Option<&DepthStencilTargetInfo>,
+        op: F,
+    ) -> Result<()> {
+        let pass = Self::new(cmdbuf, color_targets, depth_stencil_target)?;
+        op(pass.as_ref())
     }
 }
 

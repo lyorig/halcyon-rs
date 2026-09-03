@@ -428,50 +428,56 @@ fn run() -> Result<()> {
                 (0u8, 0u8),
             );
 
-            let render_pass =
-                RenderPass::new(cmdbuf.as_ref(), &[color_target], Some(&depth_target))?;
+            RenderPass::run(
+                cmdbuf.as_ref(),
+                &[color_target],
+                Some(&depth_target),
+                |rp| {
+                    pipeline.bind(rp);
 
-            pipeline.bind(render_pass.as_ref());
+                    // Center the model (its bounding box is not centered at the
+                    // origin: the teapot sits on the y = 0 plane), then rotate it
+                    // in place about its center.
+                    let model = trans.mul(&Mat4::rot_y(angle));
+                    let second_model = Mat4::translate(-3.0, 0.0, -3.0).mul(&model);
+                    let third_model = Mat4::translate(3.0, 0.0, -3.0).mul(&model);
 
-            // Center the model (its bounding box is not centered at the
-            // origin: the teapot sits on the y = 0 plane), then rotate it
-            // in place about its center.
-            let model = trans.mul(&Mat4::rot_y(angle));
-            let second_model = Mat4::translate(-3.0, 0.0, -3.0).mul(&model);
-            let third_model = Mat4::translate(3.0, 0.0, -3.0).mul(&model);
+                    const VIEW: Mat4 = Mat4::translate(0.0, 0.0, -4.5);
 
-            const VIEW: Mat4 = Mat4::translate(0.0, 0.0, -4.5);
+                    let proj = Mat4::perspective(
+                        60.0f32.to_radians(),
+                        width as f32 / height as f32,
+                        0.1,
+                        100.0,
+                    );
+                    let models = [model, second_model, third_model];
+                    let view_proj = proj.mul(&VIEW);
 
-            let proj = Mat4::perspective(
-                60.0f32.to_radians(),
-                width as f32 / height as f32,
-                0.1,
-                100.0,
-            );
-            let models = [model, second_model, third_model];
-            let view_proj = proj.mul(&VIEW);
+                    const SZ: usize = size_of::<Mat4>();
+                    let mut uniforms = [0u8; SZ * 4];
+                    uniforms[..SZ].copy_from_slice(&view_proj.to_bytes());
+                    for (index, model) in models.iter().enumerate() {
+                        let start = (index + 1) * SZ;
+                        uniforms[start..start + SZ].copy_from_slice(&model.to_bytes());
+                    }
+                    cmdbuf.push_vertex_uniform_data(0, &uniforms);
 
-            const SZ: usize = size_of::<Mat4>();
-            let mut uniforms = [0u8; SZ * 4];
-            uniforms[..SZ].copy_from_slice(&view_proj.to_bytes());
-            for (index, model) in models.iter().enumerate() {
-                let start = (index + 1) * SZ;
-                uniforms[start..start + SZ].copy_from_slice(&model.to_bytes());
-            }
-            cmdbuf.push_vertex_uniform_data(0, &uniforms);
+                    rp.bind_vertex_buffers(0, &[BufferBinding::new(vb.as_ref(), 0)]);
+                    rp.bind_index_buffer(
+                        &BufferBinding::new(ib.as_ref(), 0),
+                        IndexElementSize::Bits16,
+                    );
+                    rp.draw_indexed_primitives(
+                        mesh.indices.len() as u32,
+                        models.len() as u32,
+                        0,
+                        0,
+                        0,
+                    );
 
-            render_pass.bind_vertex_buffers(0, &[BufferBinding::new(vb.as_ref(), 0)]);
-            render_pass.bind_index_buffer(
-                &BufferBinding::new(ib.as_ref(), 0),
-                IndexElementSize::Bits16,
-            );
-            render_pass.draw_indexed_primitives(
-                mesh.indices.len() as u32,
-                models.len() as u32,
-                0,
-                0,
-                0,
-            );
+                    Ok(())
+                },
+            )?;
         }
 
         // Submitting the command buffer also presents the swapchain texture.
