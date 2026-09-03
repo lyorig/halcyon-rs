@@ -87,14 +87,16 @@ impl<'vs, 'fs, 'vbd, 'va, 'ctd> GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 
 resource_new_no_drop!(SDL_GPUGraphicsPipeline, GraphicsPipeline);
 impl GraphicsPipeline {
     /// Bind a builder to a property group.
-    pub fn builder<'p>(props: Ref<'p, Properties>) -> GraphicsPipelineBuilder<'p> {
+    pub fn builder(props: Ref<'_, Properties>) -> GraphicsPipelineBuilder<'_> {
         GraphicsPipelineBuilder::new(props)
     }
 
     #[doc(alias = "SDL_CreateGPUGraphicsPipeline")]
     pub fn new(device: Ref<Device>, create_info: &GraphicsPipelineCreateInfo) -> Result<Self> {
-        let handle =
-            unsafe { SDL_CreateGPUGraphicsPipeline(device.handle.as_ptr(), &create_info.0) };
+        let handle = unsafe {
+            SDL_CreateGPUGraphicsPipeline(device.handle.as_ptr(), &raw const create_info.0)
+        };
+
         Self::from_ptr(handle)
     }
 

@@ -158,12 +158,13 @@ impl DeviceHandle {
 
     #[doc(alias = "SDL_GetGPUDeviceProperties")]
     pub fn properties(&self) -> DeviceProperties<'_> {
-        let id = unsafe { SDL_GetGPUDeviceProperties(self.handle.as_ptr()) };
-        let handle =
-            PropertiesHandle::from_id(id).expect("A valid GPU device should have properties");
+        unsafe {
+            let id = SDL_GetGPUDeviceProperties(self.handle.as_ptr());
+            let handle = PropertiesHandle::from_id(id).unwrap_unchecked();
+            let r = Ref::from_handle(handle);
 
-        let r = unsafe { Ref::from_handle(handle) };
-        DeviceProperties::new(r)
+            DeviceProperties::new(r)
+        }
     }
 
     #[doc(alias = "SDL_GetGPUSwapchainTextureFormat")]

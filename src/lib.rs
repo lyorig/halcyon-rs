@@ -57,6 +57,9 @@ impl Context {
         Self {}
     }
 
+    /// Create a new context.
+    ///
+    /// # Panics
     /// Panics if this function is not called on the main thread.
     ///
     /// # Why doesn't this return a [`Result`] instead?

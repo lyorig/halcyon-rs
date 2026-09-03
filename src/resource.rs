@@ -25,7 +25,7 @@ pub trait Resource: Sized {
     unsafe fn as_handle(&self) -> Self::Handle;
 
     /// Create a new reference tied to this resource.
-    fn as_ref<'a>(&'a self) -> Ref<'a, Self> {
+    fn as_ref(&self) -> Ref<'_, Self> {
         unsafe { Ref::from_handle(self.as_handle()) }
     }
 

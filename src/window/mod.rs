@@ -228,6 +228,7 @@ impl std::fmt::Display for SystemTheme {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct WindowId {
     inner: NonZero<u32>,
 }
@@ -242,7 +243,7 @@ impl WindowId {
         Self { inner }
     }
 
-    const fn as_sdl(&self) -> SDL_WindowID {
+    const fn as_sdl(self) -> SDL_WindowID {
         SDL_WindowID(self.inner.get())
     }
 }
@@ -383,8 +384,9 @@ impl WindowHandle {
 
     #[doc(alias = "SDL_GetWindowTitle")]
     pub fn title(&self) -> NonNull<c_char> {
-        NonNull::new(unsafe { SDL_GetWindowTitle(self.handle.as_ptr()).cast_mut() })
-            .expect("SDL_GetWindowTitle should return a valid pointer")
+        unsafe {
+            NonNull::new(SDL_GetWindowTitle(self.handle.as_ptr()).cast_mut()).unwrap_unchecked()
+        }
     }
 
     #[doc(alias = "SDL_GetWindowFlags")]
@@ -753,11 +755,13 @@ impl WindowHandle {
     /// expose.
     #[doc(alias = "SDL_GetWindowProperties")]
     pub fn properties(&self) -> WindowProperties<'_> {
-        let id = unsafe { SDL_GetWindowProperties(self.handle.as_ptr()) };
-        let handle = PropertiesHandle::from_id(id).expect("A valid window should have properties");
+        unsafe {
+            let id = SDL_GetWindowProperties(self.handle.as_ptr());
+            let handle = PropertiesHandle::from_id(id).unwrap_unchecked();
+            let r = Ref::from_handle(handle);
 
-        let r = unsafe { Ref::from_handle(handle) };
-        WindowProperties::new(r)
+            WindowProperties::new(r)
+        }
     }
 }
 

@@ -156,7 +156,7 @@ impl Display {
         if ptr.is_null() {
             Err(Error::current())
         } else {
-            Ok(NonNull::new(ptr.cast_mut()).unwrap())
+            Ok(unsafe { NonNull::new_unchecked(ptr.cast_mut()) })
         }
     }
 
@@ -166,7 +166,7 @@ impl Display {
         if ptr.is_null() {
             Err(Error::current())
         } else {
-            Ok(NonNull::new(ptr.cast_mut()).unwrap())
+            Ok(unsafe { NonNull::new_unchecked(ptr.cast_mut()) })
         }
     }
 

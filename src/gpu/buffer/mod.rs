@@ -135,13 +135,15 @@ impl<'b> StorageBufferReadWriteBinding<'b> {
 resource_new_no_drop!(SDL_GPUBuffer, Buffer);
 impl Buffer {
     /// Bind a builder to a property group.
-    pub fn builder<'p>(props: Ref<'p, Properties>) -> BufferBuilder<'p> {
+    pub fn builder(props: Ref<'_, Properties>) -> BufferBuilder<'_> {
         BufferBuilder::new(props)
     }
 
     #[doc(alias = "SDL_CreateGPUBuffer")]
     pub fn new(device: Ref<Device>, create_info: &BufferCreateInfo) -> Result<Self> {
-        let handle = unsafe { SDL_CreateGPUBuffer(device.handle.as_ptr(), &create_info.0) };
+        let handle =
+            unsafe { SDL_CreateGPUBuffer(device.handle.as_ptr(), &raw const create_info.0) };
+
         Self::from_ptr(handle)
     }
 
@@ -160,7 +162,14 @@ impl BufferHandle {
         dst: &BufferRegion,
         cycle: Cycle,
     ) {
-        unsafe { SDL_UploadToGPUBuffer(copy_pass.handle.as_ptr(), &src.0, &dst.0, cycle.into()) }
+        unsafe {
+            SDL_UploadToGPUBuffer(
+                copy_pass.handle.as_ptr(),
+                &raw const src.0,
+                &raw const dst.0,
+                cycle.into(),
+            );
+        }
     }
 
     #[doc(alias = "SDL_DownloadFromGPUBuffer")]
@@ -170,13 +179,19 @@ impl BufferHandle {
         src: &BufferRegion,
         dst: &TransferBufferLocation,
     ) {
-        unsafe { SDL_DownloadFromGPUBuffer(copy_pass.handle.as_ptr(), &src.0, &dst.0) };
+        unsafe {
+            SDL_DownloadFromGPUBuffer(
+                copy_pass.handle.as_ptr(),
+                &raw const src.0,
+                &raw const dst.0,
+            );
+        };
     }
 
     #[doc(alias = "SDL_SetGPUBufferName")]
     pub fn set_name(&self, device: Ref<Device>, name: &CStr) {
         unsafe {
-            SDL_SetGPUBufferName(device.handle.as_ptr(), self.handle.as_ptr(), name.as_ptr())
+            SDL_SetGPUBufferName(device.handle.as_ptr(), self.handle.as_ptr(), name.as_ptr());
         };
     }
 }

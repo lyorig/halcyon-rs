@@ -19,6 +19,7 @@ pub struct ComputePipelineCreateInfo<'bc, 'ep>(
     PhantomData<&'bc [u8]>,
     PhantomData<&'ep CStr>,
 );
+
 impl<'bc, 'ep> ComputePipelineCreateInfo<'bc, 'ep> {
     pub const fn new(
         code: &'bc [u8],
@@ -26,7 +27,12 @@ impl<'bc, 'ep> ComputePipelineCreateInfo<'bc, 'ep> {
         fmt: ShaderFormat,
         sampler_count: u32,
         uniform_buffer_count: u32,
-        (ro_stor_tex, ro_stor_buf, rw_stor_tex, rw_stor_buf): (u32, u32, u32, u32),
+        (
+            readonly_storage_texture_count,
+            readonly_storage_buffer_count,
+            readwrite_storage_texture_count,
+            readwrite_storage_buffer_count,
+        ): (u32, u32, u32, u32),
         threadcount_xyz: (u32, u32, u32),
     ) -> Self {
         let inner = SDL_GPUComputePipelineCreateInfo {
@@ -35,10 +41,10 @@ impl<'bc, 'ep> ComputePipelineCreateInfo<'bc, 'ep> {
             entrypoint: entrypoint.as_ptr(),
             format: SDL_GPUShaderFormat::new(fmt as _),
             num_samplers: sampler_count,
-            num_readonly_storage_textures: ro_stor_tex,
-            num_readonly_storage_buffers: ro_stor_buf,
-            num_readwrite_storage_textures: rw_stor_tex,
-            num_readwrite_storage_buffers: rw_stor_buf,
+            num_readonly_storage_textures: readonly_storage_texture_count,
+            num_readonly_storage_buffers: readonly_storage_buffer_count,
+            num_readwrite_storage_textures: readwrite_storage_texture_count,
+            num_readwrite_storage_buffers: readwrite_storage_buffer_count,
             num_uniform_buffers: uniform_buffer_count,
             threadcount_x: threadcount_xyz.0,
             threadcount_y: threadcount_xyz.1,
@@ -53,14 +59,16 @@ impl<'bc, 'ep> ComputePipelineCreateInfo<'bc, 'ep> {
 resource_new_no_drop!(SDL_GPUComputePipeline, ComputePipeline);
 impl ComputePipeline {
     /// Bind a builder to a property group.
-    pub fn builder<'p>(props: Ref<'p, Properties>) -> ComputePipelineBuilder<'p> {
+    pub fn builder(props: Ref<'_, Properties>) -> ComputePipelineBuilder<'_> {
         ComputePipelineBuilder::new(props)
     }
 
     #[doc(alias = "SDL_CreateGPUComputePipeline")]
     pub fn new(device: Ref<Device>, create_info: &ComputePipelineCreateInfo) -> Result<Self> {
-        let handle =
-            unsafe { SDL_CreateGPUComputePipeline(device.handle.as_ptr(), &create_info.0) };
+        let handle = unsafe {
+            SDL_CreateGPUComputePipeline(device.handle.as_ptr(), &raw const create_info.0)
+        };
+
         Self::from_ptr(handle)
     }
 

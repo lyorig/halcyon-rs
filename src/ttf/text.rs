@@ -245,7 +245,7 @@ impl TextHandle {
     }
 
     #[doc(alias = "TTF_GetTextFont")]
-    pub fn font<'a>(&'a self) -> Result<Ref<'a, Font<'a>>> {
+    pub fn font(&self) -> Result<Ref<'_, Font<'_>>> {
         let font = unsafe { TTF_GetTextFont(self.as_ptr()) };
         let handle = FontHandle::from_ptr(font).ok_or_else(Error::current)?;
         Ok(unsafe { Ref::from_handle(handle) })
@@ -292,7 +292,7 @@ impl TextHandle {
         let mut previous = MaybeUninit::uninit();
         let value: TTF_SubString = unsafe { std::mem::transmute(value) };
         to_result(unsafe {
-            TTF_GetPreviousTextSubString(self.as_ptr(), &value, previous.as_mut_ptr())
+            TTF_GetPreviousTextSubString(self.as_ptr(), &raw const value, previous.as_mut_ptr())
         })?;
         Ok(SubString::from(unsafe { previous.assume_init() }))
     }
@@ -301,7 +301,9 @@ impl TextHandle {
     pub fn next_substring(&self, value: SubString) -> Result<SubString> {
         let mut next = MaybeUninit::uninit();
         let value: TTF_SubString = unsafe { std::mem::transmute(value) };
-        to_result(unsafe { TTF_GetNextTextSubString(self.as_ptr(), &value, next.as_mut_ptr()) })?;
+        to_result(unsafe {
+            TTF_GetNextTextSubString(self.as_ptr(), &raw const value, next.as_mut_ptr())
+        })?;
         Ok(SubString::from(unsafe { next.assume_init() }))
     }
 

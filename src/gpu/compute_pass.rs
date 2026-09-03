@@ -74,7 +74,7 @@ impl ComputePassHandle {
                 first_slot,
                 bindings.as_ptr().cast(),
                 bindings.len() as _,
-            )
+            );
         }
     }
 
@@ -86,7 +86,7 @@ impl ComputePassHandle {
                 first_slot,
                 textures.as_ptr().cast(),
                 textures.len() as _,
-            )
+            );
         }
     }
 
@@ -98,7 +98,7 @@ impl ComputePassHandle {
                 first_slot,
                 buffers.as_ptr().cast(),
                 buffers.len() as _,
-            )
+            );
         }
     }
 
@@ -110,7 +110,7 @@ impl ComputePassHandle {
     #[doc(alias = "SDL_DispatchGPUComputeIndirect")]
     pub fn dispatch_indirect(&self, buffer: Ref<Buffer>, offset: u32) {
         unsafe {
-            SDL_DispatchGPUComputeIndirect(self.handle.as_ptr(), buffer.handle.as_ptr(), offset)
+            SDL_DispatchGPUComputeIndirect(self.handle.as_ptr(), buffer.handle.as_ptr(), offset);
         }
     }
 }

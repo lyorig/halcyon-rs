@@ -50,13 +50,13 @@ impl CopyPassHandle {
         unsafe {
             SDL_CopyGPUTextureToTexture(
                 self.handle.as_ptr(),
-                &source.0,
-                &destination.0,
+                &raw const source.0,
+                &raw const destination.0,
                 w,
                 h,
                 d,
                 cycle.into(),
-            )
+            );
         }
     }
 
@@ -71,11 +71,11 @@ impl CopyPassHandle {
         unsafe {
             SDL_CopyGPUBufferToBuffer(
                 self.handle.as_ptr(),
-                &source.0,
-                &destination.0,
+                &raw const source.0,
+                &raw const destination.0,
                 size,
                 cycle.into(),
-            )
+            );
         }
     }
 }

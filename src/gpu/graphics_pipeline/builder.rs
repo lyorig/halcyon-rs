@@ -37,10 +37,10 @@ impl<'p> GraphicsPipelineBuilder<'p> {
         }
     }
 
-    pub fn build<'vs, 'fs, 'vbd, 'va, 'ctd>(
+    pub fn build(
         &self,
         device: Ref<Device>,
-        mut create_info: GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd>,
+        mut create_info: GraphicsPipelineCreateInfo,
     ) -> Result<GraphicsPipeline> {
         create_info.0.props = self.props.id();
         GraphicsPipeline::new(device, &create_info)
@@ -48,10 +48,10 @@ impl<'p> GraphicsPipelineBuilder<'p> {
 
     /// Creates a [`GraphicsPipeline`] using [`GraphicsPipelineCreateInfo`],
     /// then removes all graphics pipeline creation properties from the attached property group.
-    pub fn build_cleanup<'vs, 'fs, 'vbd, 'va, 'ctd>(
+    pub fn build_cleanup(
         &self,
         device: Ref<Device>,
-        create_info: GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd>,
+        create_info: GraphicsPipelineCreateInfo,
     ) -> Result<GraphicsPipeline> {
         let res = self.build(device, create_info);
         Self::clear_from(self.props);

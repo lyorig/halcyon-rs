@@ -236,7 +236,7 @@ impl<'t> TextureRegion<'t> {
         mip_level: u32,
         layer: u32,
         (x, y, z): (u32, u32, u32),
-        (w, h, d): (u32, u32, u32),
+        (width, height, depth): (u32, u32, u32),
     ) -> Self {
         let texture = tex.handle.as_ptr();
         let inner = SDL_GPUTextureRegion {
@@ -246,9 +246,9 @@ impl<'t> TextureRegion<'t> {
             x,
             y,
             z,
-            w,
-            h,
-            d,
+            w: width,
+            h: height,
+            d: depth,
         };
 
         Self(inner, PhantomData)
@@ -363,13 +363,15 @@ impl<'t> BlitRegion<'t> {
 resource_new_no_drop!(SDL_GPUTexture, Texture);
 impl Texture {
     /// Bind a builder to a property group.
-    pub fn builder<'p>(props: Ref<'p, Properties>) -> TextureBuilder<'p> {
+    pub fn builder(props: Ref<'_, Properties>) -> TextureBuilder<'_> {
         TextureBuilder::new(props)
     }
 
     #[doc(alias = "SDL_CreateGPUTexture")]
     pub fn new(device: Ref<Device>, create_info: &TextureCreateInfo) -> Result<Self> {
-        let handle = unsafe { SDL_CreateGPUTexture(device.handle.as_ptr(), &create_info.0) };
+        let handle =
+            unsafe { SDL_CreateGPUTexture(device.handle.as_ptr(), &raw const create_info.0) };
+
         Self::from_ptr(handle)
     }
 
@@ -387,7 +389,13 @@ impl TextureHandle {
         src: &TextureRegion,
         dst: &TextureTransferInfo,
     ) {
-        unsafe { SDL_DownloadFromGPUTexture(copy_pass.handle.as_ptr(), &src.0, &dst.0) };
+        unsafe {
+            SDL_DownloadFromGPUTexture(
+                copy_pass.handle.as_ptr(),
+                &raw const src.0,
+                &raw const dst.0,
+            );
+        }
     }
 
     #[doc(alias = "SDL_UploadToGPUTexture")]
@@ -399,14 +407,19 @@ impl TextureHandle {
         cycle: Cycle,
     ) {
         unsafe {
-            SDL_UploadToGPUTexture(copy_pass.handle.as_ptr(), &src.0, &dst.0, cycle.into());
+            SDL_UploadToGPUTexture(
+                copy_pass.handle.as_ptr(),
+                &raw const src.0,
+                &raw const dst.0,
+                cycle.into(),
+            );
         }
     }
 
     #[doc(alias = "SDL_SetGPUTextureName")]
     pub fn set_name(&self, device: Ref<Device>, name: &CStr) {
         unsafe {
-            SDL_SetGPUTextureName(device.handle.as_ptr(), self.handle.as_ptr(), name.as_ptr())
+            SDL_SetGPUTextureName(device.handle.as_ptr(), self.handle.as_ptr(), name.as_ptr());
         }
     }
 }

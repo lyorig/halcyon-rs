@@ -68,13 +68,15 @@ impl<'bc, 'ep> ShaderCreateInfo<'bc, 'ep> {
 resource_new_no_drop!(SDL_GPUShader, Shader);
 impl Shader {
     /// Bind a builder to a property group.
-    pub fn builder<'p>(props: Ref<'p, Properties>) -> ShaderBuilder<'p> {
+    pub fn builder(props: Ref<'_, Properties>) -> ShaderBuilder<'_> {
         ShaderBuilder::new(props)
     }
 
     #[doc(alias = "SDL_CreateGPUShader")]
     pub fn new(device: Ref<Device>, create_info: &ShaderCreateInfo) -> Result<Self> {
-        let handle = unsafe { SDL_CreateGPUShader(device.handle.as_ptr(), &create_info.0) };
+        let handle =
+            unsafe { SDL_CreateGPUShader(device.handle.as_ptr(), &raw const create_info.0) };
+
         Self::from_ptr(handle)
     }
 

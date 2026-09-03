@@ -186,22 +186,30 @@ impl RenderPass {
 impl RenderPassHandle {
     #[doc(alias = "SDL_SetGPUViewport")]
     pub fn set_viewport(&self, viewport: &Viewport) {
-        unsafe { SDL_SetGPUViewport(self.handle.as_ptr(), &viewport.0) }
+        unsafe {
+            SDL_SetGPUViewport(self.handle.as_ptr(), &raw const viewport.0);
+        }
     }
 
     #[doc(alias = "SDL_SetGPUBlendConstants")]
     pub fn set_blend_constants(&self, blend_constants: RgbaF32) {
-        unsafe { SDL_SetGPUBlendConstants(self.handle.as_ptr(), blend_constants.into()) }
+        unsafe {
+            SDL_SetGPUBlendConstants(self.handle.as_ptr(), blend_constants.into());
+        }
     }
 
     #[doc(alias = "SDL_SetGPUStencilReference")]
     pub fn set_stencil_reference(&self, reference: u8) {
-        unsafe { SDL_SetGPUStencilReference(self.handle.as_ptr(), reference) }
+        unsafe {
+            SDL_SetGPUStencilReference(self.handle.as_ptr(), reference);
+        }
     }
 
     #[doc(alias = "SDL_SetGPUScissor")]
     pub fn set_scissor(&self, scissor: &RectI32) {
-        unsafe { SDL_SetGPUScissor(self.handle.as_ptr(), scissor.as_sdl_ptr()) };
+        unsafe {
+            SDL_SetGPUScissor(self.handle.as_ptr(), scissor.as_sdl_ptr());
+        }
     }
 
     #[doc(alias = "SDL_BindGPUVertexBuffers")]
@@ -212,7 +220,7 @@ impl RenderPassHandle {
                 first_slot,
                 bindings.as_ptr().cast(),
                 bindings.len() as _,
-            )
+            );
         }
     }
 
@@ -221,9 +229,9 @@ impl RenderPassHandle {
         unsafe {
             SDL_BindGPUIndexBuffer(
                 self.handle.as_ptr(),
-                &binding.0,
+                &raw const binding.0,
                 SDL_GPUIndexElementSize::new(index_element_size as _),
-            )
+            );
         }
     }
 
@@ -235,7 +243,7 @@ impl RenderPassHandle {
                 first_slot,
                 bindings.as_ptr().cast(),
                 bindings.len() as _,
-            )
+            );
         }
     }
 
@@ -247,7 +255,7 @@ impl RenderPassHandle {
                 first_slot,
                 textures.as_ptr().cast(),
                 textures.len() as _,
-            )
+            );
         }
     }
 
@@ -259,7 +267,7 @@ impl RenderPassHandle {
                 first_slot,
                 buffers.as_ptr().cast(),
                 buffers.len() as _,
-            )
+            );
         }
     }
 
@@ -271,7 +279,7 @@ impl RenderPassHandle {
                 first_slot,
                 bindings.as_ptr().cast(),
                 bindings.len() as _,
-            )
+            );
         }
     }
 
@@ -283,7 +291,7 @@ impl RenderPassHandle {
                 first_slot,
                 textures.as_ptr().cast(),
                 textures.len() as _,
-            )
+            );
         }
     }
 
@@ -295,7 +303,7 @@ impl RenderPassHandle {
                 first_slot,
                 buffers.as_ptr().cast(),
                 buffers.len() as _,
-            )
+            );
         }
     }
 
@@ -308,7 +316,7 @@ impl RenderPassHandle {
                 n_insts,
                 first_vert,
                 first_inst,
-            )
+            );
         }
     }
 
@@ -320,7 +328,7 @@ impl RenderPassHandle {
                 buffer.handle.as_ptr(),
                 offset,
                 draw_count,
-            )
+            );
         }
     }
 
@@ -341,7 +349,7 @@ impl RenderPassHandle {
                 first_index,
                 vertex_offset,
                 first_instance,
-            )
+            );
         }
     }
 
@@ -358,7 +366,7 @@ impl RenderPassHandle {
                 buffer.handle.as_ptr(),
                 offset,
                 draw_count,
-            )
+            );
         }
     }
 }

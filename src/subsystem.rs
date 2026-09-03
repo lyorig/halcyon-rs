@@ -30,7 +30,7 @@ impl<const N: u32> Subsystem<'_, N> {
     const FLAG: SDL_InitFlags = SDL_InitFlags::new(N);
 
     #[doc(alias = "SDL_InitSubSystem")]
-    pub fn new<'ctx>(_: &'ctx Context) -> Result<Subsystem<'ctx, N>> {
+    pub fn new(_: &Context) -> Result<Subsystem<'_, N>> {
         let res = unsafe { SDL_InitSubSystem(Self::FLAG) };
         if res {
             Ok(Subsystem {

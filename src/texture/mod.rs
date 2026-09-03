@@ -328,11 +328,13 @@ impl TextureHandle {
     /// `SDL_PROP_TEXTURE_OPENGL_TEX_W_FLOAT`/`TEX_H_FLOAT`.
     #[doc(alias = "SDL_GetTextureProperties")]
     pub fn properties(&self) -> TextureProperties<'_> {
-        let id = unsafe { SDL_GetTextureProperties(self.handle.as_ptr()) };
-        let handle = PropertiesHandle::from_id(id).expect("A valid texture should have properties");
+        unsafe {
+            let id = SDL_GetTextureProperties(self.handle.as_ptr());
+            let handle = PropertiesHandle::from_id(id).unwrap_unchecked();
+            let r = Ref::from_handle(handle);
 
-        let r = unsafe { Ref::from_handle(handle) };
-        TextureProperties::new(r)
+            TextureProperties::new(r)
+        }
     }
 }
 

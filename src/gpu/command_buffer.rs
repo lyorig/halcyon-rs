@@ -213,7 +213,7 @@ impl CommandBufferHandle {
                 slot_index,
                 data.as_ptr().cast(),
                 data.len() as _,
-            )
+            );
         }
     }
 
@@ -225,7 +225,7 @@ impl CommandBufferHandle {
                 slot_index,
                 data.as_ptr().cast(),
                 data.len() as _,
-            )
+            );
         }
     }
 
@@ -237,12 +237,12 @@ impl CommandBufferHandle {
                 slot_index,
                 data.as_ptr().cast(),
                 data.len() as _,
-            )
+            );
         }
     }
 
     #[doc(alias = "SDL_BlitGPUTexture")]
     pub fn blit(&self, info: &BlitInfo) {
-        unsafe { SDL_BlitGPUTexture(self.handle.as_ptr(), &info.0) }
+        unsafe { SDL_BlitGPUTexture(self.handle.as_ptr(), &raw const info.0) }
     }
 }

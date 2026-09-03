@@ -114,19 +114,23 @@ impl RendererHandle {
     /// (`SDL_PROP_RENDERER_METAL_*`), which sdl3-sys does not expose.
     #[doc(alias = "SDL_GetRendererProperties")]
     pub fn properties(&self) -> RendererProperties<'_> {
-        let id = unsafe { SDL_GetRendererProperties(self.handle.as_ptr()) };
-        let handle =
-            PropertiesHandle::from_id(id).expect("A valid renderer should always have a handle");
+        unsafe {
+            let id = SDL_GetRendererProperties(self.handle.as_ptr());
+            let handle = PropertiesHandle::from_id(id).unwrap_unchecked();
+            let r = Ref::from_handle(handle);
 
-        let r = unsafe { Ref::from_handle(handle) };
-        RendererProperties::new(r)
+            RendererProperties::new(r)
+        }
     }
 
     #[doc(alias = "SDL_GetRenderWindow")]
     pub fn window(&self) -> Ref<'_, Window> {
-        let handle = WindowHandle::from_ptr(unsafe { SDL_GetRenderWindow(self.handle.as_ptr()) })
-            .expect("Renderer has no associated window");
-        unsafe { Ref::from_handle(handle) }
+        unsafe {
+            let ptr = SDL_GetRenderWindow(self.handle.as_ptr());
+            let handle = WindowHandle::from_ptr(ptr).unwrap_unchecked();
+
+            Ref::from_handle(handle)
+        }
     }
 
     #[doc(alias = "SDL_GetRenderTarget")]
@@ -394,10 +398,10 @@ impl RendererHandle {
     #[doc(alias = "SDL_RenderRect")]
     pub fn draw_rect_with(&self, rect: RectF32, col: RgbaF32) -> Result<()> {
         let old = self.xchg_draw_color_f32(col);
-        let ret = self.draw_rect(rect);
+        let res = self.draw_rect(rect);
         self.set_draw_color_f32(old);
 
-        ret
+        res
     }
 
     #[doc(alias = "SDL_RenderRect")]
@@ -456,10 +460,10 @@ impl RendererHandle {
     #[doc(alias = "SDL_RenderFillRect")]
     pub fn fill_rect_with(&self, rect: RectF32, col: RgbaF32) -> Result<()> {
         let old = self.xchg_draw_color_f32(col);
-        let ret = self.fill_rect(rect);
+        let res = self.fill_rect(rect);
         self.set_draw_color_f32(old);
 
-        ret
+        res
     }
 
     #[doc(alias = "SDL_RenderFillRects")]

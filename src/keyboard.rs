@@ -56,7 +56,7 @@ pub fn key_name(key: SDL_Keycode) -> &'static str {
 #[doc(alias = "SDL_GetKeyboardState")]
 pub fn keyboard_state() -> &'static [bool; NUM_SCANCODES] {
     unsafe {
-        let ptr = SDL_GetKeyboardState(std::ptr::null_mut()) as *const [bool; NUM_SCANCODES];
+        let ptr = SDL_GetKeyboardState(std::ptr::null_mut()).cast::<[bool; NUM_SCANCODES]>();
         ptr.as_ref_unchecked()
     }
 }

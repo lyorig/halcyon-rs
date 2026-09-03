@@ -1,4 +1,4 @@
-use std::{iter::FusedIterator, mem::MaybeUninit};
+use std::{iter::FusedIterator, mem::MaybeUninit, ptr};
 
 use sdl3_sys::events::*;
 
@@ -365,7 +365,7 @@ impl Event {
     pub fn set_timestamp(&mut self, ts: u64) {
         // The fields in `SDL_CommonEvent` are shared by all variants,
         // so it's always safe to read/write.
-        let mut ptr = self as *mut Event as *mut SDL_CommonEvent;
+        let mut ptr = ptr::from_mut(self).cast::<SDL_CommonEvent>();
         ptr = unsafe { ptr.byte_add(DISCRIMINANT_OFFSET) };
         let common = unsafe { ptr.as_mut_unchecked() };
 
@@ -382,13 +382,13 @@ impl From<&SDL_Event> for Event {
         let mut ret = MaybeUninit::<Event>::uninit();
 
         unsafe {
-            std::ptr::write(
+            ptr::write(
                 ret.as_mut_ptr().cast::<u32>(),
-                *(value as *const SDL_Event).cast(),
+                *ptr::from_ref(value).cast::<u32>(),
             );
 
-            std::ptr::copy_nonoverlapping(
-                (value as *const SDL_Event).cast::<u8>(),
+            ptr::copy_nonoverlapping(
+                ptr::from_ref(value).cast::<u8>(),
                 ret.as_mut_ptr().cast::<u8>().add(DISCRIMINANT_OFFSET),
                 size_of::<Event>() - DISCRIMINANT_OFFSET,
             );
@@ -401,15 +401,15 @@ impl From<&SDL_Event> for Event {
 impl From<&Event> for SDL_Event {
     fn from(value: &Event) -> Self {
         let mut ret = MaybeUninit::<SDL_Event>::zeroed();
-        let src = value as *const Event;
+        let src = ptr::from_ref(value);
 
         // YOLO
         unsafe {
-            std::ptr::write(ret.as_mut_ptr().cast::<u32>(), src.cast::<u32>().read());
+            ptr::write(ret.as_mut_ptr().cast::<u32>(), src.cast::<u32>().read());
 
             let src = src.cast::<u8>().add(DISCRIMINANT_OFFSET * 2);
             let dst = ret.as_mut_ptr().cast::<u8>().add(DISCRIMINANT_OFFSET);
-            std::ptr::copy_nonoverlapping(src, dst, size_of::<Event>() - DISCRIMINANT_OFFSET * 2);
+            ptr::copy_nonoverlapping(src, dst, size_of::<Event>() - DISCRIMINANT_OFFSET * 2);
 
             ret.assume_init()
         }

@@ -67,7 +67,7 @@ impl TransferBufferCreateInfo {
 resource_new_no_drop!(SDL_GPUTransferBuffer, TransferBuffer);
 impl TransferBuffer {
     /// Bind a builder to a property group.
-    pub fn builder<'p>(props: Ref<'p, Properties>) -> TransferBufferBuilder<'p> {
+    pub fn builder(props: Ref<'_, Properties>) -> TransferBufferBuilder<'_> {
         TransferBufferBuilder::new(props)
     }
 
@@ -80,7 +80,9 @@ impl TransferBuffer {
     /// documentation for more info.
     #[doc(alias = "SDL_CreateGPUTransferBuffer")]
     pub fn new(device: Ref<Device>, create_info: &TransferBufferCreateInfo) -> Result<Self> {
-        let handle = unsafe { SDL_CreateGPUTransferBuffer(device.handle.as_ptr(), &create_info.0) };
+        let handle = unsafe {
+            SDL_CreateGPUTransferBuffer(device.handle.as_ptr(), &raw const create_info.0)
+        };
         Self::from_ptr(handle)
     }
 

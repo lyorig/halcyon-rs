@@ -36,21 +36,17 @@ impl<'p> ShaderBuilder<'p> {
         }
     }
 
-    pub fn build<'bc, 'ep>(
-        &self,
-        device: Ref<Device>,
-        mut create_info: ShaderCreateInfo<'bc, 'ep>,
-    ) -> Result<Shader> {
+    pub fn build(&self, device: Ref<Device>, mut create_info: ShaderCreateInfo) -> Result<Shader> {
         create_info.0.props = self.props.id();
         Shader::new(device, &create_info)
     }
 
     /// Creates a [`Shader`] using [`ShaderCreateInfo`],
     /// then removes all shader creation properties from the attached property group.
-    pub fn build_cleanup<'bc, 'ep>(
+    pub fn build_cleanup(
         &self,
         device: Ref<Device>,
-        create_info: ShaderCreateInfo<'bc, 'ep>,
+        create_info: ShaderCreateInfo,
     ) -> Result<Shader> {
         let res = self.build(device, create_info);
         Self::clear_from(self.props);

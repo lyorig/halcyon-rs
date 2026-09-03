@@ -5,11 +5,12 @@
 use sdl3_sys::{gpu::*, properties::SDL_PropertiesID};
 
 use crate::{
+    Result,
     gpu::{EnableAnisotropy, EnableCompare},
     impl_enum_transmute, mod_reexport,
     properties::Properties,
     resource::Ref,
-    resource_new_no_drop, Result,
+    resource_new_no_drop,
 };
 
 use super::device::Device;
@@ -103,13 +104,15 @@ impl SamplerCreateInfo {
 resource_new_no_drop!(SDL_GPUSampler, Sampler);
 impl Sampler {
     /// Bind a builder to a property group.
-    pub fn builder<'p>(props: Ref<'p, Properties>) -> SamplerBuilder<'p> {
+    pub fn builder(props: Ref<'_, Properties>) -> SamplerBuilder<'_> {
         SamplerBuilder::new(props)
     }
 
     #[doc(alias = "SDL_CreateGPUSampler")]
     pub fn new(device: Ref<Device>, create_info: &SamplerCreateInfo) -> Result<Self> {
-        let handle = unsafe { SDL_CreateGPUSampler(device.handle.as_ptr(), &create_info.0) };
+        let handle =
+            unsafe { SDL_CreateGPUSampler(device.handle.as_ptr(), &raw const create_info.0) };
+
         Self::from_ptr(handle)
     }
 

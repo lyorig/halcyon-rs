@@ -65,6 +65,6 @@ impl RenderStateHandle {
 impl RenderState {
     #[doc(alias = "SDL_CreateGPURenderState")]
     pub fn new(rnd: Ref<Renderer>, ci: &RenderStateCreateInfo) -> Result<Self> {
-        Self::from_ptr(unsafe { SDL_CreateGPURenderState(rnd.as_ptr(), &ci.0) })
+        Self::from_ptr(unsafe { SDL_CreateGPURenderState(rnd.as_ptr(), &raw const ci.0) })
     }
 }
