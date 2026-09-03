@@ -18,7 +18,7 @@ use std::{
 };
 
 use bitflags::bitflags;
-use sdl3_sys::{filesystem::*, stdinc::SDL_Time};
+use sdl3_sys::filesystem::*;
 
 use crate::{Result, boxed::Box, impl_enum_transmute, string::String, util::to_result};
 
@@ -60,9 +60,9 @@ impl_enum_transmute!(SDL_PathType, PathType);
 pub struct PathInfo {
     pub path_type: PathType,
     pub size: u64,
-    pub create_time: SDL_Time,
-    pub modify_time: SDL_Time,
-    pub access_time: SDL_Time,
+    pub create_time: i64,
+    pub modify_time: i64,
+    pub access_time: i64,
 }
 
 bitflags! {
