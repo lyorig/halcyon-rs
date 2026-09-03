@@ -2,11 +2,11 @@
 //! - [x] SDL_CopyFile
 //! - [x] SDL_CreateDirectory
 //! - [x] SDL_EnumerateDirectory
-//! - [x] SDL_GetBasePath
+//! - [x] SDL_GetBasePath (impl'd in [`Context`](crate::Context))
 //! - [x] SDL_GetCurrentDirectory
 //! - [x] SDL_GetPathInfo
 //! - [x] SDL_GetPrefPath
-//! - [x] SDL_GetUserFolder
+//! - [x] SDL_GetUserFolder (impl'd in [`Context`](crate::Context))
 //! - [x] SDL_GlobDirectory
 //! - [x] SDL_RemovePath
 //! - [x] SDL_RenamePath

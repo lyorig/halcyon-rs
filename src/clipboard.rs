@@ -11,7 +11,7 @@
 //! - [x] SDL_SetClipboardText
 //! - [ ] SDL_SetPrimarySelectionText
 
-use std::{ffi::CStr, mem::MaybeUninit};
+use std::{ffi::CStr, mem::MaybeUninit, ptr::NonNull};
 
 use sdl3_sys::clipboard::*;
 
@@ -31,11 +31,11 @@ pub fn data(mime_type: &CStr) -> Result<Box<[u8]>> {
 }
 
 #[doc(alias = "SDL_GetClipboardMimeTypes")]
-pub fn mime_types() -> Result<Box<[*mut i8]>> {
+pub fn mime_types() -> Result<Box<[NonNull<i8>]>> {
     let mut len = MaybeUninit::<usize>::uninit();
     let ptr = unsafe { SDL_GetClipboardMimeTypes(len.as_mut_ptr()) };
     // SAFETY: On success, SDL allocates `len` mime type strings.
-    unsafe { Box::from_raw_parts_nullck(ptr, len.assume_init()) }
+    unsafe { Box::from_raw_parts_nullck(ptr.cast(), len.assume_init()) }
 }
 
 #[doc(alias = "SDL_GetClipboardText")]

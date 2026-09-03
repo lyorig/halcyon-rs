@@ -11,7 +11,6 @@ use sdl3_sys::{
 
 use crate::{
     fs::Folder,
-    subsystem::Subsystem,
     util::{c_ptr_to_str, opt2res_map},
 };
 
@@ -81,10 +80,6 @@ impl Context {
     pub fn new() -> Self {
         assert!(crate::is_main_thread(), "Context not on main thread");
         Self {}
-    }
-
-    pub fn init<const N: u32>(&self) -> Result<Subsystem<'_, N>> {
-        Subsystem::new(self)
     }
 
     /// Returns the directory where the application was run from.
