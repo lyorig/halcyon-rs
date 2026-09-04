@@ -82,10 +82,28 @@ impl Context {
         Self {}
     }
 
-    /// Returns the directory where the application was run from.
+    /// Get the directory where the application was run from.
     ///
-    /// The returned string is cached by SDL and freed when this
-    /// [`Context`] is dropped, so its lifetime is tied to `&self`.
+    /// Returns an absolute, UTF-8 path to the application data directory. The
+    /// path is guaranteed to end with a path separator (`\\` on Windows and `/`
+    /// on most other platforms).
+    ///
+    /// On macOS and iOS, an application inside a `.app` bundle returns the
+    /// bundle's resource directory by default. This can be changed with the
+    /// `SDL_FILESYSTEM_BASE_DIR_TYPE` property in `Info.plist`: `resource`
+    /// selects the resource directory, `bundle` selects the bundle directory,
+    /// and `parent` selects the directory containing the bundle. On Android,
+    /// this returns `./`, which allows filesystem operations to use internal
+    /// storage and the asset system. On Nintendo 3DS, this returns the
+    /// application's `romfs` directory, which is not writable.
+    ///
+    /// SDL caches the result, but the first call may be slow. SDL returns a null
+    /// pointer on error or when the platform does not implement this functionality;
+    /// this method assumes a valid SDL path and does not expose that condition as
+    /// a separate [`Result`].
+    ///
+    /// The cached path is freed when this [`Context`] is dropped, so its lifetime
+    /// is tied to `&self`.
     #[doc(alias = "SDL_GetBasePath")]
     pub fn base_path(&self) -> &str {
         // SAFETY: The string returned by `SDL_GetBasePath()`
@@ -93,13 +111,19 @@ impl Context {
         unsafe { c_ptr_to_str(SDL_GetBasePath()) }
     }
 
-    /// Returns the most suitable user folder for a specific purpose,
-    /// like `Documents` or `Downloads`.
+    /// Find the most suitable user folder for a specific purpose.
     ///
-    /// Returns [`Err`] on platforms that don't support the requested folder.
+    /// `folder` selects the type of folder to find, such as
+    /// [`Folder::Documents`] or [`Folder::Downloads`]. These are user folders
+    /// intended for the user to access and manage. For application-specific data,
+    /// use [`crate::fs::pref_path`] instead.
     ///
-    /// The returned string is cached by SDL and freed when this
-    /// [`Context`] is dropped, so its lifetime is tied to `&self`.
+    /// Returns [`Err`] if the requested folder is unsupported or cannot be found.
+    /// The returned path is guaranteed to end with a path separator (`\\` on
+    /// Windows and `/` on most other platforms).
+    ///
+    /// SDL caches the result. The cached path is freed when this [`Context`] is
+    /// dropped, so its lifetime is tied to `&self`.
     #[doc(alias = "SDL_GetUserFolder")]
     pub fn user_folder(&self, folder: Folder) -> Result<&str> {
         let ptr = unsafe { SDL_GetUserFolder(folder.into()) };

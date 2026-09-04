@@ -165,6 +165,19 @@ impl CommandBufferHandle {
         to_result(res).map(|()| swapchain_texture(unsafe { tex.assume_init() }))
     }
 
+    /// Blocks the thread until a swapchain texture is available to be acquired, and then acquires it.
+    /// Returns `Ok(None)` if the swapchain texture is unavailable, e.g. when the
+    /// window is minimized (this is not an error!).
+    ///
+    /// ## Remarks
+    ///
+    /// When a swapchain texture is acquired on a command buffer, it will automatically be submitted
+    /// for presentation when the command buffer is submitted. The swapchain texture should only be referenced
+    /// by the command buffer used to acquire it. It is an error to call this method after a swapchain texture is acquired.
+    ///
+    /// The swapchain texture is:
+    /// - managed by the implementation and must not be freed by the user
+    /// - write-only and cannot be used as a sampler or for another reading operation
     #[doc(alias = "SDL_WaitAndAcquireGPUSwapchainTexture")]
     pub fn wait_for_swapchain_texture(
         &self,
