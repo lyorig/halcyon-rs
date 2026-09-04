@@ -56,17 +56,19 @@ fn run() -> Result<()> {
         .name(c"Compute Buffer")
         .build_cleanup(device.as_ref(), buffer_info)?;
 
-    let cmdbuf = CommandBuffer::new(device.as_ref())?;
+    // Infallible.
+    _ = CommandBuffer::run(device.as_ref(), |cmdbuf| {
+        let rwb = StorageBufferReadWriteBinding::new(buffer.as_ref(), Cycle::No);
+        _ = ComputePass::run(cmdbuf, &[], &[rwb], |pass| {
+            pass.bind(pipeline.as_ref());
+            pass.dispatch((1, 1, 1));
 
-    let rwb = StorageBufferReadWriteBinding::new(buffer.as_ref(), Cycle::No);
-    ComputePass::run(cmdbuf.as_ref(), &[], &[rwb], |pass| {
-        pass.bind(pipeline.as_ref());
-        pass.dispatch((1, 1, 1));
+            Ok(())
+        });
 
         Ok(())
-    })?;
+    });
 
-    cmdbuf.submit()?;
     device.wait_idle()?;
 
     buffer.drop(device.as_ref());

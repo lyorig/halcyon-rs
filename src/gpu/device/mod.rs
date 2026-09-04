@@ -75,10 +75,6 @@ impl Device {
     }
 
     /// Bind the builder to an existing property group.
-    ///
-    /// The device creation properties (`SDL_PROP_GPU_DEVICE_CREATE_*`)
-    /// never collide with the window or renderer ones, so a single
-    /// [`Properties`] can be shared between the three builders.
     pub fn builder(props: Ref<Properties>) -> DeviceBuilder {
         DeviceBuilder::new(props)
     }

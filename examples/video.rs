@@ -14,8 +14,6 @@ use halcyon::{
     window::Window,
 };
 
-/// You can make the output of this function visible by setting
-/// the env var `SDL_LOGGING=trace`, among others.
 fn print_properties(props: RendererProperties) {
     halcyon::log!("Renderer name: \"{}\"", props.name());
     halcyon::log!("HDR enabled: {}", props.hdr_enabled());
@@ -47,7 +45,7 @@ fn run() -> Result<()> {
 
     print_properties(rnd.properties());
 
-    halcyon::log_trace!("Platform = {}", halcyon::platform());
+    halcyon::log!("Platform = {}", halcyon::platform());
 
     rnd.set_draw_color_f32(Rgba::rgb(1., 1., 1.));
     rnd.draw_line(Point::new(10., 10.), Point::new(128., 64.))?;
