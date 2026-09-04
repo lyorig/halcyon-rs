@@ -10,6 +10,7 @@ use sdl3_sys::{
 };
 
 use crate::{
+    error::Error,
     fs::Folder,
     util::{c_ptr_to_str, opt2res_map},
 };
@@ -83,6 +84,7 @@ impl Context {
     }
 
     /// Get the directory where the application was run from.
+    /// [`Err`] is returned on error or when the platform does not implement this functionality.
     ///
     /// Returns an absolute, UTF-8 path to the application data directory. The
     /// path is guaranteed to end with a path separator (`\\` on Windows and `/`
@@ -97,18 +99,20 @@ impl Context {
     /// storage and the asset system. On Nintendo 3DS, this returns the
     /// application's `romfs` directory, which is not writable.
     ///
-    /// SDL caches the result, but the first call may be slow. SDL returns a null
-    /// pointer on error or when the platform does not implement this functionality;
-    /// this method assumes a valid SDL path and does not expose that condition as
-    /// a separate [`Result`].
+    /// SDL caches the result, but the first call may be slow.
     ///
     /// The cached path is freed when this [`Context`] is dropped, so its lifetime
     /// is tied to `&self`.
     #[doc(alias = "SDL_GetBasePath")]
-    pub fn base_path(&self) -> &str {
-        // SAFETY: The string returned by `SDL_GetBasePath()`
-        // is guaranteed to be valid UTF-8.
-        unsafe { c_ptr_to_str(SDL_GetBasePath()) }
+    pub fn base_path(&self) -> Result<&str> {
+        let ptr = unsafe { SDL_GetBasePath() };
+        if ptr.is_null() {
+            Err(Error::current())
+        } else {
+            // SAFETY: The string returned by `SDL_GetBasePath()`
+            // is guaranteed to be valid UTF-8.
+            Ok(unsafe { c_ptr_to_str(ptr) })
+        }
     }
 
     /// Find the most suitable user folder for a specific purpose.

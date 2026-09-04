@@ -35,7 +35,7 @@ fn cstr(path: &std::path::Path) -> CString {
 fn fs_base_path_ends_with_separator() {
     let ctx = Context::new();
 
-    let path = ctx.base_path();
+    let path = ctx.base_path().unwrap();
     assert!(path.ends_with('/') || path.ends_with('\\'));
 }
 
