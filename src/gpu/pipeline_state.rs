@@ -19,7 +19,6 @@ use super::{
 #[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUVertexElementFormat")]
 pub enum VertexElementFormat {
-    Invalid = SDL_GPUVertexElementFormat::INVALID.0,
     Int = SDL_GPUVertexElementFormat::INT.0,
     Int2 = SDL_GPUVertexElementFormat::INT2.0,
     Int3 = SDL_GPUVertexElementFormat::INT3.0,
@@ -89,7 +88,6 @@ pub enum FrontFace {
 #[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUBlendFactor")]
 pub enum BlendFactor {
-    Invalid = SDL_GPUBlendFactor::INVALID.0,
     Zero = SDL_GPUBlendFactor::ZERO.0,
     One = SDL_GPUBlendFactor::ONE.0,
     SrcColor = SDL_GPUBlendFactor::SRC_COLOR.0,
@@ -109,7 +107,6 @@ pub enum BlendFactor {
 #[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUBlendOp")]
 pub enum BlendOp {
-    Invalid = SDL_GPUBlendOp::INVALID.0,
     Add = SDL_GPUBlendOp::ADD.0,
     Subtract = SDL_GPUBlendOp::SUBTRACT.0,
     ReverseSubtract = SDL_GPUBlendOp::REVERSE_SUBTRACT.0,
@@ -121,7 +118,6 @@ pub enum BlendOp {
 #[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUStencilOp")]
 pub enum StencilOp {
-    Invalid = SDL_GPUStencilOp::INVALID.0,
     Keep = SDL_GPUStencilOp::KEEP.0,
     Zero = SDL_GPUStencilOp::ZERO.0,
     Replace = SDL_GPUStencilOp::REPLACE.0,

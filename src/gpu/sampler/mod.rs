@@ -57,8 +57,6 @@ pub enum SamplerAddressMode {
 #[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUCompareOp")]
 pub enum CompareOp {
-    /// An invalid comparison operation.
-    Invalid = SDL_GPUCompareOp::INVALID.0,
     /// The comparison always evaluates to false.
     Never = SDL_GPUCompareOp::NEVER.0,
     /// The comparison evaluates `reference < test`.

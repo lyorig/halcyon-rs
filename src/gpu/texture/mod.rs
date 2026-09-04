@@ -94,8 +94,6 @@ pub enum SampleCount {
 #[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUTextureFormat")]
 pub enum TextureFormat {
-    /// No valid texture format.
-    Invalid = SDL_GPUTextureFormat::INVALID.0,
     /// 8-bit unsigned normalized single-channel color.
     A8Unorm = SDL_GPUTextureFormat::A8_UNORM.0,
     /// 8-bit unsigned normalized single-channel color.
