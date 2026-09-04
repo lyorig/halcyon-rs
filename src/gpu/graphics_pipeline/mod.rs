@@ -28,19 +28,39 @@ use super::{
 
 mod_reexport!(builder);
 
+/// The primitive topology of a graphics pipeline.
+///
+/// When using [`Self::PointList`], the vertex shader must output a point size:
+/// HLSL targeting SPIR-V uses `[[vk::builtin("PointSize")]]`, GLSL uses
+/// `gl_PointSize`, and MSL uses `[[point_size]]`. Sized points are not supported
+/// by D3D12; point sizes other than 1 are ignored.
 #[repr(i32)]
 #[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUPrimitiveType")]
 pub enum PrimitiveType {
+    /// A series of separate triangles.
     TriangleList = SDL_GPUPrimitiveType::TRIANGLELIST.0,
+    /// A series of connected triangles.
     TriangleStrip = SDL_GPUPrimitiveType::TRIANGLESTRIP.0,
+    /// A series of separate lines.
     LineList = SDL_GPUPrimitiveType::LINELIST.0,
+    /// A series of connected lines.
     LineStrip = SDL_GPUPrimitiveType::LINESTRIP.0,
+    /// A series of separate points.
     PointList = SDL_GPUPrimitiveType::POINTLIST.0,
 }
 
 impl_enum_transmute!(SDL_GPUPrimitiveType, PrimitiveType);
 
+/// Parameters for creating a graphics pipeline state.
+///
+/// The create info borrows the vertex and fragment shaders, vertex-buffer
+/// descriptions, vertex attributes, and color-target descriptions for the
+/// lifetimes encoded in its type. Those resources and slices must remain valid
+/// while the create info is used to create the pipeline.
+///
+/// The wrapper sets SDL's extension-property ID to zero because extensions are
+/// not exposed by this constructor.
 #[doc(alias = "SDL_GPUGraphicsPipelineCreateInfo")]
 #[derive(Clone, Copy)]
 pub struct GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd>(
@@ -52,6 +72,15 @@ pub struct GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd>(
     PhantomData<&'ctd [ColorTargetDescription]>,
 );
 impl<'vs, 'fs, 'vbd, 'va, 'ctd> GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 'ctd> {
+    /// Describe the shaders and fixed-function state of a graphics pipeline.
+    ///
+    /// * `vertex_shader` and `fragment_shader` are the shaders used by the pipeline.
+    /// * `vertex_input_state` describes the vertex layout.
+    /// * `primitive_type` specifies the primitive topology.
+    /// * `rasterizer_state` specifies rasterization behavior.
+    /// * `multisample_state` specifies multisampling behavior.
+    /// * `depth_stencil_state` specifies depth and stencil behavior.
+    /// * `target_info` specifies render-target formats and blend modes.
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         vertex_shader: Ref<'vs, Shader>,
@@ -91,6 +120,13 @@ impl GraphicsPipeline {
         GraphicsPipelineBuilder::new(props)
     }
 
+    /// Create a pipeline object for a graphics workflow.
+    ///
+    /// `device` is the GPU device that owns the pipeline, and `create_info`
+    /// describes the shaders, vertex layout, primitive topology, fixed-function
+    /// state, and render-target configuration.
+    ///
+    /// Returns [`Err`] if the graphics pipeline cannot be created.
     #[doc(alias = "SDL_CreateGPUGraphicsPipeline")]
     pub fn new(device: Ref<Device>, create_info: &GraphicsPipelineCreateInfo) -> Result<Self> {
         let handle = unsafe {
@@ -100,6 +136,12 @@ impl GraphicsPipeline {
         Self::from_ptr(handle)
     }
 
+    /// Release a graphics pipeline as soon as it is safe to do so.
+    ///
+    /// `device` is the GPU device that owns the pipeline. This method consumes
+    /// the pipeline; it must not be referenced after this call. Unlike ordinary
+    /// RAII resources, a graphics pipeline created with this module has no
+    /// automatic destructor, so this method must be called explicitly.
     #[doc(alias = "SDL_ReleaseGPUGraphicsPipeline")]
     pub fn drop(self, device: Ref<Device>) {
         unsafe { SDL_ReleaseGPUGraphicsPipeline(device.handle.as_ptr(), self.handle.as_ptr()) };
@@ -107,6 +149,10 @@ impl GraphicsPipeline {
 }
 
 impl GraphicsPipelineHandle {
+    /// Bind this graphics pipeline to a render pass for rendering.
+    ///
+    /// `render_pass` is the render pass that will use the pipeline. A graphics
+    /// pipeline must be bound before making draw calls.
     #[doc(alias = "SDL_BindGPUGraphicsPipeline")]
     pub fn bind(&self, render_pass: Ref<RenderPass>) {
         unsafe { SDL_BindGPUGraphicsPipeline(render_pass.handle.as_ptr(), self.handle.as_ptr()) };

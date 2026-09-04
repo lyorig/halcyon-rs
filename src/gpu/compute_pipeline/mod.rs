@@ -12,6 +12,12 @@ use super::{ShaderFormat, device::Device};
 
 mod_reexport!(builder);
 
+/// Parameters for creating a compute pipeline state.
+///
+/// The create info borrows the compute shader `code` and the UTF-8 shader
+/// `entrypoint` name. Those values must remain valid while this create info is
+/// used to create the pipeline. The wrapper sets SDL's extension-property ID to
+/// zero because extensions are not exposed by this constructor.
 #[doc(alias = "SDL_GPUComputePipelineCreateInfo")]
 #[derive(Clone, Copy)]
 pub struct ComputePipelineCreateInfo<'bc, 'ep>(
@@ -21,6 +27,36 @@ pub struct ComputePipelineCreateInfo<'bc, 'ep>(
 );
 
 impl<'bc, 'ep> ComputePipelineCreateInfo<'bc, 'ep> {
+    /// Describe a compute pipeline's shader and resource layout.
+    ///
+    /// * `code` is the compute shader code.
+    /// * `entrypoint` is the null-terminated UTF-8 entry-point function name.
+    /// * `fmt` is the format of the shader code.
+    /// * `sampler_count` is the number of samplers defined in the shader.
+    /// * `uniform_buffer_count` is the number of uniform buffers defined in the shader.
+    /// * The four storage counts are, in order, read-only storage textures,
+    ///   read-only storage buffers, read-write storage textures, and read-write
+    ///   storage buffers.
+    /// * `threadcount_xyz` contains the number of threads in the X, Y, and Z
+    ///   dimensions. These values should match the shader.
+    ///
+    /// The shader resource bindings must follow the convention for `fmt`:
+    ///
+    /// - SPIR-V: set 0 contains samplers, then read-only storage textures, then
+    ///   read-only storage buffers; set 1 contains read-write storage textures,
+    ///   then read-write storage buffers; set 2 contains uniform buffers. Each
+    ///   set starts at binding 0 and has no gaps, with resources ordered as they
+    ///   are bound through SDL.
+    /// - DXBC/DXIL: samplers use `s[n]` in space 0; sampled textures, read-only
+    ///   storage textures, and read-only storage buffers use consecutive `t[n]`
+    ///   registers in space 0; read-write storage textures and buffers use
+    ///   consecutive `u[n]` registers in space 1; uniform buffers use `b[n]` in
+    ///   space 2. Each register set starts at index 0 and has no gaps.
+    /// - MSL: samplers use the `sampler` table; sampled textures, then
+    ///   read-only storage textures, then read-write storage textures use the
+    ///   `texture` table; uniform buffers, then read-only storage buffers, then
+    ///   read-write storage buffers use the `buffer` table. Each table starts at
+    ///   index 0 and has no gaps, with resources ordered as they are bound.
     pub const fn new(
         code: &'bc [u8],
         entrypoint: &'ep CStr,
@@ -63,6 +99,14 @@ impl ComputePipeline {
         ComputePipelineBuilder::new(props)
     }
 
+    /// Create a pipeline object for a compute workflow.
+    ///
+    /// `device` is the GPU device that owns the pipeline, and `create_info`
+    /// describes the compute shader, resource counts, and thread dimensions.
+    /// Shader resource bindings must follow the convention for the shader format;
+    /// see [`ComputePipelineCreateInfo::new`] for the required layouts.
+    ///
+    /// Returns [`Err`] if the pipeline cannot be created.
     #[doc(alias = "SDL_CreateGPUComputePipeline")]
     pub fn new(device: Ref<Device>, create_info: &ComputePipelineCreateInfo) -> Result<Self> {
         let handle = unsafe {
@@ -72,6 +116,12 @@ impl ComputePipeline {
         Self::from_ptr(handle)
     }
 
+    /// Release a compute pipeline as soon as it is safe to do so.
+    ///
+    /// `device` is the GPU device that owns the pipeline. This method consumes
+    /// the pipeline; it must not be referenced after this call. Unlike ordinary
+    /// RAII resources, a compute pipeline created with this module has no
+    /// automatic destructor, so this method must be called explicitly.
     #[doc(alias = "SDL_ReleaseGPUComputePipeline")]
     pub fn drop(self, device: Ref<Device>) {
         unsafe { SDL_ReleaseGPUComputePipeline(device.handle.as_ptr(), self.handle.as_ptr()) };
