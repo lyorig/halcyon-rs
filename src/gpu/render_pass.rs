@@ -39,30 +39,43 @@ use super::{
     texture::{Texture, TextureSamplerBinding},
 };
 
+/// The size of elements in an index buffer.
 #[repr(i32)]
 #[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUIndexElementSize")]
 pub enum IndexElementSize {
+    /// 16-bit index elements.
     Bits16 = SDL_GPUIndexElementSize::_16BIT.0,
+    /// 32-bit index elements.
     Bits32 = SDL_GPUIndexElementSize::_32BIT.0,
 }
 
+/// How an attached texture is treated at the start of a render pass.
 #[repr(i32)]
 #[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPULoadOp")]
 pub enum LoadOp {
+    /// Preserve the texture's previous contents.
     Load = SDL_GPULoadOp::LOAD.0,
+    /// Clear the texture to its configured clear value.
     Clear = SDL_GPULoadOp::CLEAR.0,
+    /// The previous contents need not be preserved and become undefined.
     DontCare = SDL_GPULoadOp::DONT_CARE.0,
 }
 
+/// How an attached texture is treated at the end of a render pass.
 #[repr(i32)]
 #[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUStoreOp")]
 pub enum StoreOp {
+    /// Write render-pass contents to memory.
     Store = SDL_GPUStoreOp::STORE.0,
+    /// The generated contents may be discarded and become undefined.
     DontCare = SDL_GPUStoreOp::DONT_CARE.0,
+    /// Resolve multisample contents to a single-sample texture; the source
+    /// multisample contents may then be discarded.
     Resolve = SDL_GPUStoreOp::RESOLVE.0,
+    /// Resolve multisample contents and also store the multisample texture.
     ResolveAndStore = SDL_GPUStoreOp::RESOLVE_AND_STORE.0,
 }
 
@@ -70,10 +83,12 @@ impl_enum_transmute!(SDL_GPUIndexElementSize, IndexElementSize);
 impl_enum_transmute!(SDL_GPULoadOp, LoadOp);
 impl_enum_transmute!(SDL_GPUStoreOp, StoreOp);
 
+/// A viewport used by a render pass.
 #[doc(alias = "SDL_GPUViewport")]
 #[derive(Clone, Copy)]
 pub struct Viewport(SDL_GPUViewport);
 impl Viewport {
+    /// Describe the viewport position, size, and depth range.
     pub fn new(pos: PointF32, size: PointF32, (min_depth, max_depth): (f32, f32)) -> Self {
         Self(SDL_GPUViewport {
             x: pos.x,
@@ -86,6 +101,12 @@ impl Viewport {
     }
 }
 
+/// Parameters for a color target used by a render pass.
+///
+/// The target and optional resolve texture are borrowed for `'t` and `'rt`.
+/// Resolve operations require a single-sample resolve texture. Load/store
+/// operations determine whether contents are loaded, cleared, discarded, stored,
+/// or resolved; cycling applies when a bound texture is written.
 #[doc(alias = "SDL_GPUColorTargetInfo")]
 #[derive(Clone, Copy)]
 pub struct ColorTargetInfo<'t, 'rt>(
@@ -95,6 +116,8 @@ pub struct ColorTargetInfo<'t, 'rt>(
 );
 
 impl<'t, 'rt> ColorTargetInfo<'t, 'rt> {
+    /// Describe a color target, its clear/load/store behavior, optional resolve
+    /// target, and cycling options.
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         tex: Ref<'t, Texture>,
@@ -130,10 +153,17 @@ impl<'t, 'rt> ColorTargetInfo<'t, 'rt> {
     }
 }
 
+/// Parameters for a depth-stencil target used by a render pass.
+///
+/// The target texture is borrowed for `'t`. Depth and stencil have independent
+/// load/store operations and clear values. Depth/stencil targets do not support
+/// multisample resolves, and layers above 255 are not supported by SDL's ABI.
 #[doc(alias = "SDL_GPUDepthStencilTargetInfo")]
 #[derive(Clone, Copy)]
 pub struct DepthStencilTargetInfo<'t>(SDL_GPUDepthStencilTargetInfo, PhantomData<Ref<'t, Texture>>);
 impl<'t> DepthStencilTargetInfo<'t> {
+    /// Describe depth/stencil clear, load/store, cycling, mip-level, and layer
+    /// behavior.
     pub fn new(
         tex: Ref<'t, Texture>,
         clear_depth: f32,
@@ -164,6 +194,17 @@ impl<'t> DepthStencilTargetInfo<'t> {
 
 resource_new!(SDL_GPURenderPass, RenderPass, SDL_EndGPURenderPass);
 impl RenderPass {
+    /// Begin a render pass on a command buffer.
+    ///
+    /// `color_targets` describes the color subresources and their load/store
+    /// operations. `depth_stencil_target` is optional. Graphics operations must
+    /// occur inside a render pass, and no other render, compute, or copy pass may
+    /// begin until this pass ends. SDL initializes default viewport and scissor
+    /// state when the pass begins.
+    ///
+    /// Loading a subresource before it has been written has undefined behavior.
+    ///
+    /// Returns [`Err`] if SDL cannot begin the pass.
     #[doc(alias = "SDL_BeginGPURenderPass")]
     pub fn new(
         cmdbuf: Ref<CommandBuffer>,
@@ -200,6 +241,7 @@ impl RenderPass {
 }
 
 impl RenderPassHandle {
+    /// Set the current viewport state.
     #[doc(alias = "SDL_SetGPUViewport")]
     pub fn set_viewport(&self, viewport: &Viewport) {
         unsafe {
@@ -207,6 +249,7 @@ impl RenderPassHandle {
         }
     }
 
+    /// Set the current blend-constant color.
     #[doc(alias = "SDL_SetGPUBlendConstants")]
     pub fn set_blend_constants(&self, blend_constants: RgbaF32) {
         unsafe {
@@ -214,6 +257,7 @@ impl RenderPassHandle {
         }
     }
 
+    /// Set the current stencil reference value.
     #[doc(alias = "SDL_SetGPUStencilReference")]
     pub fn set_stencil_reference(&self, reference: u8) {
         unsafe {
@@ -221,6 +265,7 @@ impl RenderPassHandle {
         }
     }
 
+    /// Set the current scissor area.
     #[doc(alias = "SDL_SetGPUScissor")]
     pub fn set_scissor(&self, scissor: &RectI32) {
         unsafe {
@@ -228,6 +273,8 @@ impl RenderPassHandle {
         }
     }
 
+    /// Bind vertex buffers to consecutive slots beginning at `first_slot`.
+    /// `bindings` supplies each buffer and byte offset for subsequent draw calls.
     #[doc(alias = "SDL_BindGPUVertexBuffers")]
     pub fn bind_vertex_buffers(&self, first_slot: u32, bindings: &[BufferBinding]) {
         unsafe {
@@ -240,6 +287,7 @@ impl RenderPassHandle {
         }
     }
 
+    /// Bind an index buffer and specify its element size.
     #[doc(alias = "SDL_BindGPUIndexBuffer")]
     pub fn bind_index_buffer(&self, binding: &BufferBinding, index_element_size: IndexElementSize) {
         unsafe {
@@ -251,6 +299,8 @@ impl RenderPassHandle {
         }
     }
 
+    /// Bind texture-sampler pairs to consecutive vertex-shader slots.
+    /// Textures must have sampler usage enabled.
     #[doc(alias = "SDL_BindGPUVertexSamplers")]
     pub fn bind_vertex_samplers(&self, first_slot: u32, bindings: &[TextureSamplerBinding]) {
         unsafe {
@@ -263,6 +313,8 @@ impl RenderPassHandle {
         }
     }
 
+    /// Bind graphics-storage textures to consecutive vertex-shader slots.
+    /// Textures must have graphics storage-read usage enabled.
     #[doc(alias = "SDL_BindGPUVertexStorageTextures")]
     pub fn bind_vertex_storage_textures(&self, first_slot: u32, textures: &[Ref<Texture>]) {
         unsafe {
@@ -275,6 +327,8 @@ impl RenderPassHandle {
         }
     }
 
+    /// Bind graphics-storage buffers to consecutive vertex-shader slots.
+    /// Buffers must have graphics storage-read usage enabled.
     #[doc(alias = "SDL_BindGPUVertexStorageBuffers")]
     pub fn bind_vertex_storage_buffers(&self, first_slot: u32, buffers: &[Ref<Buffer>]) {
         unsafe {
@@ -287,6 +341,8 @@ impl RenderPassHandle {
         }
     }
 
+    /// Bind texture-sampler pairs to consecutive fragment-shader slots.
+    /// Textures must have sampler usage enabled.
     #[doc(alias = "SDL_BindGPUFragmentSamplers")]
     pub fn bind_fragment_samplers(&self, first_slot: u32, bindings: &[TextureSamplerBinding]) {
         unsafe {
@@ -299,6 +355,8 @@ impl RenderPassHandle {
         }
     }
 
+    /// Bind graphics-storage textures to consecutive fragment-shader slots.
+    /// Textures must have graphics storage-read usage enabled.
     #[doc(alias = "SDL_BindGPUFragmentStorageTextures")]
     pub fn bind_fragment_storage_textures(&self, first_slot: u32, textures: &[Ref<Texture>]) {
         unsafe {
@@ -311,6 +369,8 @@ impl RenderPassHandle {
         }
     }
 
+    /// Bind graphics-storage buffers to consecutive fragment-shader slots.
+    /// Buffers must have graphics storage-read usage enabled.
     #[doc(alias = "SDL_BindGPUFragmentStorageBuffers")]
     pub fn bind_fragment_storage_buffers(&self, first_slot: u32, buffers: &[Ref<Buffer>]) {
         unsafe {
@@ -323,6 +383,10 @@ impl RenderPassHandle {
         }
     }
 
+    /// Draw non-indexed primitives.
+    ///
+    /// The arguments are vertex count, instance count, first vertex, and first
+    /// instance. A graphics pipeline must be bound first.
     #[doc(alias = "SDL_DrawGPUPrimitives")]
     pub fn draw_primitives(&self, n_verts: u32, n_insts: u32, first_vert: u32, first_inst: u32) {
         unsafe {
@@ -336,6 +400,9 @@ impl RenderPassHandle {
         }
     }
 
+    /// Draw non-indexed primitives using tightly packed indirect parameters from
+    /// `buffer`, beginning at `offset`, reading `draw_count` parameter sets.
+    /// A graphics pipeline must be bound first.
     #[doc(alias = "SDL_DrawGPUPrimitivesIndirect")]
     pub fn draw_primitives_indirect(&self, buffer: Ref<Buffer>, offset: u32, draw_count: u32) {
         unsafe {
@@ -348,6 +415,10 @@ impl RenderPassHandle {
         }
     }
 
+    /// Draw indexed primitives with instancing.
+    ///
+    /// The arguments are indices per instance, instance count, first index,
+    /// vertex offset, and first instance. A graphics pipeline must be bound first.
     #[doc(alias = "SDL_DrawGPUIndexedPrimitives")]
     pub fn draw_indexed_primitives(
         &self,
@@ -369,6 +440,9 @@ impl RenderPassHandle {
         }
     }
 
+    /// Draw indexed primitives using tightly packed indirect parameters from
+    /// `buffer`, beginning at `offset`, reading `draw_count` parameter sets.
+    /// A graphics pipeline and index buffer must be bound first.
     #[doc(alias = "SDL_DrawGPUIndexedPrimitivesIndirect")]
     pub fn draw_indexed_primitives_indirect(
         &self,

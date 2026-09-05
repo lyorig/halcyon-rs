@@ -9,6 +9,10 @@ use sdl3_sys::{properties::SDL_PropertiesID, render::*};
 
 use crate::{Result, gpu::*, renderer::Renderer, resource::Ref, resource_new, util::to_result};
 
+/// Parameters for creating custom GPU render state.
+///
+/// The fragment shader and binding slices are borrowed for the lifetimes encoded
+/// in this type. The wrapper sets SDL's extension-property ID to zero.
 pub struct RenderStateCreateInfo<'frag, 'sbin, 'sbin_t, 'sbin_s, 'stex, 'stex_t, 'sbuf, 'sbuf_b>(
     SDL_GPURenderStateCreateInfo,
     PhantomData<Ref<'frag, Shader>>,
@@ -20,6 +24,8 @@ pub struct RenderStateCreateInfo<'frag, 'sbin, 'sbin_t, 'sbin_s, 'stex, 'stex_t,
 impl<'frag, 'sbin, 'sbin_t, 'sbin_s, 'stex, 'stex_t, 'sbuf, 'sbuf_b>
     RenderStateCreateInfo<'frag, 'sbin, 'sbin_t, 'sbin_s, 'stex, 'stex_t, 'sbuf, 'sbuf_b>
 {
+    /// Describe the fragment shader and additional fragment sampler, storage
+    /// texture, and storage buffer bindings to activate with the render state.
     pub fn new(
         fragment_shader: Ref<'frag, Shader>,
         sampler_bindings: &'sbin [TextureSamplerBinding<'sbin_t, 'sbin_s>],
@@ -49,6 +55,13 @@ impl<'frag, 'sbin, 'sbin_t, 'sbin_s, 'stex, 'stex_t, 'sbuf, 'sbuf_b>
 resource_new!(SDL_GPURenderState, RenderState, SDL_DestroyGPURenderState);
 
 impl RenderStateHandle {
+    /// Set fragment-shader uniform data in a custom GPU render state.
+    ///
+    /// `slot_index` selects the fragment uniform slot and `data` contains the
+    /// bytes to copy. SDL copies the data and pushes it through the command
+    /// buffer during draw-call execution.
+    ///
+    /// Returns [`Err`] if SDL cannot set the uniform data.
     #[doc(alias = "SDL_SetGPURenderStateFragmentUniforms")]
     pub fn set_fragment_uniforms(&self, slot_index: u32, data: &[u8]) -> Result<()> {
         to_result(unsafe {
@@ -63,6 +76,12 @@ impl RenderStateHandle {
 }
 
 impl RenderState {
+    /// Create custom GPU render state for a renderer.
+    ///
+    /// `rnd` is the renderer that owns the state, and `ci` describes the
+    /// fragment shader and additional resource bindings activated with it.
+    ///
+    /// Returns [`Err`] if SDL cannot create the render state.
     #[doc(alias = "SDL_CreateGPURenderState")]
     pub fn new(rnd: Ref<Renderer>, ci: &RenderStateCreateInfo) -> Result<Self> {
         Self::from_ptr(unsafe { SDL_CreateGPURenderState(rnd.as_ptr(), &raw const ci.0) })
