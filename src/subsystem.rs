@@ -29,6 +29,11 @@ pub struct Subsystem<'ctx, const TYPE: u32> {
 impl<const N: u32> Subsystem<'_, N> {
     const FLAG: SDL_InitFlags = SDL_InitFlags::new(N);
 
+    /// Initialize a specific SDL subsystem.
+    ///
+    /// # Remarks
+    ///
+    /// This function and SDL's library initialization are interchangeable.
     #[doc(alias = "SDL_InitSubSystem")]
     pub fn new(_: &Context) -> Result<Subsystem<'_, N>> {
         let res = unsafe { SDL_InitSubSystem(Self::FLAG) };
@@ -41,6 +46,7 @@ impl<const N: u32> Subsystem<'_, N> {
         }
     }
 
+    /// Get whether this subsystem is currently initialized.
     #[doc(alias = "SDL_WasInit")]
     pub fn is_init() -> bool {
         let flag = unsafe { SDL_WasInit(Self::FLAG) };
@@ -49,6 +55,12 @@ impl<const N: u32> Subsystem<'_, N> {
 }
 
 impl<const N: u32> Drop for Subsystem<'_, N> {
+    /// Shut down this SDL subsystem.
+    ///
+    /// # Remarks
+    ///
+    /// You still need to call SDL's quit function even if you close all open
+    /// subsystems; dropping the [`Context`] does this automatically.
     #[doc(alias = "SDL_QuitSubSystem")]
     fn drop(&mut self) {
         unsafe { SDL_QuitSubSystem(Self::FLAG) };

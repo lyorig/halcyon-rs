@@ -37,6 +37,20 @@ use crate::{Result, resource::Ref, util::to_result, window::Window};
 
 const NUM_SCANCODES: usize = SDL_SCANCODE_COUNT.0 as usize;
 
+/// Get a human-readable name for a scancode.
+///
+/// Returns an empty string if the scancode doesn't have a name.
+///
+/// # Warning
+///
+/// The returned name is by design not stable across platforms,
+/// e.g. the name for `SDL_SCANCODE_LGUI` is "Left GUI" under Linux but
+/// "Left Windows" under Microsoft Windows, and some scancodes like
+/// `SDL_SCANCODE_NONUSBACKSLASH` don't have any name at all. There are even
+/// scancodes that share names, e.g. `SDL_SCANCODE_RETURN` and
+/// `SDL_SCANCODE_RETURN2` (both called "Return"). This function is
+/// therefore unsuitable for creating a stable cross-platform two-way
+/// mapping between strings and scancodes.
 #[doc(alias = "SDL_GetScancodeName")]
 pub fn scancode_name(scancode: SDL_Scancode) -> &'static str {
     unsafe {
@@ -45,6 +59,13 @@ pub fn scancode_name(scancode: SDL_Scancode) -> &'static str {
     }
 }
 
+/// Get a human-readable name for a key, in UTF-8.
+///
+/// Returns an empty string if the key doesn't have a name.
+///
+/// # Remarks
+///
+/// Letters will be presented in their uppercase form, if applicable.
 #[doc(alias = "SDL_GetKeyName")]
 pub fn key_name(key: SDL_Keycode) -> &'static str {
     unsafe {
@@ -53,6 +74,26 @@ pub fn key_name(key: SDL_Keycode) -> &'static str {
     }
 }
 
+/// Get a snapshot of the current state of the keyboard.
+///
+/// Returns an array indexed by [`SDL_Scancode`] values, whose elements are
+/// `true` when the key is pressed and `false` when it is not.
+///
+/// # Remarks
+///
+/// The returned slice points to an internal SDL array. It will be valid for
+/// the whole lifetime of the application and should not be freed by the
+/// caller.
+///
+/// Use `SDL_PumpEvents` to update the state array.
+///
+/// This function gives you the current state after all events have been
+/// processed, so if a key or button has been pressed and released before you
+/// process events, then the pressed state will never show up in the
+/// returned snapshot.
+///
+/// Note: This function doesn't take into account whether shift has been
+/// pressed or not.
 #[doc(alias = "SDL_GetKeyboardState")]
 pub fn keyboard_state() -> &'static [bool; NUM_SCANCODES] {
     unsafe {
@@ -61,21 +102,44 @@ pub fn keyboard_state() -> &'static [bool; NUM_SCANCODES] {
     }
 }
 
+/// Get the current key modifier state for the keyboard.
+///
+/// Returns an OR'd combination of the modifier keys for the keyboard.
 #[doc(alias = "SDL_GetModState")]
 pub fn mod_state() -> SDL_Keymod {
     unsafe { SDL_GetModState() }
 }
 
+/// Start accepting Unicode text input events in a window.
+///
+/// # Remarks
+///
+/// This function will enable text input (`SDL_EVENT_TEXT_INPUT` and
+/// `SDL_EVENT_TEXT_EDITING` events) in the specified window. Please use
+/// this function paired with [`text_input_stop`].
+///
+/// Text input events are not received by default.
+///
+/// On some platforms using this function shows the screen keyboard and/or
+/// activates an IME, which can prevent some key press events from being
+/// passed through.
 #[doc(alias = "SDL_StartTextInput")]
 pub fn text_input_start(wnd: Ref<Window>) -> Result<()> {
     to_result(unsafe { SDL_StartTextInput(wnd.handle.as_ptr()) })
 }
 
+/// Stop receiving any text input events in a window.
+///
+/// # Remarks
+///
+/// If [`text_input_start`] showed the screen keyboard, this function will
+/// hide it.
 #[doc(alias = "SDL_StopTextInput")]
 pub fn text_input_stop(wnd: Ref<Window>) -> Result<()> {
     to_result(unsafe { SDL_StopTextInput(wnd.handle.as_ptr()) })
 }
 
+/// Check whether or not Unicode text input events are enabled for a window.
 #[doc(alias = "SDL_TextInputActive")]
 pub fn text_input_active(wnd: Ref<Window>) -> bool {
     unsafe { SDL_TextInputActive(wnd.handle.as_ptr()) }

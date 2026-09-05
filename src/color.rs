@@ -81,7 +81,7 @@ impl From<RgbaF32> for RgbaU8 {
     }
 }
 
-/// Wrapper around [`SDL_Color`]. Can be transmuted.
+/// Wrapper around `SDL_(F)Color`. Can be transmuted.
 #[repr(C)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Rgba<T> {

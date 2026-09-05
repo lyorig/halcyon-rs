@@ -8,6 +8,30 @@ pub struct Error {
 }
 
 impl Error {
+    /// Retrieve a message about the last error that occurred on the current
+    /// thread.
+    ///
+    /// Returns an empty string if there hasn't been an error message set.
+    ///
+    /// # Remarks
+    ///
+    /// It is possible for multiple errors to occur before calling this
+    /// function. Only the last error is returned.
+    ///
+    /// The message is only applicable when an SDL function has signaled an
+    /// error. You must check the return values of SDL function calls to
+    /// determine when to appropriately call this function. You should *not*
+    /// use the results of [`Error::current`] to decide if an error has
+    /// occurred! Sometimes SDL will set an error string even when reporting
+    /// success.
+    ///
+    /// SDL will *not* clear the error string for successful API calls. You
+    /// *must* check return values for failure cases before you can assume
+    /// the error string applies.
+    ///
+    /// Error strings are set per-thread, so an error set in a different
+    /// thread will not interfere with the current thread's operation.
+    #[doc(alias = "SDL_GetError")]
     pub fn current() -> Self {
         // SAFETY: SDL's error strings are UTF-8.
         let cstr = unsafe { CStr::from_ptr(SDL_GetError()) };
