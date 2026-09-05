@@ -58,7 +58,6 @@ mod_reexport!(properties);
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[doc(alias = "SDL_PixelFormat")]
 pub enum PixelFormat {
-    Unknown = SDL_PixelFormat::UNKNOWN.0,
     Index1Lsb = SDL_PixelFormat::INDEX1LSB.0,
     Index1Msb = SDL_PixelFormat::INDEX1MSB.0,
     Index2Lsb = SDL_PixelFormat::INDEX2LSB.0,
