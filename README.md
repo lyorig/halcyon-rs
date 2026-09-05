@@ -10,8 +10,8 @@ As I'm primarily a C++ developer, this library is probably unsound in various pl
 
 > [!NOTE]
 > Functions and methods usually map 1:1 to their SDL counterparts in terms of functionality.
-> Familiarity with SDL3 APIs is recommended; however, relevant information will be plundered
-> from the SDL3 wiki and added as docblocks later down the line.
+> There is an effort to "pluck" documentation from the SDL wiki and map it to Rust abstractions,
+> while preserving the meaning. The first pass has been done via LLMs, so there may be some slop.
 
 ## Concepts
 
