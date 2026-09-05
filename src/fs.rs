@@ -40,7 +40,7 @@ use crate::{Result, boxed::Box, impl_enum_transmute, string::String, util::to_re
 /// | [`Self::PublicShare`] | | yes | | yes | | |
 /// | [`Self::SavedGames`] | Vista and later | | | | | |
 /// | [`Self::Screenshots`] | Vista and later | | | | | |
-/// | [`Self::Templates`] | yes | yes | | yes | | |
+/// | [`Self::Templates`] | yes | | | yes | | |
 /// | [`Self::Videos`] | yes | yes | | yes | | |
 ///
 /// On macOS and iOS, [`Self::Videos`] refers to the “Movies” folder.
