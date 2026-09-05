@@ -103,7 +103,7 @@ impl Device {
         Self::from_ptr(handle)
     }
 
-    /// Bind the builder to an existing property group.
+    /// Build a [`Device`] with additional parameters not available in [`Device::new`].
     pub fn builder(props: Ref<Properties>) -> DeviceBuilder {
         DeviceBuilder::new(props)
     }

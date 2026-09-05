@@ -94,7 +94,7 @@ impl<'bc, 'ep> ComputePipelineCreateInfo<'bc, 'ep> {
 
 resource_new_no_drop!(SDL_GPUComputePipeline, ComputePipeline);
 impl ComputePipeline {
-    /// Bind a builder to a property group.
+    /// Build a [`ComputePipeline`] with additional parameters not available in [`ComputePipelineCreateInfo`].
     pub fn builder(props: Ref<'_, Properties>) -> ComputePipelineBuilder<'_> {
         ComputePipelineBuilder::new(props)
     }

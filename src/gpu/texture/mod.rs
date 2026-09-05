@@ -562,7 +562,7 @@ impl<'t> BlitRegion<'t> {
 
 resource_new_no_drop!(SDL_GPUTexture, Texture);
 impl Texture {
-    /// Bind a builder to a property group.
+    /// Build a [`Texture`] with additional parameters not available in [`TextureCreateInfo`].
     pub fn builder(props: Ref<'_, Properties>) -> TextureBuilder<'_> {
         TextureBuilder::new(props)
     }

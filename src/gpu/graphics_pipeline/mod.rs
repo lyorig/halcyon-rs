@@ -115,7 +115,7 @@ impl<'vs, 'fs, 'vbd, 'va, 'ctd> GraphicsPipelineCreateInfo<'vs, 'fs, 'vbd, 'va, 
 
 resource_new_no_drop!(SDL_GPUGraphicsPipeline, GraphicsPipeline);
 impl GraphicsPipeline {
-    /// Bind a builder to a property group.
+    /// Build a [`GraphicsPipeline`] with additional parameters not available in [`GraphicsPipelineCreateInfo`].
     pub fn builder(props: Ref<'_, Properties>) -> GraphicsPipelineBuilder<'_> {
         GraphicsPipelineBuilder::new(props)
     }

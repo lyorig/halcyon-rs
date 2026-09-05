@@ -186,7 +186,7 @@ impl<'b> StorageBufferReadWriteBinding<'b> {
 
 resource_new_no_drop!(SDL_GPUBuffer, Buffer);
 impl Buffer {
-    /// Bind a builder to a property group.
+    /// Build a [`Buffer`] with additional parameters not available in [`BufferCreateInfo`].
     pub fn builder(props: Ref<'_, Properties>) -> BufferBuilder<'_> {
         BufferBuilder::new(props)
     }

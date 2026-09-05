@@ -84,7 +84,7 @@ impl TransferBufferCreateInfo {
 
 resource_new_no_drop!(SDL_GPUTransferBuffer, TransferBuffer);
 impl TransferBuffer {
-    /// Bind a builder to a property group.
+    /// Build a [`TransferBuffer`] with additional parameters not available in [`TransferBufferCreateInfo`].
     pub fn builder(props: Ref<'_, Properties>) -> TransferBufferBuilder<'_> {
         TransferBufferBuilder::new(props)
     }

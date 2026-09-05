@@ -105,7 +105,7 @@ impl<'bc, 'ep> ShaderCreateInfo<'bc, 'ep> {
 
 resource_new_no_drop!(SDL_GPUShader, Shader);
 impl Shader {
-    /// Bind a builder to a property group.
+    /// Build a [`Shader`] with additional parameters not available in [`ShaderCreateInfo`].
     pub fn builder(props: Ref<'_, Properties>) -> ShaderBuilder<'_> {
         ShaderBuilder::new(props)
     }

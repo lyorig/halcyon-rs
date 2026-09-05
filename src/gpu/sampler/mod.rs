@@ -144,7 +144,7 @@ impl SamplerCreateInfo {
 
 resource_new_no_drop!(SDL_GPUSampler, Sampler);
 impl Sampler {
-    /// Bind a builder to a property group.
+    /// Build a [`Sampler`] with additional parameters not available in [`SamplerCreateInfo`].
     pub fn builder(props: Ref<'_, Properties>) -> SamplerBuilder<'_> {
         SamplerBuilder::new(props)
     }
