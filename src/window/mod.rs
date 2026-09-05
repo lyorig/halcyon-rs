@@ -138,6 +138,14 @@ mod_reexport!(builder);
 mod_reexport!(properties);
 
 bitflags! {
+    /// The flags on a window.
+    ///
+    /// # Remarks
+    ///
+    /// These cover a lot of true/false, or on/off, window state. Some of it
+    /// is immutable after being set at creation time, some of it can be
+    /// changed on existing windows by the app, and some of it might be
+    /// altered by the user or system outside of the app's control.
     #[derive(Clone, Copy)]
     #[doc(alias = "SDL_WindowFlags")]
     pub struct WindowFlags: u64 {

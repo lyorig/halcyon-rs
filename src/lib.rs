@@ -148,6 +148,7 @@ impl Default for Context {
 }
 
 impl Drop for Context {
+    /// Deinitialize SDL, quitting all subsystems.
     #[doc(alias = "SDL_Quit")]
     fn drop(&mut self) {
         unsafe { SDL_Quit() };

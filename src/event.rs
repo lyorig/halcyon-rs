@@ -353,6 +353,28 @@ pub enum Event {
 }
 
 impl Event {
+    /// Add an event to the event queue.
+    ///
+    /// The event is copied into the queue.
+    ///
+    /// Returns [`Err`] if the event was filtered or on failure; a common
+    /// reason for error is the event queue being full.
+    ///
+    /// # Remarks
+    ///
+    /// The event queue can actually be used as a two way communication
+    /// channel. Not only can events be read from the queue, but the user can
+    /// also push their own events onto it.
+    ///
+    /// Note: Pushing device input events onto the queue doesn't modify the
+    /// state of the device within SDL.
+    ///
+    /// Note: Events pushed onto the queue get passed through the event
+    /// filter.
+    ///
+    /// For pushing application-specific events, please use
+    /// `SDL_RegisterEvents` to get an event type that does not conflict with
+    /// other code that also wants its own custom event types.
     #[doc(alias = "SDL_PushEvent")]
     pub fn push(&self) -> Result<()> {
         // NOTE: The timestamp is set internally in `SDL_PushEvent()`.

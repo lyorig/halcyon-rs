@@ -102,6 +102,11 @@ use crate::{
     util::{opt2res_map, to_result},
 };
 
+/// An ID that represents a properties set.
+///
+/// While this looks like an integer to the application, SDL properties are
+/// actually key/value stores that can manage sets of information with
+/// multiple datatypes.
 #[derive(Clone, Copy)]
 #[doc(alias = "SDL_PropertiesID")]
 pub struct PropertiesHandle {
@@ -190,6 +195,12 @@ impl PropertiesHandle {
         to_result(unsafe { SDL_ClearProperty(self.id(), key) })
     }
 
+    /// Copy a group of properties.
+    ///
+    /// Copies all the properties from one group of properties to another,
+    /// with the exception of properties requiring cleanup, which will not be
+    /// copied. Any property that already exists on `dst` will be
+    /// overwritten.
     #[doc(alias = "SDL_CopyProperties")]
     fn copy_to(self, dst: Ref<Properties>) -> Result<()> {
         to_result(unsafe { SDL_CopyProperties(self.id(), dst.id()) })
@@ -202,6 +213,9 @@ impl PropertiesHandle {
         unsafe { SDL_HasProperty(self.id(), key) }
     }
 
+    /// Get the type of a property in a group of properties.
+    ///
+    /// Returns the type of the property, or invalid if it is not set.
     #[doc(alias = "SDL_GetPropertyType")]
     unsafe fn type_of(self, key: *const c_char) -> SDL_PropertyType {
         unsafe { SDL_GetPropertyType(self.id(), key) }
@@ -212,6 +226,11 @@ impl PropertiesHandle {
     }
 }
 
+/// An ID that represents a properties set.
+///
+/// While this looks like an integer to the application, SDL properties are
+/// actually key/value stores that can manage sets of information with
+/// multiple datatypes.
 #[doc(alias = "SDL_PropertiesID")]
 pub struct Properties {
     pub(crate) inner: PropertiesHandle,
@@ -224,6 +243,11 @@ impl Properties {
         })
     }
 
+    /// Create a group of properties.
+    ///
+    /// # Remarks
+    ///
+    /// All properties are automatically destroyed when SDL quits.
     #[doc(alias = "SDL_CreateProperties")]
     pub fn new() -> Result<Self> {
         let id = unsafe { SDL_CreateProperties() };
@@ -233,6 +257,7 @@ impl Properties {
         }
     }
 
+    /// Get the global SDL properties.
     #[doc(alias = "SDL_GetGlobalProperties")]
     pub fn global() -> Result<Ref<'static, Properties>> {
         let id = unsafe { SDL_GetGlobalProperties() };
@@ -277,6 +302,10 @@ impl Resource for Properties {
 }
 
 impl Drop for Properties {
+    /// Destroy a group of properties.
+    ///
+    /// All properties are deleted and their cleanup functions will be
+    /// called, if any.
     #[doc(alias = "SDL_DestroyProperties")]
     fn drop(&mut self) {
         unsafe { SDL_DestroyProperties(self.id()) }

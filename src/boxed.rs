@@ -132,6 +132,10 @@ impl<T: ?Sized> DerefMut for Box<T> {
 }
 
 impl<T: ?Sized> Drop for Box<T> {
+    /// Free allocated memory.
+    ///
+    /// The pointer is no longer valid after this call and cannot be
+    /// dereferenced anymore.
     #[doc(alias = "SDL_free")]
     fn drop(&mut self) {
         unsafe { SDL_free(self.ptr.as_ptr().cast()) };

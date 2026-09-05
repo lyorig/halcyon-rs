@@ -32,6 +32,7 @@ use crate::impl_enum_transmute;
 #[repr(i32)]
 #[derive(Clone, Copy)]
 #[doc(alias = "SDL_LogPriority")]
+/// The predefined log priorities.
 pub enum Priority {
     Trace = SDL_LogPriority::TRACE.0,
     Verbose = SDL_LogPriority::VERBOSE.0,
@@ -45,6 +46,14 @@ pub enum Priority {
 #[repr(i32)]
 #[derive(Clone, Copy)]
 #[doc(alias = "SDL_LogCategory")]
+/// The predefined log categories.
+///
+/// # Remarks
+///
+/// By default the application and gpu categories are enabled at the INFO
+/// level, the assert category is enabled at the WARN level, test is enabled
+/// at the VERBOSE level and all other categories are enabled at the ERROR
+/// level.
 pub enum Category {
     Application = SDL_LogCategory::APPLICATION.0,
     Error = SDL_LogCategory::ERROR.0,
@@ -190,21 +199,27 @@ macro_rules! log_critical {
     };
 }
 
+/// Set the priority of a particular log category.
 #[doc(alias = "SDL_SetLogPriority")]
 pub fn set_priority(category: Category, priority: Priority) {
     unsafe { SDL_SetLogPriority(category as _, priority.into()) }
 }
 
+/// Set the priority of all log categories.
 #[doc(alias = "SDL_SetLogPriorities")]
 pub fn set_priorities(priority: Priority) {
     unsafe { SDL_SetLogPriorities(priority.into()) }
 }
 
+/// Get the priority of a particular log category.
 #[doc(alias = "SDL_GetLogPriority")]
 pub fn priority(category: Category) -> Priority {
     unsafe { SDL_GetLogPriority(category as _) }.into()
 }
 
+/// Reset all priorities to default.
+///
+/// This is called by SDL's quit function.
 #[doc(alias = "SDL_ResetLogPriorities")]
 pub fn reset_priorities() {
     unsafe { SDL_ResetLogPriorities() }

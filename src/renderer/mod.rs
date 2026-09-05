@@ -875,6 +875,8 @@ impl RendererHandle {
         to_result(unsafe { SDL_SetGPURenderState(self.as_ptr(), rs.as_ptr()) })
     }
 
+    /// Clear custom GPU render state, reverting to the default rendering
+    /// behavior.
     #[doc(alias = "SDL_SetGPURenderState")]
     pub fn clear_render_state(&self) -> Result<()> {
         to_result(unsafe { SDL_SetGPURenderState(self.as_ptr(), std::ptr::null_mut()) })
