@@ -28,6 +28,34 @@ use super::{
 use super::texture::TextureUsageFlags;
 
 resource_new!(SDL_GPUComputePass, ComputePass, SDL_EndGPUComputePass);
+
+/// Parameters of an indirect dispatch command.
+///
+/// Commands of this type are read by
+/// [`ComputePassHandle::dispatch_indirect`] from a buffer at the given byte
+/// offset, so they must be written there with a matching layout.
+#[doc(alias = "SDL_GPUIndirectDispatchCommand")]
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct IndirectDispatchCommand(SDL_GPUIndirectDispatchCommand);
+
+impl IndirectDispatchCommand {
+    /// Describe the number of local workgroups to dispatch in the X, Y and Z
+    /// dimensions.
+    pub const fn new((x, y, z): (u32, u32, u32)) -> Self {
+        Self(SDL_GPUIndirectDispatchCommand {
+            groupcount_x: x,
+            groupcount_y: y,
+            groupcount_z: z,
+        })
+    }
+
+    /// The number of local workgroups to dispatch in each dimension.
+    pub const fn groupcounts(&self) -> (u32, u32, u32) {
+        let c = &self.0;
+        (c.groupcount_x, c.groupcount_y, c.groupcount_z)
+    }
+}
 impl ComputePass {
     /// Begin a compute pass on a command buffer.
     ///
@@ -151,13 +179,11 @@ impl ComputePassHandle {
 
     /// Dispatch compute work using parameters read from a buffer.
     ///
-    /// `buffer` contains parameters in the layout of
-    /// `SDL_GPUIndirectDispatchCommand`, and `offset` is the byte offset at
-    /// which to read them. A compute pipeline must be bound first. Multiple
-    /// dispatches writing the same resource region have no guaranteed write
-    /// order; end the pass and begin another one when ordering is required.
-    ///
-    /// TODO: Wrap `SDL_GPUIndirectDispatchCommand`.
+    /// `buffer` contains [`IndirectDispatchCommand`] parameters, and `offset`
+    /// is the byte offset at which to read them. A compute pipeline must be
+    /// bound first. Multiple dispatches writing the same resource region have
+    /// no guaranteed write order; end the pass and begin another one when
+    /// ordering is required.
     #[doc(alias = "SDL_DispatchGPUComputeIndirect")]
     pub fn dispatch_indirect(&self, buffer: Ref<Buffer>, offset: u32) {
         unsafe {

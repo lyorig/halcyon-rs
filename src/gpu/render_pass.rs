@@ -192,6 +192,51 @@ impl<'t> DepthStencilTargetInfo<'t> {
     }
 }
 
+/// Parameters of an indirect draw command.
+///
+/// Commands of this type are read by
+/// [`RenderPassHandle::draw_primitives_indirect`] from a buffer at the given
+/// byte offset, so they must be written there with a matching layout.
+///
+/// # Remarks
+///
+/// Note that the `first_vertex` and `first_instance` parameters are NOT
+/// compatible with built-in vertex/instance ID variables in shaders (for
+/// example, `SV_VertexID`); GPU APIs and shader languages do not define these
+/// built-in variables consistently, so if your shader depends on them, the
+/// only way to keep behavior consistent and portable is to always pass 0 for
+/// the correlating parameter in the draw calls.
+#[doc(alias = "SDL_GPUIndirectDrawCommand")]
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct IndirectDrawCommand(SDL_GPUIndirectDrawCommand);
+
+impl IndirectDrawCommand {
+    /// Describe the vertices and instances to draw.
+    pub const fn new(
+        (vertex_count, instance_count): (u32, u32),
+        (first_vertex, first_instance): (u32, u32),
+    ) -> Self {
+        Self(SDL_GPUIndirectDrawCommand {
+            num_vertices: vertex_count,
+            num_instances: instance_count,
+            first_vertex,
+            first_instance,
+        })
+    }
+
+    /// The number of vertices and instances to draw.
+    pub const fn counts(&self) -> (u32, u32) {
+        (self.0.num_vertices, self.0.num_instances)
+    }
+
+    /// The index of the first vertex and the ID of the first instance to
+    /// draw.
+    pub const fn firsts(&self) -> (u32, u32) {
+        (self.0.first_vertex, self.0.first_instance)
+    }
+}
+
 resource_new!(SDL_GPURenderPass, RenderPass, SDL_EndGPURenderPass);
 impl RenderPass {
     /// Begin a render pass on a command buffer.
@@ -400,8 +445,9 @@ impl RenderPassHandle {
         }
     }
 
-    /// Draw non-indexed primitives using tightly packed indirect parameters from
-    /// `buffer`, beginning at `offset`, reading `draw_count` parameter sets.
+    /// Draw non-indexed primitives using tightly packed
+    /// [`IndirectDrawCommand`] parameters from `buffer`, beginning at
+    /// `offset`, reading `draw_count` parameter sets.
     /// A graphics pipeline must be bound first.
     #[doc(alias = "SDL_DrawGPUPrimitivesIndirect")]
     pub fn draw_primitives_indirect(&self, buffer: Ref<Buffer>, offset: u32, draw_count: u32) {
@@ -443,6 +489,8 @@ impl RenderPassHandle {
     /// Draw indexed primitives using tightly packed indirect parameters from
     /// `buffer`, beginning at `offset`, reading `draw_count` parameter sets.
     /// A graphics pipeline and index buffer must be bound first.
+    ///
+    /// The parameters use the layout of SDL's `SDL_GPUIndexedIndirectCommand`.
     #[doc(alias = "SDL_DrawGPUIndexedPrimitivesIndirect")]
     pub fn draw_indexed_primitives_indirect(
         &self,

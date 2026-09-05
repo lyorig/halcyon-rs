@@ -3,6 +3,16 @@ use std::ffi::{CStr, c_char};
 use crate::{Result, error::Error};
 
 #[macro_export]
+macro_rules! size_of {
+    ($t:ty) => {
+        ::core::mem::size_of::<$t>()
+    };
+    ($e:expr) => {
+        ::core::mem::size_of_val(&$e)
+    }
+}
+
+#[macro_export]
 macro_rules! mod_reexport {
     ($name:ident) => {
         mod $name;
