@@ -23,8 +23,25 @@ use super::{
     texture::{StorageTextureReadWriteBinding, Texture, TextureSamplerBinding},
 };
 
+// For docblocks.
+#[allow(unused_imports)]
+use super::texture::TextureUsageFlags;
+
 resource_new!(SDL_GPUComputePass, ComputePass, SDL_EndGPUComputePass);
 impl ComputePass {
+    /// Begin a compute pass on a command buffer.
+    ///
+    /// `cmdbuf` is the command buffer that records the pass. The storage
+    /// texture and buffer bindings declare the resources that compute pipelines
+    /// may write during the pass. They must use textures created with [`TextureUsageFlags::COMPUTE_STORAGE_WRITE`]
+    /// or [`TextureUsageFlags::COMPUTE_STORAGE_READ_WRITE`] and buffers created with [`TextureUsageFlags::COMPUTE_STORAGE_WRITE`].
+    ///
+    /// All compute operations must occur inside a compute pass, and no other
+    /// compute, render, or copy pass may begin until this pass ends. Reads and
+    /// writes within a pass are not implicitly synchronized: end the pass and
+    /// begin another one before depending on the output of a previous dispatch.
+    ///
+    /// Returns [`Err`] if SDL cannot begin the pass.
     #[doc(alias = "SDL_BeginGPUComputePass")]
     pub fn new(
         cmdbuf: Ref<CommandBuffer>,
@@ -61,11 +78,20 @@ impl ComputePass {
 }
 
 impl ComputePassHandle {
+    /// Bind a compute pipeline for dispatches in this pass.
+    ///
+    /// `pipeline` is the compute pipeline to bind. A pipeline must be bound
+    /// before dispatching compute work.
     #[doc(alias = "SDL_BindGPUComputePipeline")]
     pub fn bind(&self, pipeline: Ref<ComputePipeline>) {
         unsafe { SDL_BindGPUComputePipeline(self.handle.as_ptr(), pipeline.handle.as_ptr()) };
     }
 
+    /// Bind texture-sampler pairs for use by the compute shader.
+    ///
+    /// `first_slot` is the first compute sampler slot, and `bindings` supplies
+    /// consecutive slots from there. The textures must have been created with
+    /// [`crate::gpu::texture::TextureUsageFlags::SAMPLER`].
     #[doc(alias = "SDL_BindGPUComputeSamplers")]
     pub fn bind_samplers(&self, first_slot: u32, bindings: &[TextureSamplerBinding]) {
         unsafe {
@@ -78,6 +104,11 @@ impl ComputePassHandle {
         }
     }
 
+    /// Bind read-only storage textures for use by the compute shader.
+    ///
+    /// `first_slot` is the first compute storage-texture slot, and `textures`
+    /// supplies consecutive slots from there. Each texture must have been
+    /// created with [`crate::gpu::texture::TextureUsageFlags::COMPUTE_STORAGE_READ`].
     #[doc(alias = "SDL_BindGPUComputeStorageTextures")]
     pub fn bind_storage_textures(&self, first_slot: u32, textures: &[Ref<Texture>]) {
         unsafe {
@@ -90,6 +121,11 @@ impl ComputePassHandle {
         }
     }
 
+    /// Bind read-only storage buffers for use by the compute shader.
+    ///
+    /// `first_slot` is the first compute storage-buffer slot, and `buffers`
+    /// supplies consecutive slots from there. Each buffer must have been
+    /// created with [`crate::gpu::buffer::BufferUsageFlags::COMPUTE_STORAGE_READ`].
     #[doc(alias = "SDL_BindGPUComputeStorageBuffers")]
     pub fn bind_storage_buffers(&self, first_slot: u32, buffers: &[Ref<Buffer>]) {
         unsafe {
@@ -102,11 +138,26 @@ impl ComputePassHandle {
         }
     }
 
+    /// Dispatch compute work.
+    ///
+    /// `(x, y, z)` is the number of local workgroups to dispatch in each
+    /// dimension. A compute pipeline must be bound first. Multiple dispatches
+    /// writing the same resource region have no guaranteed write order; end the
+    /// pass and begin another one when ordering is required.
     #[doc(alias = "SDL_DispatchGPUCompute")]
     pub fn dispatch(&self, (x, y, z): (u32, u32, u32)) {
         unsafe { SDL_DispatchGPUCompute(self.handle.as_ptr(), x, y, z) }
     }
 
+    /// Dispatch compute work using parameters read from a buffer.
+    ///
+    /// `buffer` contains parameters in the layout of
+    /// `SDL_GPUIndirectDispatchCommand`, and `offset` is the byte offset at
+    /// which to read them. A compute pipeline must be bound first. Multiple
+    /// dispatches writing the same resource region have no guaranteed write
+    /// order; end the pass and begin another one when ordering is required.
+    ///
+    /// TODO: Wrap `SDL_GPUIndirectDispatchCommand`.
     #[doc(alias = "SDL_DispatchGPUComputeIndirect")]
     pub fn dispatch_indirect(&self, buffer: Ref<Buffer>, offset: u32) {
         unsafe {
