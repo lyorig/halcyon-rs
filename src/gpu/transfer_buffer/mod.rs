@@ -117,6 +117,7 @@ impl TransferBuffer {
     /// 3. `write`
     /// 4. [`TransferBufferHandle::unmap`]
     ///
+    /// Any errors are propagated.
     /// The buffer must still be dropped manually.
     ///
     /// This should be your preferred way to use this struct.
