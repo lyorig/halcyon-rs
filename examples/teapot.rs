@@ -401,38 +401,34 @@ fn run() -> Result<()> {
             }
         }
 
-        let cmdbuf = CommandBuffer::new(device.as_ref())?;
-        let (mut width, mut height) = (0u32, 0u32);
-        if let Some(tex) = cmdbuf
-            .wait_for_swapchain_texture(wnd.as_ref(), (Some(&mut width), Some(&mut height)))?
-        {
-            let color_target = ColorTargetInfo::new(
-                tex,
-                0,
-                0,
-                col,
-                LoadOp::Clear,
-                StoreOp::Store,
-                None,
-                (0, 0),
-                Cycle::No,
-                CycleResolveTexture::No,
-            );
-            let depth_target = DepthStencilTargetInfo::new(
-                depth.as_ref(),
-                1.0,
-                (LoadOp::Clear, StoreOp::DontCare),
-                (LoadOp::DontCare, StoreOp::DontCare),
-                Cycle::No,
-                0,
-                (0u8, 0u8),
-            );
+        CommandBuffer::run(device.as_ref(), |cmdbuf| {
+            let (mut width, mut height) = (0u32, 0u32);
+            if let Some(tex) = cmdbuf
+                .wait_for_swapchain_texture(wnd.as_ref(), (Some(&mut width), Some(&mut height)))?
+            {
+                let color_target = ColorTargetInfo::new(
+                    tex,
+                    0,
+                    0,
+                    col,
+                    LoadOp::Clear,
+                    StoreOp::Store,
+                    None,
+                    (0, 0),
+                    Cycle::No,
+                    CycleResolveTexture::No,
+                );
+                let depth_target = DepthStencilTargetInfo::new(
+                    depth.as_ref(),
+                    1.0,
+                    (LoadOp::Clear, StoreOp::DontCare),
+                    (LoadOp::DontCare, StoreOp::DontCare),
+                    Cycle::No,
+                    0,
+                    (0u8, 0u8),
+                );
 
-            RenderPass::run(
-                cmdbuf.as_ref(),
-                &[color_target],
-                Some(&depth_target),
-                |rp| {
+                RenderPass::run(cmdbuf, &[color_target], Some(&depth_target), |rp| {
                     pipeline.bind(rp);
 
                     // Center the model (its bounding box is not centered at the
@@ -454,12 +450,15 @@ fn run() -> Result<()> {
                     let view_proj = proj.mul(&VIEW);
 
                     const SZ: usize = size_of::<Mat4>();
+
                     let mut uniforms = [0u8; SZ * 4];
                     uniforms[..SZ].copy_from_slice(&view_proj.to_bytes());
+
                     for (index, model) in models.iter().enumerate() {
                         let start = (index + 1) * SZ;
                         uniforms[start..start + SZ].copy_from_slice(&model.to_bytes());
                     }
+
                     cmdbuf.push_vertex_uniform_data(0, &uniforms);
 
                     rp.bind_vertex_buffers(0, &[BufferBinding::new(vb.as_ref(), 0)]);
@@ -476,12 +475,11 @@ fn run() -> Result<()> {
                     );
 
                     Ok(())
-                },
-            )?;
-        }
+                })?;
+            }
 
-        // Submitting the command buffer also presents the swapchain texture.
-        cmdbuf.submit()?;
+            Ok(())
+        })?;
 
         angle += 0.01;
     }
