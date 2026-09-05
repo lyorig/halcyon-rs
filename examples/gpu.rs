@@ -89,8 +89,7 @@ fn run() -> Result<()> {
     let swapchain_format = device.swapchain_texture_format(wnd.as_ref());
     let ctd = [ColorTargetDescription::new(swapchain_format, blend)];
 
-    let target_info =
-        GraphicsPipelineTargetInfo::new(&ctd, TextureFormat::D24Unorm, HasDepthStencilTarget::No);
+    let target_info = GraphicsPipelineTargetInfo::new(&ctd, None);
 
     let stencil = StencilOpState::new(
         StencilOp::Keep,

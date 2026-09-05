@@ -367,7 +367,7 @@ fn run() -> Result<()> {
                 EnableDepthWrite::Yes,
                 EnableStencilTest::No,
             ),
-            GraphicsPipelineTargetInfo::new(&ctd, depth_format, HasDepthStencilTarget::Yes),
+            GraphicsPipelineTargetInfo::new(&ctd, Some(depth_format)),
         ),
     )?;
 
