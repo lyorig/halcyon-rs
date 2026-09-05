@@ -54,6 +54,41 @@ use crate::{
 mod_reexport!(builder);
 mod_reexport!(properties);
 
+/// Pixel format.
+///
+/// # Remarks
+///
+/// SDL's pixel formats have the following naming convention:
+///
+/// - Names with a list of components and a single bit count, such as `RGB24`
+///   and `ABGR32`, define a platform-independent encoding into bytes in the
+///   order specified. For example, in `RGB24` data, each pixel is encoded in
+///   3 bytes (red, green, blue) in that order, and in `ABGR32` data, each
+///   pixel is encoded in 4 bytes (alpha, blue, green, red) in that order.
+///   Use these names if the property of a format that is important to you is
+///   the order of the bytes in memory or on disk.
+/// - Names with a bit count per component, such as `ARGB8888` and
+///   `XRGB1555`, are "packed" into an appropriately-sized integer in the
+///   platform's native endianness. For example, `ARGB8888` is a sequence of
+///   32-bit integers; in each integer, the most significant bits are alpha,
+///   and the least significant bits are blue. On a little-endian CPU such as
+///   x86, the least significant bits of each integer are arranged first in
+///   memory, but on a big-endian CPU such as s390x, the most significant
+///   bits are arranged first. Use these names if the property of a format
+///   that is important to you is the meaning of each bit position within a
+///   native-endianness integer.
+/// - In indexed formats such as `INDEX4LSB`, each pixel is represented by
+///   encoding an index into the palette into the indicated number of bits,
+///   with multiple pixels packed into each byte if appropriate. In LSB
+///   formats, the first (leftmost) pixel is stored in the least-significant
+///   bits of the byte; in MSB formats, it's stored in the most-significant
+///   bits. `INDEX8` does not need LSB/MSB variants, because each pixel
+///   exactly fills one byte.
+///
+/// The 32-bit byte-array encodings such as [`PixelFormat::RGBA32`] are
+/// aliases for the appropriate 8888 encoding for the current platform. For
+/// example, `RGBA32` is an alias for `ABGR8888` on little-endian CPUs like
+/// x86, or an alias for `RGBA8888` on big-endian CPUs.
 #[repr(i32)]
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[doc(alias = "SDL_PixelFormat")]
@@ -125,44 +160,92 @@ pub enum PixelFormat {
 }
 
 impl PixelFormat {
+    /// Alias for the appropriate RGBA 8888 encoding of color data for the
+    /// current platform's endianness.
     pub const RGBA32: Self = Self::from_sdl(SDL_PixelFormat::RGBA8888);
+    /// Alias for the appropriate ARGB 8888 encoding of color data for the
+    /// current platform's endianness.
     pub const ARGB32: Self = Self::from_sdl(SDL_PixelFormat::ARGB8888);
+    /// Alias for the appropriate BGRA 8888 encoding of color data for the
+    /// current platform's endianness.
     pub const BGRA32: Self = Self::from_sdl(SDL_PixelFormat::BGRA8888);
+    /// Alias for the appropriate ABGR 8888 encoding of color data for the
+    /// current platform's endianness.
     pub const ABGR32: Self = Self::from_sdl(SDL_PixelFormat::ABGR8888);
+    /// Alias for the appropriate RGBX 8888 encoding of color data for the
+    /// current platform's endianness.
     pub const RGBX32: Self = Self::from_sdl(SDL_PixelFormat::RGBX8888);
+    /// Alias for the appropriate XRGB 8888 encoding of color data for the
+    /// current platform's endianness.
     pub const XRGB32: Self = Self::from_sdl(SDL_PixelFormat::XRGB8888);
+    /// Alias for the appropriate BGRX 8888 encoding of color data for the
+    /// current platform's endianness.
     pub const BGRX32: Self = Self::from_sdl(SDL_PixelFormat::BGRX8888);
+    /// Alias for the appropriate XBGR 8888 encoding of color data for the
+    /// current platform's endianness.
     pub const XBGR32: Self = Self::from_sdl(SDL_PixelFormat::XBGR8888);
 }
 
+/// Colorspace definitions.
+///
+/// # Remarks
+///
+/// Since similar colorspaces may vary in their details (matrix, transfer
+/// function, etc.), this is not an exhaustive list, but rather a
+/// representative sample of the kinds of colorspaces supported in SDL.
 #[repr(u32)]
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[doc(alias = "SDL_Colorspace")]
 pub enum Colorspace {
-    Unknown = SDL_Colorspace::UNKNOWN.0,
+    /// A gamma corrected colorspace, and the default colorspace for SDL
+    /// rendering and 8-bit RGB surfaces.
+    ///
+    /// Equivalent to `DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709`.
     Srgb = SDL_Colorspace::SRGB.0,
+    /// A linear colorspace and the default colorspace for floating point
+    /// surfaces. On Windows this is the scRGB colorspace, and on Apple
+    /// platforms this is `kCGColorSpaceExtendedLinearSRGB` for EDR content.
+    ///
+    /// Equivalent to `DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709`.
     SrgbLinear = SDL_Colorspace::SRGB_LINEAR.0,
+    /// A non-linear HDR colorspace and the default colorspace for 10-bit
+    /// surfaces.
+    ///
+    /// Equivalent to `DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020`.
     Hdr10 = SDL_Colorspace::HDR10.0,
+    /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601`.
     Jpeg = SDL_Colorspace::JPEG.0,
+    /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601`.
     Bt601Limited = SDL_Colorspace::BT601_LIMITED.0,
+    /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P601`.
     Bt601Full = SDL_Colorspace::BT601_FULL.0,
+    /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709`.
     Bt709Limited = SDL_Colorspace::BT709_LIMITED.0,
+    /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P709`.
     Bt709Full = SDL_Colorspace::BT709_FULL.0,
+    /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P2020`.
     Bt2020Limited = SDL_Colorspace::BT2020_LIMITED.0,
+    /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P2020`.
     Bt2020Full = SDL_Colorspace::BT2020_FULL.0,
 }
 
 impl Colorspace {
+    /// The default colorspace for RGB surfaces if no colorspace is specified.
     pub const RGB_DEFAULT: Self = Self::from_sdl(SDL_Colorspace::RGB_DEFAULT);
+    /// The default colorspace for YUV surfaces if no colorspace is specified.
     pub const YUV_DEFAULT: Self = Self::from_sdl(SDL_Colorspace::YUV_DEFAULT);
 }
 
+/// The access pattern allowed for a texture.
 #[repr(i32)]
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[doc(alias = "SDL_TextureAccess")]
 pub enum TextureAccess {
+    /// Changes rarely, not lockable.
     Static = SDL_TextureAccess::STATIC.0,
+    /// Changes frequently, lockable.
     Streaming = SDL_TextureAccess::STREAMING.0,
+    /// Texture can be used as a render target.
     Target = SDL_TextureAccess::TARGET.0,
 }
 
@@ -173,6 +256,7 @@ impl_enum_transmute!(SDL_TextureAccess, TextureAccess);
 resource_new!(SDL_Texture, Texture, SDL_DestroyTexture);
 
 impl TextureHandle {
+    /// Get the size of a texture, as floating point values.
     #[doc(alias = "SDL_GetTextureSize")]
     pub fn size(&self) -> PointF32 {
         let mut ret = MaybeUninit::<PointF32>::uninit();
@@ -185,6 +269,7 @@ impl TextureHandle {
         }
     }
 
+    /// Get the scale mode used for texture scale operations.
     #[doc(alias = "SDL_GetTextureScaleMode")]
     pub fn scale_mode(&self) -> SDL_ScaleMode {
         let mut ret = MaybeUninit::<SDL_ScaleMode>::uninit();
@@ -196,11 +281,22 @@ impl TextureHandle {
         }
     }
 
+    /// Get the renderer that created a texture.
+    ///
+    /// Returns [`None`] on failure.
     #[doc(alias = "SDL_GetRendererFromTexture")]
     pub fn renderer(&self) -> Option<RendererHandle> {
         RendererHandle::from_ptr(unsafe { SDL_GetRendererFromTexture(self.handle.as_ptr()) })
     }
 
+    /// Set the scale mode used for texture scale operations.
+    ///
+    /// # Remarks
+    ///
+    /// The default texture scale mode is `SDL_SCALEMODE_LINEAR`.
+    ///
+    /// If the scale mode is not supported, the closest supported mode is
+    /// chosen.
     #[doc(alias = "SDL_SetTextureScaleMode")]
     pub fn set_scale_mode(&mut self, sm: SDL_ScaleMode) {
         unsafe {
@@ -210,6 +306,7 @@ impl TextureHandle {
 }
 
 impl traits::BlendMode for TextureHandle {
+    /// Get the blend mode used for texture copy operations.
     #[doc(alias = "SDL_GetTextureBlendMode")]
     fn blend_mode(&self) -> BlendMode {
         let mut ret = MaybeUninit::uninit();
@@ -219,6 +316,13 @@ impl traits::BlendMode for TextureHandle {
         }
     }
 
+    /// Set the blend mode for a texture, used by
+    /// [`RendererHandle::draw`] and its variants.
+    ///
+    /// # Remarks
+    ///
+    /// If the blend mode is not supported, the closest supported mode is
+    /// chosen.
     #[doc(alias = "SDL_SetTextureBlendMode")]
     fn set_blend_mode(&self, bm: BlendMode) {
         unsafe {
@@ -228,6 +332,8 @@ impl traits::BlendMode for TextureHandle {
 }
 
 impl traits::ColorModU8 for TextureHandle {
+    /// Get the additional color value multiplied into render copy
+    /// operations.
     #[doc(alias = "SDL_GetTextureColorMod")]
     fn rgb_mod_u8(&self) -> RgbU8 {
         let mut ret = MaybeUninit::<RgbU8>::uninit();
@@ -246,6 +352,8 @@ impl traits::ColorModU8 for TextureHandle {
         }
     }
 
+    /// Get the additional alpha value multiplied into render copy
+    /// operations.
     #[doc(alias = "SDL_GetTextureAlphaMod")]
     fn alpha_mod_u8(&self) -> u8 {
         let mut ret = MaybeUninit::<u8>::uninit();
@@ -257,6 +365,18 @@ impl traits::ColorModU8 for TextureHandle {
         }
     }
 
+    /// Set an additional color value multiplied into render copy
+    /// operations.
+    ///
+    /// # Remarks
+    ///
+    /// When this texture is rendered, during the copy operation each source
+    /// color channel is modulated by the appropriate color value according
+    /// to the following formula:
+    ///
+    /// `srcC = srcC * (color / 255)`
+    ///
+    /// Color modulation is not always supported by the renderer.
     #[doc(alias = "SDL_SetTextureColorMod")]
     fn set_rgb_mod_u8(&self, rm: RgbU8) {
         unsafe {
@@ -264,6 +384,18 @@ impl traits::ColorModU8 for TextureHandle {
         }
     }
 
+    /// Set an additional alpha value multiplied into render copy
+    /// operations.
+    ///
+    /// # Remarks
+    ///
+    /// When this texture is rendered, during the copy operation the source
+    /// alpha value is modulated by this alpha value according to the
+    /// following formula:
+    ///
+    /// `srcA = srcA * (alpha / 255)`
+    ///
+    /// Alpha modulation is not always supported by the renderer.
     #[doc(alias = "SDL_SetTextureAlphaMod")]
     fn set_alpha_mod_u8(&self, am: u8) {
         unsafe {
@@ -273,6 +405,8 @@ impl traits::ColorModU8 for TextureHandle {
 }
 
 impl traits::ColorModF32 for TextureHandle {
+    /// Get the additional color value multiplied into render copy
+    /// operations.
     #[doc(alias = "SDL_GetTextureColorModFloat")]
     fn rgb_mod_f32(&self) -> RgbF32 {
         let mut ret = MaybeUninit::<RgbF32>::uninit();
@@ -291,6 +425,8 @@ impl traits::ColorModF32 for TextureHandle {
         }
     }
 
+    /// Get the additional alpha value multiplied into render copy
+    /// operations.
     #[doc(alias = "SDL_GetTextureAlphaModFloat")]
     fn alpha_mod_f32(&self) -> f32 {
         let mut ret = MaybeUninit::<f32>::uninit();
@@ -302,6 +438,18 @@ impl traits::ColorModF32 for TextureHandle {
         }
     }
 
+    /// Set an additional color value multiplied into render copy
+    /// operations.
+    ///
+    /// # Remarks
+    ///
+    /// When this texture is rendered, during the copy operation each source
+    /// color channel is modulated by the appropriate color value according
+    /// to the following formula:
+    ///
+    /// `srcC = srcC * color`
+    ///
+    /// Color modulation is not always supported by the renderer.
     #[doc(alias = "SDL_SetTextureColorModFloat")]
     fn set_rgb_mod_f32(&self, rm: RgbF32) {
         unsafe {
@@ -309,6 +457,18 @@ impl traits::ColorModF32 for TextureHandle {
         }
     }
 
+    /// Set an additional alpha value multiplied into render copy
+    /// operations.
+    ///
+    /// # Remarks
+    ///
+    /// When this texture is rendered, during the copy operation the source
+    /// alpha value is modulated by this alpha value according to the
+    /// following formula:
+    ///
+    /// `srcA = srcA * alpha`
+    ///
+    /// Alpha modulation is not always supported by the renderer.
     #[doc(alias = "SDL_SetTextureAlphaModFloat")]
     fn set_alpha_mod_f32(&self, am: f32) {
         unsafe {
@@ -318,6 +478,8 @@ impl traits::ColorModF32 for TextureHandle {
 }
 
 impl TextureHandle {
+    /// Get the properties associated with a texture.
+    ///
     /// Read-only properties of this texture, as documented by
     /// [`SDL_GetTextureProperties`](https://wiki.libsdl.org/SDL3/SDL_GetTextureProperties).
     ///
@@ -356,6 +518,14 @@ impl Texture {
         TextureBuilder::new(renderer, props)
     }
 
+    /// Create a texture for a rendering context.
+    ///
+    /// `fmt` is the pixel format of the texture, `access` its allowed access
+    /// pattern, and `size` its width and height in pixels.
+    ///
+    /// # Remarks
+    ///
+    /// The contents of a texture when first created are not defined.
     #[doc(alias = "SDL_CreateTexture")]
     pub fn new(
         rnd: Ref<Renderer>,
@@ -374,6 +544,19 @@ impl Texture {
         })
     }
 
+    /// Create a texture from an existing surface.
+    ///
+    /// # Remarks
+    ///
+    /// The surface is not modified or freed by this function.
+    ///
+    /// The access hint for the created texture is
+    /// [`TextureAccess::Static`].
+    ///
+    /// The pixel format of the created texture may be different from the
+    /// pixel format of the surface, and can be queried using the
+    /// `SDL_PROP_TEXTURE_FORMAT_NUMBER` property (see
+    /// [`TextureHandle::properties`]).
     #[doc(alias = "SDL_CreateTextureFromSurface")]
     pub fn from_surface(rnd: Ref<Renderer>, surf: Ref<Surface>) -> Result<Texture> {
         Self::from_ptr(unsafe {
