@@ -19,6 +19,8 @@ use crate::{
 
 mod_reexport!(builder);
 
+/// The winding order of the vertices returned by
+/// [`GpuEngineHandle::winding`] drawing data.
 #[repr(i32)]
 #[derive(Clone, Copy)]
 #[doc(alias = "TTF_GPUTextEngineWinding")]
@@ -32,6 +34,9 @@ impl_enum_transmute!(TTF_GPUTextEngineWinding, Winding);
 resource_new!(TTF_TextEngine, GpuEngine, TTF_DestroyGPUTextEngine);
 
 impl GpuEngine {
+    /// Create a text engine for drawing text with the SDL GPU API.
+    ///
+    /// `dev` is the GPU device to use for creating textures and drawing text.
     #[doc(alias = "TTF_CreateGPUTextEngine")]
     pub fn new(dev: Ref<Device>) -> Result<Self> {
         Self::from_ptr(unsafe { TTF_CreateGPUTextEngine(dev.as_ptr()) })
@@ -44,6 +49,10 @@ impl GpuEngine {
 }
 
 impl GpuEngineHandle {
+    /// Get the winding order of the vertices returned by
+    /// [`TextHandle::gpu_draw_data`](crate::ttf::TextHandle::gpu_draw_data) for this GPU text engine.
+    ///
+    /// Returns an error in case of failure.
     #[doc(alias = "TTF_GetGPUTextEngineWinding")]
     pub fn winding(&self) -> Result<Winding> {
         let wind = unsafe { TTF_GetGPUTextEngineWinding(self.as_ptr()) };
@@ -54,6 +63,8 @@ impl GpuEngineHandle {
         }
     }
 
+    /// Set the winding order of the vertices returned by
+    /// [`TextHandle::gpu_draw_data`](crate::ttf::TextHandle::gpu_draw_data) for this GPU text engine.
     #[doc(alias = "TTF_SetGPUTextEngineWinding")]
     pub fn set_winding(&self, wind: Winding) {
         unsafe {
@@ -65,6 +76,7 @@ impl GpuEngineHandle {
 resource_new!(TTF_TextEngine, SurfaceEngine, TTF_DestroySurfaceTextEngine);
 
 impl SurfaceEngine {
+    /// Create a text engine for drawing text on SDL surfaces.
     #[doc(alias = "TTF_CreateSurfaceTextEngine")]
     pub fn new() -> Result<Self> {
         Self::from_ptr(unsafe { TTF_CreateSurfaceTextEngine() })
@@ -78,6 +90,9 @@ resource_new!(
 );
 
 impl RendererEngine {
+    /// Create a text engine for drawing text on an SDL renderer.
+    ///
+    /// `rnd` is the renderer to use for creating textures and drawing text.
     #[doc(alias = "TTF_CreateRendererTextEngine")]
     pub fn new(rnd: Ref<Renderer>) -> Result<Self> {
         Self::from_ptr(unsafe { TTF_CreateRendererTextEngine(rnd.as_ptr()) })
