@@ -1,4 +1,4 @@
-use sdl3_sys::blendmode::SDL_BlendMode;
+use sdl3_sys::{blendmode::SDL_BlendMode, surface::SDL_ScaleMode};
 
 use crate::impl_enum_transmute;
 
@@ -36,3 +36,18 @@ pub enum BlendMode {
 }
 
 impl_enum_transmute!(SDL_BlendMode, BlendMode);
+
+/// The scaling mode.
+#[repr(i32)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+#[doc(alias = "SDL_ScaleMode")]
+pub enum ScaleMode {
+    /// Nearest pixel sampling.
+    Nearest = SDL_ScaleMode::NEAREST.0,
+    /// Linear filtering.
+    Linear = SDL_ScaleMode::LINEAR.0,
+    /// Nearest pixel sampling with improved scaling for pixel art.
+    PixelArt = SDL_ScaleMode::PIXELART.0,
+}
+
+impl_enum_transmute!(SDL_ScaleMode, ScaleMode);

@@ -41,7 +41,7 @@ use crate::{
     Result,
     color::{RgbF32, RgbU8},
     impl_enum_transmute, mod_reexport,
-    pixels::BlendMode,
+    pixels::{BlendMode, ScaleMode},
     properties::{Properties, PropertiesHandle},
     rect::{PointF32, PointI32},
     renderer::{Renderer, RendererHandle},
@@ -271,13 +271,13 @@ impl TextureHandle {
 
     /// Get the scale mode used for texture scale operations.
     #[doc(alias = "SDL_GetTextureScaleMode")]
-    pub fn scale_mode(&self) -> SDL_ScaleMode {
+    pub fn scale_mode(&self) -> ScaleMode {
         let mut ret = MaybeUninit::<SDL_ScaleMode>::uninit();
 
         // SAFETY: This function only reads struct fields.
         unsafe {
             SDL_GetTextureScaleMode(self.handle.as_ptr(), ret.as_mut_ptr());
-            ret.assume_init()
+            ret.assume_init().into()
         }
     }
 
@@ -298,9 +298,9 @@ impl TextureHandle {
     /// If the scale mode is not supported, the closest supported mode is
     /// chosen.
     #[doc(alias = "SDL_SetTextureScaleMode")]
-    pub fn set_scale_mode(&mut self, sm: SDL_ScaleMode) {
+    pub fn set_scale_mode(&mut self, sm: ScaleMode) {
         unsafe {
-            SDL_SetTextureScaleMode(self.handle.as_ptr(), sm);
+            SDL_SetTextureScaleMode(self.handle.as_ptr(), sm.into());
         }
     }
 }

@@ -612,7 +612,7 @@ impl Text {
     /// Insert UTF-8 text into a text object.
     ///
     /// `offset` is the offset, in bytes, from the beginning of the string if
-    /// >= 0, the offset from the end of the string if < 0. Note that this
+    /// \>= 0, the offset from the end of the string if < 0. Note that this
     /// does not do UTF-8 validation, so you should only insert at UTF-8
     /// sequence boundaries.
     ///
@@ -641,7 +641,7 @@ impl Text {
     /// Delete UTF-8 text from a text object.
     ///
     /// `offset` is the offset, in bytes, from the beginning of the string if
-    /// >= 0, the offset from the end of the string if < 0; note that this
+    /// \>= 0, the offset from the end of the string if < 0; note that this
     /// does not do UTF-8 validation, so you should only delete at UTF-8
     /// sequence boundaries. `length` is the length of text to delete, in
     /// bytes, or -1 for the remainder of the string.

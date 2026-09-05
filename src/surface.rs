@@ -63,7 +63,7 @@ use std::mem::MaybeUninit;
 use crate::{
     Result,
     color::{RgbU8, RgbaF32, RgbaU8},
-    pixels::BlendMode,
+    pixels::{BlendMode, ScaleMode},
     rect::{PointI32, RectI32},
     resource::Ref,
     resource_new,
@@ -179,8 +179,10 @@ impl SurfaceHandle {
     /// Create a new surface identical to the existing surface, scaled to
     /// the desired size.
     #[doc(alias = "SDL_ScaleSurface")]
-    pub fn scale(&self, size: PointI32, sm: SDL_ScaleMode) -> Result<Surface> {
-        Surface::from_ptr(unsafe { SDL_ScaleSurface(self.handle.as_ptr(), size.x, size.y, sm) })
+    pub fn scale(&self, size: PointI32, sm: ScaleMode) -> Result<Surface> {
+        Surface::from_ptr(unsafe {
+            SDL_ScaleSurface(self.handle.as_ptr(), size.x, size.y, sm.into())
+        })
     }
 
     /// Map an RGB triple to an opaque pixel value for a surface.
@@ -259,7 +261,7 @@ impl SurfaceHandle {
         target: Ref<Surface>,
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
-        scale_mode: SDL_ScaleMode,
+        scale_mode: ScaleMode,
     ) -> Result<()> {
         to_result(unsafe {
             SDL_StretchSurface(
@@ -267,7 +269,7 @@ impl SurfaceHandle {
                 opt2ptr(src).cast(),
                 target.handle.as_ptr(),
                 opt2ptr(dst).cast(),
-                scale_mode,
+                scale_mode.into(),
             )
         })
     }
@@ -350,7 +352,7 @@ impl SurfaceHandle {
         dst: Option<&PointI32>,
         (left_width, right_width, top_height, bottom_height): (i32, i32, i32, i32),
         scale: f32,
-        scale_mode: SDL_ScaleMode,
+        scale_mode: ScaleMode,
     ) -> Result<()> {
         to_result(unsafe {
             SDL_BlitSurface9Grid(
@@ -361,7 +363,7 @@ impl SurfaceHandle {
                 top_height,
                 bottom_height,
                 scale,
-                scale_mode,
+                scale_mode.into(),
                 target.handle.as_ptr(),
                 opt2ptr(dst).cast(),
             )
@@ -380,7 +382,7 @@ impl SurfaceHandle {
         target: Ref<Surface>,
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
-        scale_mode: SDL_ScaleMode,
+        scale_mode: ScaleMode,
     ) -> Result<()> {
         to_result(unsafe {
             SDL_BlitSurfaceScaled(
@@ -388,7 +390,7 @@ impl SurfaceHandle {
                 opt2ptr(src).cast(),
                 target.handle.as_ptr(),
                 opt2ptr(dst).cast(),
-                scale_mode,
+                scale_mode.into(),
             )
         })
     }
@@ -443,14 +445,14 @@ impl SurfaceHandle {
         src: Option<&PointI32>,
         dst: Option<&PointI32>,
         scale: f32,
-        scale_mode: SDL_ScaleMode,
+        scale_mode: ScaleMode,
     ) -> Result<()> {
         to_result(unsafe {
             SDL_BlitSurfaceTiledWithScale(
                 self.handle.as_ptr(),
                 opt2ptr(src).cast(),
                 scale,
-                scale_mode,
+                scale_mode.into(),
                 target.handle.as_ptr(),
                 opt2ptr(dst).cast(),
             )
