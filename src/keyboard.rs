@@ -33,6 +33,10 @@ use sdl3_sys::{
     scancode::{SDL_SCANCODE_COUNT, SDL_Scancode},
 };
 
+// doc-only
+#[allow(unused_imports)]
+use crate::event::Event;
+
 use crate::{Result, resource::Ref, util::to_result, window::Window};
 
 const NUM_SCANCODES: usize = SDL_SCANCODE_COUNT.0 as usize;
@@ -114,8 +118,8 @@ pub fn mod_state() -> SDL_Keymod {
 ///
 /// # Remarks
 ///
-/// This function will enable text input (`SDL_EVENT_TEXT_INPUT` and
-/// `SDL_EVENT_TEXT_EDITING` events) in the specified window. Please use
+/// This function will enable text input ([`Event::TextInput`] and
+/// [`Event::TextEditing`] events) in the specified window. Please use
 /// this function paired with [`text_input_stop`].
 ///
 /// Text input events are not received by default.

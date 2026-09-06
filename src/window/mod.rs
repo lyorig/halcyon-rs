@@ -120,6 +120,10 @@ use crate::{
     util::{c_ptr_to_str, opt2ptr, opt2res_map, to_result},
 };
 
+// doc-only
+#[allow(unused_imports)]
+use crate::event::Event;
+
 use bitflags::bitflags;
 use sdl3_sys::{
     pixels::SDL_PixelFormat,
@@ -802,7 +806,7 @@ impl WindowHandle {
     /// this function. If an immediate change is required, call
     /// [`WindowHandle::sync`] to block until the changes have taken effect.
     ///
-    /// When the window size changes, an `SDL_EVENT_WINDOW_RESIZED` event will
+    /// When the window size changes, an [`Event::WindowResized`] event will
     /// be emitted with the new window dimensions. Note that the new
     /// dimensions may not match the exact size requested, as some windowing
     /// systems can restrict the window size in certain scenarios
@@ -850,7 +854,7 @@ impl WindowHandle {
     /// this function. If an immediate change is required, call
     /// [`WindowHandle::sync`] to block until the changes have taken effect.
     ///
-    /// When the window position changes, an `SDL_EVENT_WINDOW_MOVED` event
+    /// When the window position changes, an [`Event::WindowMoved`] event
     /// will be emitted with the window's new coordinates. Note that the new
     /// coordinates may not match the exact coordinates requested, as some
     /// windowing systems can restrict the position of the window in certain
@@ -984,8 +988,8 @@ impl WindowHandle {
     /// return of this function. If an immediate change is required, call
     /// [`WindowHandle::sync`] to block until the changes have taken effect.
     ///
-    /// When the window state changes, an `SDL_EVENT_WINDOW_ENTER_FULLSCREEN`
-    /// or `SDL_EVENT_WINDOW_LEAVE_FULLSCREEN` event will be emitted. Note
+    /// When the window state changes, an [`Event::WindowEnteredFullscreen`]
+    /// or [`Event::WindowLeftFullscreen`] event will be emitted. Note
     /// that, as this is just a request, it can be denied by the windowing
     /// system.
     #[doc(alias = "SDL_SetWindowFullscreen")]
@@ -1011,8 +1015,8 @@ impl WindowHandle {
     /// immediate change is required, call [`WindowHandle::sync`] to block
     /// until the changes have taken effect.
     ///
-    /// When the new mode takes effect, an `SDL_EVENT_WINDOW_RESIZED` and/or
-    /// an `SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED` event will be emitted with
+    /// When the new mode takes effect, an [`Event::WindowResized`] and/or
+    /// an [`Event::WindowPixelSizeChanged`] event will be emitted with
     /// the new mode dimensions.
     #[doc(alias = "SDL_SetWindowFullscreenMode")]
     pub fn set_fullscreen_mode(&self, mode: Option<&SDL_DisplayMode>) -> Result<()> {
@@ -1217,7 +1221,7 @@ impl WindowHandle {
     /// policy, particularly if raising the requested window would result in
     /// stealing focus from another application. If the window is
     /// successfully raised and gains input focus, an
-    /// `SDL_EVENT_WINDOW_FOCUS_GAINED` event will be emitted, and the window
+    /// [`Event::WindowFocusGained`] event will be emitted, and the window
     /// will have the `SDL_WINDOW_INPUT_FOCUS` flag set.
     #[doc(alias = "SDL_RaiseWindow")]
     pub fn raise(&self) -> Result<()> {
@@ -1236,7 +1240,7 @@ impl WindowHandle {
     /// this function. If an immediate change is required, call
     /// [`WindowHandle::sync`] to block until the changes have taken effect.
     ///
-    /// When the window state changes, an `SDL_EVENT_WINDOW_MAXIMIZED` event
+    /// When the window state changes, an [`Event::WindowMaximized`] event
     /// will be emitted. Note that, as this is just a request, the windowing
     /// system can deny the state change.
     ///
@@ -1262,7 +1266,7 @@ impl WindowHandle {
     /// this function. If an immediate change is required, call
     /// [`WindowHandle::sync`] to block until the changes have taken effect.
     ///
-    /// When the window state changes, an `SDL_EVENT_WINDOW_MINIMIZED` event
+    /// When the window state changes, an [`Event::WindowMinimized`] event
     /// will be emitted. Note that, as this is just a request, the windowing
     /// system can deny the state change.
     #[doc(alias = "SDL_MinimizeWindow")]
@@ -1284,7 +1288,7 @@ impl WindowHandle {
     /// this function. If an immediate change is required, call
     /// [`WindowHandle::sync`] to block until the changes have taken effect.
     ///
-    /// When the window state changes, an `SDL_EVENT_WINDOW_RESTORED` event
+    /// When the window state changes, an [`Event::WindowRestored`] event
     /// will be emitted. Note that, as this is just a request, the windowing
     /// system can deny the state change.
     #[doc(alias = "SDL_RestoreWindow")]
@@ -1384,7 +1388,7 @@ impl Window {
     /// [`RendererHandle::output_size`] to query the drawable size in pixels.
     /// Note that the drawable size can vary after the window is created and
     /// should be queried again if you get an
-    /// `SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED` event.
+    /// [`Event::WindowPixelSizeChanged`] event.
     ///
     /// If the window is created with any of the [`WindowFlags::OPENGL`] or
     /// [`WindowFlags::VULKAN`] flags, then the corresponding LoadLibrary
