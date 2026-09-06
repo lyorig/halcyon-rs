@@ -131,40 +131,40 @@ fn run() -> Result<()> {
 
     let pipeline = GraphicsPipeline::new(device.as_ref(), &pipeline_info)?;
 
-    let cmdbuf = CommandBuffer::new(device.as_ref())?;
-    let (mut width, mut height) = (0u32, 0u32);
-    if let Some(tex) =
-        cmdbuf.wait_for_swapchain_texture(wnd.as_ref(), (Some(&mut width), Some(&mut height)))?
-    {
-        halcyon::log!("Swapchain texture dimensions = {width}x{height}");
-        let color_target = ColorTargetInfo::new(
-            tex,
-            0,
-            0,
-            RgbaF32::new(0.0, 0.0, 0.0, 1.0),
-            LoadOp::Clear,
-            StoreOp::Store,
-            None,
-            (0, 0),
-            Cycle::No,
-            CycleResolveTexture::No,
-        );
+    CommandBuffer::run(device.as_ref(), |cmdbuf| {
+        let (mut width, mut height) = (0u32, 0u32);
+        if let Some(tex) = cmdbuf
+            .wait_for_swapchain_texture(wnd.as_ref(), (Some(&mut width), Some(&mut height)))?
+        {
+            halcyon::log!("Swapchain texture dimensions = {width}x{height}");
+            let color_target = ColorTargetInfo::new(
+                tex,
+                0,
+                0,
+                RgbaF32::new(0.0, 0.0, 0.0, 1.0),
+                LoadOp::Clear,
+                StoreOp::Store,
+                None,
+                (0, 0),
+                Cycle::No,
+                CycleResolveTexture::No,
+            );
 
-        RenderPass::run(cmdbuf.as_ref(), &[color_target], None, |rp| {
-            pipeline.bind(rp);
-            rp.set_viewport(&Viewport::new(
-                Point::new(0.0, 0.0),
-                Point::new(width as f32, height as f32),
-                (0.0, 1.0),
-            ));
-            rp.draw_primitives(3, 1, 0, 0);
+            RenderPass::run(cmdbuf, &[color_target], None, |rp| {
+                pipeline.bind(rp);
+                rp.set_viewport(&Viewport::new(
+                    Point::new(0.0, 0.0),
+                    Point::new(width as f32, height as f32),
+                    (0.0, 1.0),
+                ));
+                rp.draw_primitives(3, 1, 0, 0);
 
-            Ok(())
-        })?;
-    }
+                Ok(())
+            })?;
+        }
 
-    // Submitting the command buffer also presents the swapchain texture.
-    cmdbuf.submit()?;
+        Ok(())
+    })?;
 
     'frames: loop {
         for event in EventIter::new() {
@@ -173,7 +173,7 @@ fn run() -> Result<()> {
             }
         }
 
-        // Poor man's VSync.
+        // Poor man's Vsync.
         use std::{thread::sleep, time::Duration};
         sleep(Duration::from_millis(10));
     }

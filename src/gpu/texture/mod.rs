@@ -68,6 +68,9 @@ bitflags! {
 }
 
 /// The number of samples per texel for a texture used as a render target.
+///
+/// This enum implements [`TryFrom<u8>`] and [`Into<u8>`] for easy conversions
+/// between the enum variant and actual numeric sample count value.
 #[repr(i32)]
 #[derive(Clone, Copy)]
 #[doc(alias = "SDL_GPUSampleCount")]
@@ -80,6 +83,36 @@ pub enum SampleCount {
     Four = SDL_GPUSampleCount::_4.0,
     /// Eight-sample multisampling.
     Eight = SDL_GPUSampleCount::_8.0,
+}
+
+impl TryFrom<u8> for SampleCount {
+    type Error = ();
+
+    /// Converts a [`u8`] representing the sample count into [`SampleCount`].
+    /// Returns [`Err`] if `count` is not one of the numeric values specified
+    /// by this enum`s variants.
+    fn try_from(value: u8) -> std::result::Result<Self, Self::Error> {
+        match value {
+            1 => Ok(Self::One),
+            2 => Ok(Self::Two),
+            4 => Ok(Self::Four),
+            8 => Ok(Self::Eight),
+            _ => Err(()),
+        }
+    }
+}
+
+impl From<SampleCount> for u8 {
+    /// Converts this enum into a `u8`, whose value represents the numeric value
+    /// of the variant name of `self`.
+    fn from(value: SampleCount) -> Self {
+        match value {
+            SampleCount::One => 1,
+            SampleCount::Two => 2,
+            SampleCount::Four => 4,
+            SampleCount::Eight => 8,
+        }
+    }
 }
 
 /// The pixel format of a texture.
