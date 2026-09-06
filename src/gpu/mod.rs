@@ -35,7 +35,7 @@ use bitflags::bitflags;
 use sdl3_sys::{gpu::*, pixels::SDL_PixelFormat};
 
 use crate::{
-    impl_enum_transmute, mod_reexport, properties::Properties, resource::Ref, texture::PixelFormat,
+    impl_enum_transmute, mod_reexport, pixels::PixelFormat, properties::Properties, resource::Ref,
     util::c_ptr_to_str,
 };
 

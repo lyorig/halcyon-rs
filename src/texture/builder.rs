@@ -4,11 +4,13 @@ use sdl3_sys::render::*;
 
 use crate::{
     Result,
+    pixels::Colorspace,
+    pixels::PixelFormat,
     properties::Properties,
     rect::PointI32,
     renderer::Renderer,
     resource::Ref,
-    texture::{Colorspace, PixelFormat, Texture, TextureAccess},
+    texture::{Texture, TextureAccess},
 };
 
 const CREATE_PROPERTIES: [*const c_char; 7] = [

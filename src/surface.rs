@@ -63,12 +63,11 @@ use std::mem::MaybeUninit;
 use crate::{
     Result,
     color::{RgbU8, RgbaF32, RgbaU8},
+    pixels::PixelFormat,
     pixels::{BlendMode, ScaleMode},
     rect::{PointI32, RectI32},
     resource::Ref,
-    resource_new,
-    texture::PixelFormat,
-    traits,
+    resource_new, traits,
     util::{opt2ptr, to_result},
 };
 

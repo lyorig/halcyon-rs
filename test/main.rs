@@ -4,12 +4,13 @@ use rustest::{Result, main, test};
 
 use halcyon::{
     Context,
+    pixels::PixelFormat,
     properties::Properties,
     rect::{Point, PointI32},
     renderer::Renderer,
     resource::Resource,
     subsystem::Video,
-    texture::{PixelFormat, Texture, TextureAccess},
+    texture::{Texture, TextureAccess},
     window::Window,
 };
 

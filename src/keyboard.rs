@@ -145,6 +145,6 @@ pub fn text_input_stop(wnd: Ref<Window>) -> Result<()> {
 
 /// Check whether or not Unicode text input events are enabled for a window.
 #[doc(alias = "SDL_TextInputActive")]
-pub fn text_input_active(wnd: Ref<Window>) -> bool {
+pub fn is_text_input_active(wnd: Ref<Window>) -> bool {
     unsafe { SDL_TextInputActive(wnd.handle.as_ptr()) }
 }

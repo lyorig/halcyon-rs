@@ -1,10 +1,11 @@
 use halcyon::{
     Context,
+    pixels::PixelFormat,
     properties::Properties,
     rect::Point,
     renderer::Renderer,
     resource::Resource,
-    texture::{PixelFormat, Texture, TextureAccess},
+    texture::{Texture, TextureAccess},
     window::Window,
 };
 use rustest::{Result, test};

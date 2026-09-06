@@ -9,9 +9,10 @@ use sdl3_sys::{
 };
 
 use crate::{
+    pixels::Colorspace,
     properties::{Properties, PropertiesHandle},
     resource::Ref,
-    texture::{Colorspace, PixelFormat, TextureAccess},
+    texture::{PixelFormat, TextureAccess},
 };
 
 /// Read-only properties of a texture, as documented by
